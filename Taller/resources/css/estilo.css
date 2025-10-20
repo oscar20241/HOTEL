@@ -1,0 +1,266 @@
+body {
+  background: linear-gradient(135deg, #0D0D0D 30%, #000000 70%, #0000006a 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  font-family: 'Arial', Tahoma, Geneva, Verdana, sans-serif  ;
+}
+.registro-container {
+  margin-top: 100px;
+  background-color: #ffffffa2;
+  max-width: 800px;
+  margin-left: 120px;
+  margin-right: auto;
+  border-radius: 50px;
+  padding: 40px 50px 50px;
+  border: 1px solid (#d71d1d 100%, #ff9913 100%, #3308db 100%);
+  min-height: 100px;
+  box-shadow: 0 4px 20px var(--color-sombra);
+}
+
+    .registro-container h2 {
+      margin-bottom: 25px;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background-color: #ff45029a;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .btn-primary:hover {
+      background-color: #c37c1fb6;
+      transition: 0.3s;
+    }
+
+     .btn-secondary {
+      background-color: #d71c1c;
+      border: none;
+      border-radius: 5px;
+    }
+
+      .btn-secondary:hover {
+      background-color: #620404;
+      transition: 0.3s;
+    }
+
+    @media (max-width: 576px) {
+      .registro-container {
+        margin: 100px 15px;
+        padding: 20px;
+      }
+    }
+.logo-registro {
+  position: absolute;
+  top: 20px;         /* Ajusta según el espacio que necesites */
+  right: 50px;       /* Lo saca del borde derecho del container */
+  width: 400px;       /* Tamaño más razonable para un logo */
+  height: auto;       /* Mantiene proporción */
+  z-index: 100;       /* Asegura que esté por encima */
+}
+
+.titulo-registro {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #000000; /* Verde como en tu diseño */
+  margin-top: -10px;
+}
+
+.sidebar {
+  width: 220px;
+  height: auto; /* 🔹 Se ajusta automáticamente según los botones */
+  background-color: #f3f4f643;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  border-right: 1px solid #ffffff;
+  margin-top: 0;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 50px;
+}
+
+.sidebar button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background-color: #ffffff92;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar button:hover {
+  background-color: #ff45029a;
+  transform: scale(1.03);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;;
+}
+
+.content h1 {
+  font-size: 2em;
+  color: #ffffff;
+  position: fixed;       /* Fija el elemento */
+  top: 40px;             /* Distancia desde arriba */
+  left: 50%;             /* Centrado horizontalmente */
+  transform: translateX(-50%); /* Centra perfectamente */
+  margin: 0;
+  z-index: 10;           /* Se asegura que quede encima */
+}
+
+.logo {
+  width: 300px;
+  height: auto;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  margin-top: -700px;
+  position: fixed;
+}
+.logo2 {
+  width: 300px;
+  height: auto;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  margin-top: -100px;
+  position: fixed;
+}
+
+.logo3 {
+  width: 300px;
+  height: auto;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  margin-top: -450px;
+  position: fixed;
+}
+.logo4 {
+  width: 300px;
+  height: auto;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  margin-top: -300px;
+  position: fixed;
+}
+
+
+.section {
+  display: none;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 25px;
+  margin-top: -150px;
+  background-color: #ffffff;
+  margin-top: -600px;
+  position:fixed;
+}
+.section2 {
+  display: none;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 25px;
+  margin-top: 100px;
+  background-color: #ffffff;
+  margin-top: -100px;
+  position:fixed;
+}
+.section3 {
+  display: none;
+  max-width: 600px;
+  padding: 20px;
+  border-radius: 25px;
+  margin-top: 100px;
+  background-color: #ffffff;
+  margin-top: -500px;
+  position:fixed;
+}
+.section4 {
+  display: none;
+  max-width: 600px;
+  padding: 20px;
+  border-radius: 25px;
+  margin-top: 100px;
+  background-color: #ffffff;
+  margin-top: -100px;
+  position:fixed;
+}
+.welcome-message {
+  background: linear-gradient(135deg, #ffffff 30%, #ffffff65 70%, #ffffff 100%);
+  padding: 0px 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  max-width: 300px;
+  margin: 5px auto;
+  transition: all 0.5s ease;
+  min-height: 35vh;  /* Reducido a 35vh */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: -200px;
+  position: fixed;  
+}
+.welcome-message2 {
+  background: linear-gradient(135deg, #ffffff 30%, #ffffff80 70%, #ffffff 100%);
+  padding: 0px 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  max-width: 300px;
+  margin: 5px auto;
+  transition: all 0.5s ease;
+  min-height: 35vh;  /* Reducido a 35vh */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 350px;
+  position: fixed;  
+}
+
+.welcome-message3 {
+  background: linear-gradient(135deg, #ffffff 30%, #ffffff80 70%, #ffffff 100%);
+  padding: 0px 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  max-width: 300px;
+  margin: 5px auto;
+  transition: all 0.5s ease;
+  min-height: 35vh;  /* Reducido a 35vh */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 100px;
+  position: fixed;  
+}
+
+.welcome-message4 {
+  background: linear-gradient(135deg, #ffffff 30%, #ffffff80 70%, #ffffff 100%);
+  padding: 0px 20px;
+  border-radius: 15px;
+  border: 1px solid rgb(255, 255, 255);
+  max-width: 300px;
+  margin: 5px auto;
+  transition: all 0.5s ease;
+  min-height: 35vh;  /* Reducido a 35vh */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 220px;
+  position: fixed;  
+}
