@@ -7,7 +7,7 @@
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
        @vite(['resources/css/estilo.css', 'resources/js/app.js'])
-       <img src="logo.PNG" alt="Logo de registro" class="logo-registro">
+       <img src="{{ asset('IMG/logo.png') }}" alt="Logo de registro" Class="logo-registro">
     <title>Inicio de Sesión</title>
 </head>
 <body>

@@ -16,7 +16,7 @@
   <!-- Contenido principal -->
   <div class="content">
     <h1><strong>Bienvenido, Juan</strong></h1>
-    <img src="logo.PNG" alt="logo" class="logo2" id="mainLogo">
+    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo2" id="mainLogo">
     <!-- Mensaje de bienvenida inicial -->
     <div id="welcomeMessage" class="welcome-message2">
       <h2>Bienvenido a tu Panel de Control</h2>

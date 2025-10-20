@@ -13,7 +13,7 @@
 </head>
 <body>
   <main class="registro-container">
-    <img src="logo.png" alt="Logo de registro" class="logo-registro">
+    <img src="{{ asset('IMG/logo.png') }}" alt="Logo de registro" Class="logo-registro">
     <h2 class="titulo-registro">Agendar Cita y Servicios</h2>
 
     <!-- Mensaje oculto al inicio -->
