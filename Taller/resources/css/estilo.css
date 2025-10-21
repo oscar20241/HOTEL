@@ -102,6 +102,13 @@ body {
   transform: scale(1.03);
 }
 
+.sidebar i {
+  font-size: 18px;
+  color: #000000;
+  width: 35px; /* da un ancho fijo para que los textos queden alineados */
+  text-align: center;
+}
+
 .content {
   flex: 1;
   display: flex;
@@ -128,7 +135,7 @@ body {
   height: auto;
   opacity: 0.7;
   transition: opacity 0.3s ease;
-  margin-top: -700px;
+  margin-top: -350px;
   position: fixed;
 }
 .logo2 {
@@ -165,8 +172,9 @@ body {
   border-radius: 25px;
   margin-top: -150px;
   background-color: #ffffff;
-  margin-top: -600px;
+  margin-top: -300px;
   position:fixed;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .section2 {
   display: none;
@@ -211,7 +219,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: -200px;
+  margin-top: 100px;
   position: fixed;  
 }
 .welcome-message2 {
