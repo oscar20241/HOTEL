@@ -22,8 +22,7 @@
   <!-- Contenido principal -->
   <div class="content">
     <h1><strong>Bienvenido, Juan</strong></h1>
-    <img src="logo.PNG" alt="logo" class="logo" id="mainLogo">
-    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo">
+    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo" id="mainLogo">
     <!-- Mensaje de bienvenida inicial -->
     <div id="welcomeMessage" class="welcome-message">
       <h2>Bienvenido a tu Panel de Control</h2>

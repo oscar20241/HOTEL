@@ -66,7 +66,7 @@
       }, 300);
 
       // Ocultar todas las secciones con transición
-      const sections = document.querySelectorAll(".section");
+      const sections = document.querySelectorAll(".section4");
       sections.forEach(sec => {
         sec.style.opacity = "0";
         sec.style.transform = "translateY(20px)";
@@ -112,7 +112,7 @@
     // Función para volver al inicio (puedes agregar un botón si lo necesitas)
     function showWelcome() {
       // Ocultar todas las secciones
-      const sections = document.querySelectorAll(".section");
+      const sections = document.querySelectorAll(".section4");
       sections.forEach(sec => {
         sec.style.opacity = "0";
         sec.style.transform = "translateY(20px)";
