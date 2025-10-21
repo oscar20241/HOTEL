@@ -4,24 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Usuario</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- Para iconos modernos -->
-  <link rel="stylesheet" href="estilo.css">
+  @vite(['resources/css/estilo.css', 'resources/js/app.js'])
 </head>
+
+
 <body>
   <!-- Panel lateral -->
-  <div class="sidebar" id="sidebar">
-    <button onclick="showSection('misCitas')"><i class="fas fa-calendar-check"></i>Mis Citas</button>
-    <button onclick="showSection('NuevaCita')"><i class="fas fa-plus-circle"></i>Nueva Cita</button>
-    <button onclick="showSection('modificarCita')"><i class="fas fa-edit"></i>Modificar Cita</button>
-    <button onclick="showSection('historial')"><i class="fas fa-history"></i>Historial Citas</button>
-    <button onclick="showSection('cancelar')"><i class="fas fa-times-circle"></i>Cancelar Cita</button>
-    <button onclick="showSection('recordatorios')"><i class="fas fa-bell"></i>Recordatorios</button>
+  <div class="sidebar">
+    <button onclick="showSection('misCitas')"><i class="fas fa-calendar-check"></i>Mis Citas</button><br>
+    <button onclick="showSection('NuevaCita')"><i class="fas fa-plus-circle"></i>Nueva Cita</button><br>
+    <button onclick="showSection('modificarCita')"><i class="fas fa-edit"></i>Modificar Cita</button><br>
+    <button onclick="showSection('historial')"><i class="fas fa-history"></i>Historial Citas</button><br>
+    <button onclick="showSection('cancelar')"><i class="fas fa-times-circle"></i>Cancelar Cita</button><br>
+    <button onclick="showSection('recordatorios')"><i class="fas fa-bell"></i>Recordatorios</button><br>
   </div>
 
   <!-- Contenido principal -->
-  <div class="content" id="content">
+  <div class="content">
     <h1><strong>Bienvenido, Juan</strong></h1>
-    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo" id="mainLogo">
+    <img src="logo.PNG" alt="logo" class="logo" id="mainLogo">
+    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo">
     <!-- Mensaje de bienvenida inicial -->
     <div id="welcomeMessage" class="welcome-message">
       <h2>Bienvenido a tu Panel de Control</h2>
@@ -98,7 +100,8 @@
       // Ocultar todas las secciones con transición
       const sections = document.querySelectorAll(".section");
       sections.forEach(sec => {
-        sec.classList.remove("show");
+        sec.style.opacity = "0";
+        sec.style.transform = "translateY(20px)";
         setTimeout(() => {
           sec.style.display = "none";
         }, 300);
@@ -110,7 +113,8 @@
         setTimeout(() => {
           selected.style.display = "block";
           setTimeout(() => {
-            selected.classList.add("show");
+            selected.style.opacity = "1";
+            selected.style.transform = "translateY(0)";
           }, 50);
         }, 300);
       }
@@ -126,12 +130,14 @@
       logo.style.display = "block";
       setTimeout(() => {
         logo.style.opacity = "1";
+        logo.style.transition = "opacity 0.5s ease";
       }, 100);
 
       // Mostrar mensaje de bienvenida
       if (welcomeMessage) {
         welcomeMessage.style.display = "block";
         welcomeMessage.style.opacity = "1";
+        welcomeMessage.style.transition = "opacity 0.5s ease";
       }
     });
 
@@ -140,7 +146,8 @@
       // Ocultar todas las secciones
       const sections = document.querySelectorAll(".section");
       sections.forEach(sec => {
-        sec.classList.remove("show");
+        sec.style.opacity = "0";
+        sec.style.transform = "translateY(20px)";
         setTimeout(() => {
           sec.style.display = "none";
         }, 300);
@@ -156,17 +163,11 @@
         
         setTimeout(() => {
           logo.style.opacity = "1";
+          logo.style.transform = "scale(1)";
           welcomeMessage.style.opacity = "1";
+          welcomeMessage.style.transform = "translateY(0)";
         }, 50);
       }, 300);
-    }
-
-    // Para móviles: toggle sidebar
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      const content = document.getElementById("content");
-      sidebar.classList.toggle("open");
-      content.classList.toggle("sidebar-open");
     }
   </script>
 </body>

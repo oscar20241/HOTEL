@@ -4,75 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Usuario</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- Para iconos modernos -->
-  <link rel="stylesheet" href="estilo.css">
+  
+  @vite(['resources/css/estilo.css', 'resources/js/app.js'])
 </head>
 <body>
   <!-- Panel lateral -->
-  <div class="sidebar" id="sidebar">
-    <button onclick="showSection('misCitas')"><i class="fas fa-calendar-check"></i>Mis Citas</button>
-    <button onclick="showSection('NuevaCita')"><i class="fas fa-plus-circle"></i>Nueva Cita</button>
-    <button onclick="showSection('modificarCita')"><i class="fas fa-edit"></i>Modificar Cita</button>
-    <button onclick="showSection('historial')"><i class="fas fa-history"></i>Historial Citas</button>
-    <button onclick="showSection('cancelar')"><i class="fas fa-times-circle"></i>Cancelar Cita</button>
-    <button onclick="showSection('recordatorios')"><i class="fas fa-bell"></i>Recordatorios</button>
+  <div class="sidebar">
+    <button onclick="showSection('Asignar')">Asignar Citas</button><br>
+    <button onclick="showSection('Generar')">Generar Reportes de servicios</button><br>
+    <button onclick="showSection('Definir')">Definir tipos de Servicios</button><br>
+    <button onclick="showSection('Estadistica')">Ver estadisticas de puntualidad</button><br>
   </div>
 
   <!-- Contenido principal -->
-  <div class="content" id="content">
+  <div class="content">
     <h1><strong>Bienvenido, Juan</strong></h1>
-    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo" id="mainLogo">
+    <img src="{{ asset('IMG/logo.png') }}" alt="logo" Class="logo3" id="mainLogo">
     <!-- Mensaje de bienvenida inicial -->
-    <div id="welcomeMessage" class="welcome-message">
+    <div id="welcomeMessage" class="welcome-message3">
       <h2>Bienvenido a tu Panel de Control</h2>
       <p>Selecciona una opción del menú lateral para comenzar.</p>
     </div>
 
-    <div id="misCitas" class="section">
-      <h2>Mis Citas</h2>
-      <p>Aquí se mostrarán todas tus citas programadas.</p>
+    <div id="Asignar" class="section3">
+      <h2>Asignar Citas</h2>
       <div class="section-content">
         <!-- Contenido adicional para mis citas puede ir aquí -->
       </div>
     </div>
 
-    <div id="modificarCita" class="section">
-      <h2>Modificar Cita</h2>
-      <p>Desde aquí podrás cambiar la fecha o detalles de una cita.</p>
+    <div id="Generar" class="section3">
+      <h2>Generar Citas</h2>
       <div class="section-content">
         <!-- Contenido adicional para modificar cita puede ir aquí -->
       </div>
     </div>
 
-    <div id="NuevaCita" class="section">
-      <h2>Nueva Cita</h2>
-      <p>Desde aquí podrás crear una nueva cita.</p>
+    <div id="Definir" class="section3">
+      <h2>Tipo de Servicio</h2>
       <div class="section-content">
         <!-- Contenido adicional para nueva cita puede ir aquí -->
       </div>
     </div>
 
-    <div id="historial" class="section">
-      <h2>Historial de Citas</h2>
-      <p>Consulta el historial de todas las citas anteriores.</p>
+    <div id="Estadistica" class="section3">
+      <h2>Ver Estadistica</h2>
       <div class="section-content">
         <!-- Contenido adicional para historial puede ir aquí -->
-      </div>
-    </div>
-
-    <div id="cancelar" class="section">
-      <h2>Cancelar Cita</h2>
-      <p>Puedes cancelar una cita próxima desde este panel.</p>
-      <div class="section-content">
-        <!-- Contenido adicional para cancelar cita puede ir aquí -->
-      </div>
-    </div>
-
-    <div id="recordatorios" class="section">
-      <h2>Recordatorios</h2>
-      <p>Aquí podrás ver y configurar tus recordatorios.</p>
-      <div class="section-content">
-        <!-- Contenido adicional para recordatorios puede ir aquí -->
       </div>
     </div>
   </div>
@@ -98,7 +76,8 @@
       // Ocultar todas las secciones con transición
       const sections = document.querySelectorAll(".section");
       sections.forEach(sec => {
-        sec.classList.remove("show");
+        sec.style.opacity = "0";
+        sec.style.transform = "translateY(20px)";
         setTimeout(() => {
           sec.style.display = "none";
         }, 300);
@@ -110,7 +89,8 @@
         setTimeout(() => {
           selected.style.display = "block";
           setTimeout(() => {
-            selected.classList.add("show");
+            selected.style.opacity = "1";
+            selected.style.transform = "translateY(0)";
           }, 50);
         }, 300);
       }
@@ -126,12 +106,14 @@
       logo.style.display = "block";
       setTimeout(() => {
         logo.style.opacity = "1";
+        logo.style.transition = "opacity 0.5s ease";
       }, 100);
 
       // Mostrar mensaje de bienvenida
       if (welcomeMessage) {
         welcomeMessage.style.display = "block";
         welcomeMessage.style.opacity = "1";
+        welcomeMessage.style.transition = "opacity 0.5s ease";
       }
     });
 
@@ -140,7 +122,8 @@
       // Ocultar todas las secciones
       const sections = document.querySelectorAll(".section");
       sections.forEach(sec => {
-        sec.classList.remove("show");
+        sec.style.opacity = "0";
+        sec.style.transform = "translateY(20px)";
         setTimeout(() => {
           sec.style.display = "none";
         }, 300);
@@ -156,17 +139,11 @@
         
         setTimeout(() => {
           logo.style.opacity = "1";
+          logo.style.transform = "scale(1)";
           welcomeMessage.style.opacity = "1";
+          welcomeMessage.style.transform = "translateY(0)";
         }, 50);
       }, 300);
-    }
-
-    // Para móviles: toggle sidebar
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      const content = document.getElementById("content");
-      sidebar.classList.toggle("open");
-      content.classList.toggle("sidebar-open");
     }
   </script>
 </body>
