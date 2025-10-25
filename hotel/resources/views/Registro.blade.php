@@ -36,6 +36,11 @@
             <input type="email" class="form-control" id="correo" placeholder="correo@ejemplo.com" required>
           </div>
 
+           <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password" placeholder="password" required>
+          </div>
+
           <div class="mb-3">
             <label for="telefono" class="form-label">Teléfono</label>
             <input type="tel" class="form-control" id="telefono" placeholder="Ej. 555-123-4567" required>
