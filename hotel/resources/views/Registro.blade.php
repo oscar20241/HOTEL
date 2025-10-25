@@ -99,7 +99,7 @@ document.getElementById("formReservacion").addEventListener("submit", function(e
   // Redirigir después de 1.5 segundos
   setTimeout(() => {
     alerta.classList.add("d-none"); // Ocultar alerta
-    window.location.href = "{{ route('registro') }}"; // Cambia a tu ruta
+    window.location.href = "{{ route('Registro') }}"; // Cambia a tu ruta
   }, 1500);
 });
 </script>
