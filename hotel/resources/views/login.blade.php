@@ -14,12 +14,12 @@
     <h2 class="mb-4">Iniciar Sesión</h2>
     <form id="formLogin">
       <div class="mb-3 text-start">
-        <label for="mail" class="form-label"><strong>Correo Electrónico</strong></label>
-        <input type="mail" class="form-control" id="mail" placeholder="correo@ejemplo.com" required />
+        <label for="email" class="form-label"><strong>Correo Electrónico</strong></label>
+        <input type="email" class="form-control" id="email" placeholder="correo@ejemplo.com" required />
       </div>
 
       <div class="mb-3 text-start">
-        <label for="password" class="form-label"><strong>Correo Electrónico</strong></label>
+        <label for="password" class="form-label"><strong>Contraseña</strong></label>
         <input type="password" class="form-control" id="password" placeholder="Su Contraseña" required />
       </div>
 
