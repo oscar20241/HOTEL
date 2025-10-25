@@ -119,11 +119,23 @@
         <p>Información del huésped, preferencias y datos personales.</p>
       </div>
 
-      <!-- 🔒 CERRAR SESIÓN -->
+      <!-- 🔒 CERRAR SESIÓN - CON FORMULARIO FUNCIONAL -->
       <div id="cerrar" class="seccion">
         <h2>Cerrar sesión</h2>
         <p>¿Estás seguro que deseas salir?</p>
-        <button class="btn btn-danger">Confirmar</button>
+        
+        <!-- Formulario funcional de logout -->
+        <form method="POST" action="{{ route('logout') }}" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-danger">
+            Confirmar
+          </button>
+        </form>
+        
+        <!-- Botón para cancelar y volver al inicio -->
+        <button class="btn btn-secondary" onclick="mostrarSeccion('inicio')">
+          Cancelar
+        </button>
       </div>
 
     </main>
@@ -214,6 +226,23 @@
         if (targetSection) targetSection.classList.add('visible');
       });
     });
+
+    // Función para mostrar sección específica
+    function mostrarSeccion(seccionId) {
+      links.forEach(l => l.classList.remove('active'));
+      secciones.forEach(sec => sec.classList.remove('visible'));
+      
+      // Activar el link correspondiente a "Inicio"
+      const inicioLink = document.querySelector('[data-target="inicio"]');
+      if (inicioLink) {
+        inicioLink.classList.add('active');
+      }
+      
+      const seccion = document.getElementById(seccionId);
+      if (seccion) {
+        seccion.classList.add('visible');
+      }
+    }
   </script>
 </body>
 </html>

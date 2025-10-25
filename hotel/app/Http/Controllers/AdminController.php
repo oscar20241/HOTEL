@@ -7,16 +7,16 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        return view('admin.dashboard');
+        return view('Gerente');
     }
     
     public function empleados()
     {
-        return view('admin.empleados');
+        return view('Gerente');
     }
     
     public function reportes()
     {
-        return view('admin.reportes');
+        return view('Gerente');
     }
 }

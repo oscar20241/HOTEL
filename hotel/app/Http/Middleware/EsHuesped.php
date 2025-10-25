@@ -12,6 +12,6 @@ class EsHuesped
             return $next($request);
         }
         
-        return redirect('/dashboard')->with('error', 'No tienes permisos para acceder');
+        return redirect('/')->with('error', 'No tienes permisos para acceder');
     }
 }

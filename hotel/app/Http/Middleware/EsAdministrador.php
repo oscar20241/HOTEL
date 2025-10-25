@@ -12,6 +12,6 @@ class EsAdministrador
             return $next($request);
         }
         
-        return redirect('/dashboard')->with('error', 'No tienes permisos de administrador');
+        return redirect('/')->with('error', 'No tienes permisos de administrador');
     }
 }

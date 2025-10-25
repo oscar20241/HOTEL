@@ -6,6 +6,7 @@
   <title>Inicio de Sesión - Hotel</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+   
 </head>
 <body>
   <main class="login-box text-center" style="max-width: 400px; margin: 100px auto; padding: 20px;">
@@ -37,6 +38,14 @@
       <button type="submit" class="btn btn-primary w-100">
         <i class="fa fa-sign-in-alt"></i> Iniciar Sesión
       </button>
+
+<!-- Botón de registro destacado -->
+<div class="mt-3 text-center">
+    <a href="{{ route('registro') }}" class="btn btn-success w-100">
+        <i class="fas fa-user-plus"></i> Regístrate Aquí
+    </a>
+</div>
+
     </form>
     
     <!-- Datos de prueba -->

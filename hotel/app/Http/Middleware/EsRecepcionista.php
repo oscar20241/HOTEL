@@ -12,6 +12,6 @@ class EsRecepcionista
             return $next($request);
         }
         
-        return redirect('/dashboard')->with('error', 'No tienes permisos de recepcionista');
+        return redirect('/')->with('error', 'No tienes permisos de recepcionista');
     }
 }
