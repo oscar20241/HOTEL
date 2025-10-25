@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TipoHabitacion extends Model
 {
     use HasFactory;
+    protected $table = 'tipos_habitacion';
 
     protected $fillable = ['nombre', 'descripcion', 'capacidad', 'precio_base'];
 

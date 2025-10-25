@@ -1,24 +1,46 @@
 <?php
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\RecepcionistaController;
+use App\Http\Controllers\HuespedController;
 
-use Illuminate\Support\Facades\Route;
-
+// Rutas públicas
 Route::get('/', function () {
     return view('login');
-})->name('login');
+});
 
+// Rutas de autenticación (las de Breeze)
+require __DIR__.'/auth.php';
 
-Route::get('/Gerente', function () {
-    return view('Gerente');
-})->name('Gerente');
+// Dashboard principal (redirige según rol)
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+    
+    if ($user->esAdministrador()) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->esRecepcionista()) {
+        return redirect()->route('recepcionista.dashboard');
+    } else {
+        return redirect()->route('huesped.dashboard');
+    }
+})->middleware(['auth'])->name('dashboard');
 
-Route::get('/Recepcionista', function () {
-    return view('Recepcionista');
-})->name('Recepcionista');
+// Rutas de ADMINISTRADOR
+Route::prefix('admin')->middleware(['auth', 'es.admin'])->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/empleados', [AdminController::class, 'empleados'])->name('admin.empleados');
+    Route::get('/reportes', [AdminController::class, 'reportes'])->name('admin.reportes');
+});
 
-Route::get('/Registro', function () {
-    return view('Registro');
-})->name('Registro');
+// Rutas de RECEPCIONISTA
+Route::prefix('recepcionista')->middleware(['auth', 'es.recepcionista'])->group(function () {
+    Route::get('/dashboard', [RecepcionistaController::class, 'dashboard'])->name('recepcionista.dashboard');
+    Route::get('/reservaciones', [RecepcionistaController::class, 'reservaciones'])->name('recepcionista.reservaciones');
+    Route::get('/checkin', [RecepcionistaController::class, 'checkin'])->name('recepcionista.checkin');
+});
 
-route::get('/Huesped', function () {
-    return view('Huesped');
-})->name('Huesped');
+// Rutas de HUÉSPED
+Route::prefix('huesped')->middleware(['auth', 'es.huesped'])->group(function () {
+    Route::get('/dashboard', [HuespedController::class, 'dashboard'])->name('huesped.dashboard');
+    Route::get('/reservar', [HuespedController::class, 'reservar'])->name('huesped.reservar');
+    Route::get('/mis-reservaciones', [HuespedController::class, 'misReservaciones'])->name('huesped.mis-reservaciones');
+});

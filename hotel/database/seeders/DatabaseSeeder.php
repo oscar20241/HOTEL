@@ -1,5 +1,4 @@
 <?php
-// database/seeders/DatabaseSeeder.php
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -11,7 +10,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TiposHabitacionSeeder::class,
             HabitacionesSeeder::class,
-            UsersSeeder::class,
+            UsersSeeder::class, // ← Asegúrate de que esté aquí
         ]);
     }
 }

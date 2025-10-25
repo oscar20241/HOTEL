@@ -8,7 +8,10 @@ use Illuminate\Support\Str;
 
 class Empleado extends Model
 {
+
     use HasFactory;
+
+    protected $table = 'empleados';
 
     protected $fillable = [
         'user_id',

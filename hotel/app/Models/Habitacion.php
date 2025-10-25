@@ -9,6 +9,8 @@ use Carbon\Carbon;
 class Habitacion extends Model
 {
     use HasFactory;
+    
+    protected $table = 'habitaciones';
 
     protected $fillable = ['numero', 'tipo_habitacion_id', 'estado', 'caracteristicas'];
 
