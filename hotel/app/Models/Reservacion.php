@@ -10,7 +10,7 @@ class Reservacion extends Model
 {
     use HasFactory;
     protected $table = 'reservaciones';
-
+    
     protected $fillable = [
         'codigo_reserva',
         'user_id',
