@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class TipoHabitacion extends Model
 {
     use HasFactory;
+<<<<<<< HEAD
+=======
+    protected $table = 'tipos_habitacion';
+>>>>>>> d3a78b76a17d842439eea092664b7c7eb0f5309e
 
     protected $fillable = ['nombre', 'descripcion', 'capacidad', 'precio_base'];
 

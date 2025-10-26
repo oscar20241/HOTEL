@@ -9,6 +9,10 @@ use Illuminate\Support\Str;
 class Reservacion extends Model
 {
     use HasFactory;
+<<<<<<< HEAD
+=======
+    protected $table = 'reservaciones';
+>>>>>>> d3a78b76a17d842439eea092664b7c7eb0f5309e
 
     protected $fillable = [
         'codigo_reserva',

@@ -10,6 +10,7 @@
 
   <!-- Estilos personalizados -->
   @vite(['resources/css/estilo.css'])
+  @vite(['resources/css/huesped.css'])
 
   <!-- Iconos -->
   <script src="https://kit.fontawesome.com/a2d04a4f5d.js" crossorigin="anonymous"></script>
@@ -114,16 +115,45 @@
       </div>
 
       <!-- 👤 PERFIL -->
-      <div id="perfil" class="seccion">
-        <h2>Perfil</h2>
-        <p>Información del huésped, preferencias y datos personales.</p>
-      </div>
+     <div id="perfil" class="seccion">
+  <h2>Perfil</h2>
+  <p>Información del huésped, preferencias y datos personales.</p>
 
-      <!-- 🔒 CERRAR SESIÓN -->
+  <div class="perfil-container">
+    <div class="perfil-info">
+      <label>Nombre completo:</label>
+      <input type="text" id="nombreHuesped" class="perfil-input" readonly>
+
+      <label>Correo electrónico:</label>
+      <input type="email" id="correoHuesped" class="perfil-input" readonly>
+
+      <label>Teléfono:</label>
+      <input type="tel" id="telefonoHuesped" class="perfil-input" readonly>
+
+      <label>Género detectado:</label>
+      <input type="text" id="generoHuesped" class="perfil-input" readonly>
+    </div>
+  </div>
+</div>
+
+
+      <!-- 🔒 CERRAR SESIÓN - CON FORMULARIO FUNCIONAL -->
       <div id="cerrar" class="seccion">
         <h2>Cerrar sesión</h2>
         <p>¿Estás seguro que deseas salir?</p>
-        <button class="btn btn-danger">Confirmar</button>
+        
+        <!-- Formulario funcional de logout -->
+        <form method="POST" action="{{ route('logout') }}" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-danger">
+            Confirmar
+          </button>
+        </form>
+        
+        <!-- Botón para cancelar y volver al inicio -->
+        <button class="btn btn-secondary" onclick="mostrarSeccion('inicio')">
+          Cancelar
+        </button>
       </div>
 
     </main>
@@ -214,6 +244,23 @@
         if (targetSection) targetSection.classList.add('visible');
       });
     });
+
+    // Función para mostrar sección específica
+    function mostrarSeccion(seccionId) {
+      links.forEach(l => l.classList.remove('active'));
+      secciones.forEach(sec => sec.classList.remove('visible'));
+      
+      // Activar el link correspondiente a "Inicio"
+      const inicioLink = document.querySelector('[data-target="inicio"]');
+      if (inicioLink) {
+        inicioLink.classList.add('active');
+      }
+      
+      const seccion = document.getElementById(seccionId);
+      if (seccion) {
+        seccion.classList.add('visible');
+      }
+    }
   </script>
 </body>
 </html>

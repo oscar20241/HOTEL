@@ -1,24 +1,42 @@
 <?php
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\RecepcionistaController;
+use App\Http\Controllers\HuespedController;
 
-use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('login');
-})->name('login');
-
-
-Route::get('/Gerente', function () {
-    return view('Gerente');
-})->name('Gerente');
-
-Route::get('/Recepcionista', function () {
-    return view('Recepcionista');
-})->name('Recepcionista');
-
-Route::get('/Registro', function () {
+Route::get('/registro', function () {
     return view('Registro');
-})->name('Registro');
+})->name('registro');
+// Ruta PRINCIPAL - funciona para ambos: login y dashboard
+Route::get('/', function () {
+    // Si está autenticado, mostrar dashboard según rol
+    if (auth()->check()) {
+        $user = auth()->user();
+        
+        if ($user->esAdministrador()) {
+            return view('Gerente');
+        } elseif ($user->esRecepcionista()) {
+            return view('Recepcionista');
+        } else {
+            return view('Huesped');
+        }
+    }
+    
+    // Si no está autenticado, mostrar login
+    return view('login');
+});
 
-route::get('/Huesped', function () {
-    return view('Huesped');
-})->name('Huesped');
+// Rutas de autenticación (Breeze)
+require __DIR__.'/auth.php';
+
+// La ruta /dashboard puede redirigir a /
+Route::get('/dashboard', function () {
+    return redirect('/');
+})->middleware(['auth'])->name('dashboard');
+
+// Tus otras rutas de admin, recepcionista, huésped...
+Route::prefix('admin')->middleware(['auth', 'es.admin'])->group(function () {
+    Route::get('/empleados', [AdminController::class, 'empleados'])->name('admin.empleados');
+    Route::get('/reportes', [AdminController::class, 'reportes'])->name('admin.reportes');
+});
+
+// ... resto de tus rutas
