@@ -13,4 +13,4 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class, // ← Asegúrate de que esté aquí
         ]);
     }
-}po
+}
