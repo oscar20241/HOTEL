@@ -12,8 +12,12 @@ class Reservacion extends Model
 <<<<<<< HEAD
 =======
     protected $table = 'reservaciones';
+<<<<<<< HEAD
 >>>>>>> d3a78b76a17d842439eea092664b7c7eb0f5309e
 
+=======
+    
+>>>>>>> 3ad3049a207d5a6b128c9660816c85a6a4e00cd2
     protected $fillable = [
         'codigo_reserva',
         'user_id',
