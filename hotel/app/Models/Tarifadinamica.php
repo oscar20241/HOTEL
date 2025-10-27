@@ -8,10 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class TarifaDinamica extends Model
 {
     use HasFactory;
-<<<<<<< HEAD
-=======
+    
     protected $table = 'tarifas_dinamicas';
->>>>>>> d3a78b76a17d842439eea092664b7c7eb0f5309e
 
     protected $fillable = [
         'tipo_habitacion_id',

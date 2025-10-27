@@ -2,6 +2,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\RecepcionistaController;
 use App\Http\Controllers\HuespedController;
+use App\Http\Controllers\Auth\RegisterController;
+
 
 Route::get('/registro', function () {
     return view('Registro');
@@ -40,3 +42,10 @@ Route::prefix('admin')->middleware(['auth', 'es.admin'])->group(function () {
 });
 
 // ... resto de tus rutas
+
+// routes/web.php
+use App\Http\Controllers\RegistroController;
+
+// Rutas de registro
+Route::get('/registro', [RegistroController::class, 'create'])->name('registro');
+Route::post('/registro', [RegistroController::class, 'store'])->name('registro.store');

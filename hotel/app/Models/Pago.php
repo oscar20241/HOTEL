@@ -8,10 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Pago extends Model
 {
     use HasFactory;
-<<<<<<< HEAD
-=======
+    
     protected $table = 'pagos';
->>>>>>> d3a78b76a17d842439eea092664b7c7eb0f5309e
 
     protected $fillable = [
         'reservacion_id',
