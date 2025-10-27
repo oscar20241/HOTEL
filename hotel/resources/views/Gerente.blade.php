@@ -6,6 +6,7 @@
   <title>Gerente | Pasa el Extra Inn</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   @vite(['resources/css/estilo.css'])
+  @vite(['resources/css/gerente.css'])
   <script src="https://kit.fontawesome.com/a2d04a4f5d.js" crossorigin="anonymous"></script>
   <!-- Font Awesome 5 (versión sólida) -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
@@ -75,16 +76,61 @@
 
       <!-- Sección: Reservas -->
       <div id="reservas" class="seccion">
-        <h2>Reservasciones</h2>
-        <p>Gestión completa de todas las reservas del hotel.</p>
-      </div>
+  <h2>Reservaciones</h2>
+  <p>Gestión completa de todas las reservas del hotel.</p>
 
+  <div class="reservas-container">
+    <input 
+      type="text" 
+      id="buscarReserva" 
+      class="reservas-input" 
+      placeholder="Buscar por nombre o número de habitación..."
+    />
+
+    <table class="tabla-reservas">
+      <thead>
+        <tr>
+          <th># Habitación</th>
+          <th>Huésped</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="listaReservas">
+        <!-- Las reservaciones se cargarán automáticamente aquí -->
+      </tbody>
+    </table>
+  </div>
+</div>
       <!-- Sección: Habitaciones -->
-      <div id="habitaciones" class="seccion">
-        <h2>Habitaciones</h2>
-        <p>Listado y estado de todas las habitaciones disponibles y ocupadas.</p>
-      </div>
+     <div id="habitaciones" class="seccion">
+  <h2>Habitaciones</h2>
+  <p>Listado y estado de todas las habitaciones disponibles y ocupadas.</p>
 
+  <div class="habitaciones-container">
+    <input 
+      type="text" 
+      id="buscarHabitacion" 
+      class="habitaciones-input" 
+      placeholder="Buscar habitación..."
+    />
+
+    <table class="tabla-habitaciones">
+      <thead>
+        <tr>
+          <th># Habitación</th>
+          <th>Tipo</th>
+          <th>Precio por noche</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="listaHabitaciones">
+        <!-- Las habitaciones se cargarán automáticamente aquí -->
+      </tbody>
+    </table>
+  </div>
+</div>
       <!-- Sección: Usuarios -->
       <div id="usuarios" class="seccion">
         <h2>Usuarios</h2>
@@ -92,11 +138,36 @@
       </div>
 
       <!-- Sección: Reportes -->
-      <div id="reportes" class="seccion">
-        <h2>Reportes</h2>
-        <p>Estadísticas, ingresos y desempeño general del hotel.</p>
+    <div id="reportes" class="seccion">
+  <h2>Reportes</h2>
+  <p>Estadísticas, ingresos y desempeño general del hotel.</p>
+
+  <div class="reportes-container">
+    <!-- 🔹 Tarjetas de resumen -->
+    <div class="reportes-resumen">
+      <div class="reporte-card">
+        <h3>Ocupación Actual</h3>
+        <p id="ocupacionPorcentaje">--%</p>
       </div>
 
+      <div class="reporte-card">
+        <h3>Ingresos del Mes</h3>
+        <p id="ingresosMes">$-- MXN</p>
+      </div>
+
+      <div class="reporte-card">
+        <h3>Reservas Activas</h3>
+        <p id="reservasActivas">--</p>
+      </div>
+    </div>
+
+    <!-- 🔹 Gráficas -->
+    <div class="graficas-reportes">
+      <canvas id="graficaOcupacion"></canvas>
+      <canvas id="graficaIngresos"></canvas>
+    </div>
+  </div>
+</div>
       <!-- Sección: Cerrar sesión - CON FORMULARIO FUNCIONAL -->
       <div id="cerrar" class="seccion">
         <h2>Cerrar sesión</h2>

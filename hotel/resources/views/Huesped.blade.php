@@ -10,6 +10,7 @@
 
   <!-- Estilos personalizados -->
   @vite(['resources/css/estilo.css'])
+  @vite(['resources/css/huesped.css'])
 
   <!-- Iconos -->
   <script src="https://kit.fontawesome.com/a2d04a4f5d.js" crossorigin="anonymous"></script>
@@ -114,10 +115,27 @@
       </div>
 
       <!-- 👤 PERFIL -->
-      <div id="perfil" class="seccion">
-        <h2>Perfil</h2>
-        <p>Información del huésped, preferencias y datos personales.</p>
-      </div>
+     <div id="perfil" class="seccion">
+  <h2>Perfil</h2>
+  <p>Información del huésped, preferencias y datos personales.</p>
+
+  <div class="perfil-container">
+    <div class="perfil-info">
+      <label>Nombre completo:</label>
+      <input type="text" id="nombreHuesped" class="perfil-input" readonly>
+
+      <label>Correo electrónico:</label>
+      <input type="email" id="correoHuesped" class="perfil-input" readonly>
+
+      <label>Teléfono:</label>
+      <input type="tel" id="telefonoHuesped" class="perfil-input" readonly>
+
+      <label>Género detectado:</label>
+      <input type="text" id="generoHuesped" class="perfil-input" readonly>
+    </div>
+  </div>
+</div>
+
 
       <!-- 🔒 CERRAR SESIÓN - CON FORMULARIO FUNCIONAL -->
       <div id="cerrar" class="seccion">

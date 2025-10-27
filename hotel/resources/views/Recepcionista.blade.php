@@ -8,6 +8,7 @@
   <script src="https://kit.fontawesome.com/a2d04a4f5d.js" crossorigin="anonymous"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   @vite(['resources/css/estilo.css'])
+  @vite(['resources/css/recepcionista.css'])
 </head>
 <body>
   <div class="dashboard-container d-flex">
@@ -68,14 +69,69 @@
       </div>
 
       <div id="checkout" class="seccion">
-        <h2>Check-Out</h2>
-        <p>Procesa la salida de huéspedes y libera habitaciones.</p>
-      </div>
+  <h2>Check-Out</h2>
+  <p>Procesa la salida de huéspedes y libera habitaciones.</p>
 
-      <div id="servicios" class="seccion">
-        <h2>Servicios</h2>
-        <p>Gestión de servicios activos y solicitudes especiales.</p>
-      </div>
+  <div class="checkout-container">
+    <input 
+      type="text" 
+      id="roomNumber" 
+      class="checkout-input" 
+      placeholder="Buscar número de habitación..."
+    />
+
+    <div class="checkout-buttons">
+      <button class="btn-liberar">Liberar Habitación</button>
+      <button class="btn-checkout">Confirmar Check-Out</button>
+    </div>
+  </div>
+</div>
+
+
+     <div id="servicios" class="seccion">
+  <h2>Servicios</h2>
+  <p>Gestión de servicios activos y solicitudes especiales.</p>
+
+  <div class="servicios-container">
+    <input 
+      type="text" 
+      id="buscarServicio" 
+      class="servicios-input" 
+      placeholder="Buscar habitación..."
+    />
+
+    <table class="tabla-servicios">
+      <thead>
+        <tr>
+          <th>Número de Habitación</th>
+          <th>Servicio Requerido</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>101</td>
+          <td>Limpieza</td>
+          <td><span class="estado-pendiente">Pendiente</span></td>
+          <td><button class="btn-completar-servicio">Marcar como Listo</button></td>
+        </tr>
+        <tr>
+          <td>203</td>
+          <td>Mantenimiento de aire acondicionado</td>
+          <td><span class="estado-pendiente">Pendiente</span></td>
+          <td><button class="btn-completar-servicio">Marcar como Listo</button></td>
+        </tr>
+        <tr>
+          <td>305</td>
+          <td>Reemplazo de toallas</td>
+          <td><span class="estado-completado">Completado</span></td>
+          <td><button class="btn-completar-servicio" disabled>Listo ✓</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
       <!-- Sección de cierre de sesión - MANTENIENDO TU DISEÑO ORIGINAL -->
       <div id="cerrar" class="seccion">
@@ -133,5 +189,16 @@
       }
     }
   </script>
+  <script>
+  document.querySelectorAll('.btn-completar-servicio').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fila = btn.closest('tr');
+      fila.querySelector('.estado-pendiente').textContent = 'Completado';
+      fila.querySelector('.estado-pendiente').classList.replace('estado-pendiente', 'estado-completado');
+      btn.textContent = 'Listo ✓';
+      btn.disabled = true;
+    });
+  });
+</script>
 </body>
 </html>

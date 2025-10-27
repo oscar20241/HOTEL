@@ -1,0 +1,189 @@
+/* === 🏨 RESERVAS SECTION === */
+.reservas-container {
+  background-color: #111217;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #d4af37;
+  margin-top: 20px;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+}
+
+.reservas-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #1a1c22;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  margin-bottom: 20px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reservas-input:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Tabla de reservaciones */
+.tabla-reservas {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 15px;
+  color: #fff;
+}
+
+.tabla-reservas th {
+  background-color: #d4af37;
+  color: #111217;
+  padding: 10px;
+  border-bottom: 2px solid #b9972e;
+}
+
+.tabla-reservas td {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.tabla-reservas tr:hover {
+  background-color: rgba(212, 175, 55, 0.05);
+}
+
+/* Estados de reservación */
+.estado-activa {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.estado-pendiente {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.estado-finalizada {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* === 🛏️ HABITACIONES SECTION === */
+.habitaciones-container {
+  background-color: #111217;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #d4af37;
+  margin-top: 20px;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+}
+
+.habitaciones-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #1a1c22;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  margin-bottom: 20px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.habitaciones-input:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Tabla de habitaciones */
+.tabla-habitaciones {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 15px;
+  color: #fff;
+}
+
+.tabla-habitaciones th {
+  background-color: #d4af37;
+  color: #111217;
+  padding: 10px;
+  border-bottom: 2px solid #b9972e;
+}
+
+.tabla-habitaciones td {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.tabla-habitaciones tr:hover {
+  background-color: rgba(212, 175, 55, 0.05);
+}
+
+/* Estados */
+.estado-disponible {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.estado-ocupada {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* === 📊 REPORTES SECTION === */
+.reportes-container {
+  background-color: #111217;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #d4af37;
+  margin-top: 20px;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+}
+
+/* Tarjetas de resumen */
+.reportes-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.reporte-card {
+  background-color: #1a1c22;
+  border: 1px solid #d4af37;
+  border-radius: 12px;
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.reporte-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.reporte-card h3 {
+  color: #d4af37;
+  margin-bottom: 10px;
+}
+
+.reporte-card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Gráficas */
+.graficas-reportes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+canvas {
+  background-color: #1a1c22;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid #333;
+}
