@@ -114,24 +114,146 @@
         </div>
       </div>
 
-      <!-- 👤 PERFIL -->
-     <div id="perfil" class="seccion">
-  <h2>Perfil</h2>
-  <p>Información del huésped, preferencias y datos personales.</p>
+<!-- 👤 PERFIL -->
+<div id="perfil" class="seccion">
+  <h2 class="mb-4">Mi Perfil</h2>
+  
+  <!-- Mensajes de éxito/error -->
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle"></i> {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
 
-  <div class="perfil-container">
-    <div class="perfil-info">
-      <label>Nombre completo:</label>
-      <input type="text" id="nombreHuesped" class="perfil-input" readonly>
+  @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
 
-      <label>Correo electrónico:</label>
-      <input type="email" id="correoHuesped" class="perfil-input" readonly>
+  <div class="row g-4">
+    <!-- Información Personal -->
+    <div class="col-md-6">
+      <div class="perfil-container">
+        <h5 class="mb-4">
+          <i class="fas fa-user-edit text-warning"></i> Información Personal
+        </h5>
+        
+        <form method="POST" action="{{ route('perfil.update') }}">
+          @csrf
+          @method('PUT')
+          
+          <div class="mb-3">
+            <label for="name" class="form-label">Nombre completo</label>
+            <input type="text" class="perfil-input" id="name" name="name" 
+                   value="{{ Auth::user()->name }}" required>
+          </div>
 
-      <label>Teléfono:</label>
-      <input type="tel" id="telefonoHuesped" class="perfil-input" readonly>
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input type="email" class="perfil-input" id="email" name="email" 
+                   value="{{ Auth::user()->email }}" required>
+          </div>
 
-      <label>Género detectado:</label>
-      <input type="text" id="generoHuesped" class="perfil-input" readonly>
+          <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="tel" class="perfil-input" id="telefono" name="telefono" 
+                   value="{{ Auth::user()->telefono ?? '' }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="direccion" class="form-label">Dirección</label>
+            <textarea class="perfil-input" id="direccion" name="direccion" 
+                      rows="2" placeholder="Ingresa tu dirección">{{ Auth::user()->direccion ?? '' }}</textarea>
+          </div>
+
+          <button type="submit" class="btn-guardar-perfil w-100">
+            <i class="fas fa-save"></i> Actualizar Información
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Cambiar Contraseña -->
+    <div class="col-md-6">
+      <div class="perfil-container">
+        <h5 class="mb-4">
+          <i class="fas fa-lock text-warning"></i> Cambiar Contraseña
+        </h5>
+        
+        <form method="POST" action="{{ route('perfil.change-password') }}">
+          @csrf
+          @method('PUT')
+          
+          <div class="mb-3">
+            <label for="current_password" class="form-label">Contraseña Actual</label>
+            <input type="password" class="perfil-input" id="current_password" name="current_password" required placeholder="Ingresa tu contraseña actual">
+            @error('current_password')
+              <small class="text-danger">{{ $message }}</small>
+            @enderror
+          </div>
+
+          <div class="mb-3">
+            <label for="new_password" class="form-label">Nueva Contraseña</label>
+            <input type="password" class="perfil-input" id="new_password" name="new_password" required placeholder="Ingresa nueva contraseña">
+            @error('new_password')
+              <small class="text-danger">{{ $message }}</small>
+            @enderror
+          </div>
+
+          <div class="mb-3">
+            <label for="new_password_confirmation" class="form-label">Confirmar Nueva Contraseña</label>
+            <input type="password" class="perfil-input" id="new_password_confirmation" name="new_password_confirmation" required placeholder="Confirma tu nueva contraseña">
+          </div>
+
+          <button type="submit" class="btn-guardar-perfil w-100">
+            <i class="fas fa-key"></i> Cambiar Contraseña
+          </button>
+        </form>
+      </div>
+
+      <!-- Información Adicional -->
+      <div class="perfil-container mt-4">
+        <h5 class="mb-4">
+          <i class="fas fa-info-circle text-warning"></i> Información Adicional
+        </h5>
+        
+        <div class="info-adicional">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <strong class="text-warning">Fecha de Nacimiento:</strong>
+            <span class="text-light">
+              @if(Auth::user()->fecha_nacimiento)
+                {{ \Carbon\Carbon::parse(Auth::user()->fecha_nacimiento)->format('d/m/Y') }}
+              @else
+                No especificada
+              @endif
+            </span>
+          </div>
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <strong class="text-warning">Miembro desde:</strong>
+            <span class="text-light">{{ Auth::user()->created_at->format('d/m/Y') }}</span>
+          </div>
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <strong class="text-warning">Última actualización:</strong>
+            <span class="text-light">{{ Auth::user()->updated_at->format('d/m/Y') }}</span>
+          </div>
+          
+          <div class="d-flex justify-content-between align-items-center">
+            <strong class="text-warning">Tipo de usuario:</strong>
+            <span class="badge bg-warning text-dark">
+              @if(Auth::user()->esHuesped())
+                Huésped
+              @else
+                Empleado
+              @endif
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

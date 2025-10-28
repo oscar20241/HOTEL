@@ -57,3 +57,32 @@
   color: #fff;
   box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
 }
+
+/* === INFORMACIÓN ADICIONAL PERFIL === */
+.info-adicional {
+  background-color: #1a1c22;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.info-adicional strong {
+  font-size: 0.9rem;
+}
+
+.info-adicional span {
+  font-size: 0.9rem;
+}
+
+.badge.bg-warning {
+  background-color: #d4af37 !important;
+  color: #111217 !important;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 15px;
+}
+
+/* Estilo para campos de solo lectura en información adicional */
+.info-adicional .text-light {
+  font-weight: 500;
+}

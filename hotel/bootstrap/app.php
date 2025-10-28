@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'es.admin' => App\Http\Middleware\EsAdministrador::class,
             'es.recepcionista' => App\Http\Middleware\EsRecepcionista::class,
             'es.huesped' => App\Http\Middleware\EsHuesped::class,
+            'empleado.activo' => App\Http\Middleware\CheckEmpleadoStatus::class, // ✅ NUEVO MIDDLEWARE
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

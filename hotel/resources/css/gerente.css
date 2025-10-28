@@ -166,12 +166,16 @@
 .reporte-card h3 {
   color: #d4af37;
   margin-bottom: 10px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .reporte-card p {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #fff;
+  margin-bottom: 0;
 }
 
 /* Gráficas */
@@ -181,9 +185,132 @@
   gap: 30px;
 }
 
-canvas {
+.graficas-reportes canvas {
   background-color: #1a1c22;
   border-radius: 10px;
-  padding: 10px;
+  padding: 15px;
   border: 1px solid #333;
+  max-height: 300px;
+}
+
+/* === PESTAÑAS PERSONALIZADAS === */
+.usuarios-tabs {
+  display: flex;
+  border-bottom: 2px solid #d4af37;
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  background: #111217;
+  border: none;
+  color: #fff;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px 8px 0 0;
+  margin-right: 5px;
+  font-weight: 500;
+}
+
+.tab-button:hover {
+  background: #1a1c22;
+  color: #d4af37;
+}
+
+.tab-button.active {
+  background: #d4af37;
+  color: #111217;
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* === BADGES Y ESTADOS === */
+.badge.bg-warning {
+  background-color: #d4af37 !important;
+  color: #111217 !important;
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+}
+
+.badge.bg-info {
+  background-color: #17a2b8 !important;
+}
+
+.badge.bg-primary {
+  background-color: #007bff !important;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+/* Estilos para la tabla de gerentes */
+.table-active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%) !important;
+  border-left: 3px solid #d4af37;
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+  .reportes-resumen {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .graficas-reportes {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .usuarios-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-button {
+    margin-right: 0;
+    margin-bottom: 5px;
+    border-radius: 8px;
+  }
+  
+  .reservas-container,
+  .habitaciones-container,
+  .reportes-container {
+    padding: 15px;
+  }
+}
+
+/* === MEJORAS DE ACCESIBILIDAD === */
+.tab-button:focus {
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
+}
+
+.reservas-input:focus,
+.habitaciones-input:focus {
+  outline: none;
+}
+
+/* === ANIMACIONES SUAVES === */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

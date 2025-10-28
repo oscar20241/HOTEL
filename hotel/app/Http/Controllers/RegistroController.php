@@ -46,7 +46,7 @@ class RegistroController extends Controller
         ]);
 
         // Redirigir al login con mensaje de éxito
-        return redirect()->route('login')
-            ->with('success', '¡Registro exitoso! Ahora puedes iniciar sesión.');
+       return redirect('/') // Redirige a la URL raíz
+        ->with('success', '¡Registro exitoso! Ahora puedes iniciar sesión.');
     }
 }
