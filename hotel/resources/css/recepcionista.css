@@ -154,3 +154,58 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.card.mt-4.p-3.shadow-sm {
+  background-color: rgba(255, 255, 255, 0.05); /* Transparente con leve fondo */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
+  color: #fff; /* Texto blanco */
+  backdrop-filter: blur(8px); /* Efecto de difuminado elegante */
+  box-shadow: none; /* Quita sombra blanca */
+}
+
+/* Inputs y tabla adaptados al fondo oscuro */
+.card input[type="date"],
+.card select,
+.card input[type="text"] {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card input[type="date"]:focus {
+  background-color: rgba(0, 0, 0, 0.6);
+  border-color: #f1c40f; /* Amarillo dorado de acento */
+  outline: none;
+}
+
+/* Tabla dentro del filtro */
+#tablaOcupacion {
+  color: #fff;
+}
+
+#tablaOcupacion thead {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+#tablaOcupacion tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Botón dorado */
+#btnFiltrar {
+  background-color: #d4af37;
+  border: none;
+  color: #000;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+#btnFiltrar:hover {
+  background-color: #f1c40f;
+  transform: scale(1.03);
+}
+
+/* Etiquetas y títulos */
+.card h5 {
+  color: #f1c40f;
+}

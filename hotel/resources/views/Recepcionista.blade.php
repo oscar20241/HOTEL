@@ -29,6 +29,24 @@
       <div id="inicio" class="seccion visible">
         <h2>Panel del Recepcionista</h2>
         <div class="row g-4 mt-3">
+          <div class="card mt-4 p-3 shadow-sm">
+  <h5><i class="fas fa-filter text-warning"></i> Filtrar Fechas de Ocupación</h5>
+
+  <div class="row g-3 align-items-end mt-2">
+    <div class="col-md-4">
+      <label for="fechaInicio" class="form-label">Desde:</label>
+      <input type="date" id="fechaInicio" class="form-control" />
+    </div>
+    <div class="col-md-4">
+      <label for="fechaFin" class="form-label">Hasta:</label>
+      <input type="date" id="fechaFin" class="form-control" />
+    </div>
+    <div class="col-md-4">
+      <button id="btnFiltrar" class="btn btn-primary w-100">
+        <i class="fas fa-search"></i> Buscar Ocupación
+      </button>
+    </div>
+  </div>
           <div class="col-md-6">
             <div class="card info-card">
               <div class="card-body">
@@ -199,6 +217,42 @@
       btn.disabled = true;
     });
   });
+</script>
+<script>
+document.getElementById('btnFiltrar').addEventListener('click', () => {
+  const inicio = document.getElementById('fechaInicio').value;
+  const fin = document.getElementById('fechaFin').value;
+
+  if (!inicio || !fin) {
+    alert('Por favor selecciona ambas fechas.');
+    return;
+  }
+
+  // Aquí simulo resultados (luego lo conectarás con Laravel/AJAX)
+  const resultados = [
+    { habitacion: '101', estado: 'Ocupada', huesped: 'Juan Pérez', entrada: '2025-10-27', salida: '2025-10-30' },
+    { habitacion: '203', estado: 'Libre', huesped: '-', entrada: '2026-01-02', salida: '2026-01-18' },
+    { habitacion: '305', estado: 'Ocupada', huesped: 'María López', entrada: '2025-10-28', salida: '2025-11-02' }
+  ];
+
+  const tbody = document.querySelector('#tablaOcupacion tbody');
+  tbody.innerHTML = '';
+
+  resultados.forEach(r => {
+    // Solo mostramos las ocupadas dentro del rango
+    if (r.estado === 'Ocupada') {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.habitacion}</td>
+        <td><span class="badge bg-danger">${r.estado}</span></td>
+        <td>${r.huesped}</td>
+        <td>${r.entrada}</td>
+        <td>${r.salida}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+});
 </script>
 </body>
 </html>

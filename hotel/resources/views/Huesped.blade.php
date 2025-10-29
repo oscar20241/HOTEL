@@ -97,6 +97,8 @@
               <option value="comida">Comida a la habitación</option>
               <option value="spa">Spa</option>
               <option value="lavanderia">Lavandería</option>
+               <option value="lavanderia">Mantenimiento de Aire Acondicionado</option>
+                <option value="lavanderia">Proyector de cine portátil</option>
             </select>
           </div>
 
