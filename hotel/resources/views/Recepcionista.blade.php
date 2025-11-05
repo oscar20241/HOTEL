@@ -17,6 +17,7 @@
       <h4 class="text-center mb-4">Recepcionista</h4>
       <nav class="nav flex-column w-100">
         <a href="#" class="nav-link active" data-target="inicio"><i class="fas fa-home"></i> Inicio</a>
+         <a href="#" class="nav-link" data-target="nueva-reserva"><i class="fas fa-plus-circle"></i> Nueva Reservación</a>
         <a href="#" class="nav-link" data-target="reservas"><i class="fas fa-calendar-day"></i> Reservaciones del Día</a>
         <a href="#" class="nav-link" data-target="checkin"><i class="fas fa-sign-in-alt"></i> Check-In</a>
         <a href="#" class="nav-link" data-target="checkout"><i class="fas fa-sign-out-alt"></i> Check-Out</a>
@@ -65,7 +66,54 @@
           </div>
         </div>
       </div>
+ <div id="nueva-reserva" class="seccion">
+  <h2><i class="fas fa-plus-circle text-warning"></i> Generar Nueva Reservación</h2>
+  <p>Completa el formulario para registrar una nueva reserva.</p>
 
+  <div class="card mt-4 p-3 shadow-sm">
+    <h5 class="mb-3"><i class="fas fa-edit text-warning"></i> Formulario de Registro</h5>
+    <form class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Nombre del Huésped:</label>
+        <input type="text" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Entrada:</label>
+        <input type="date" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Salida:</label>
+        <input type="date" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Tipo de Habitación:</label>
+        <select class="form-select" required>
+          <option value="">Seleccione...</option>
+          <option>Individual</option>
+          <option>Doble</option>
+          <option>Suite</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Adultos:</label>
+        <input type="number" class="form-control" min="1" max="8" placeholder="Ej. 2" required>
+      </div>
+       <div class="col-md-6">
+        <label class="form-label">Niños:</label>
+        <input type="number" class="form-control" min="1" max="8" placeholder="Ej. 2" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Comentarios o Solicitudes Especiales:</label>
+        <textarea class="form-control" rows="2" placeholder="Ej. Solicita cama adicional..."></textarea>
+      </div>
+      <div class="col-12 text-end mt-3">
+      <button type="submit" class="btn btn-warning text-dark fw-semibold">
+  <i class="fas fa-save"></i> Guardar Reservación
+</button>
+      </div>
+    </form>
+  </div>
+</div>
       <div id="reservas" class="seccion">
         <h2>Reservaciones del Día</h2>
         <p>Listado de todas las reservas programadas para hoy.</p>
