@@ -7,10 +7,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   @vite(['resources/css/estilo.css'])
   @vite(['resources/css/gerente.css'])
-  <script src="https://kit.fontawesome.com/a2d04a4f5d.js" crossorigin="anonymous"></script>
+  
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   <!-- Chart.js para gráficas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
   <div class="dashboard-container d-flex">
@@ -104,17 +105,69 @@
         </div>
       </div>
 
-      <!-- Sección: Habitaciones -->
+            <!-- Sección: Habitaciones MEJORADA -->
       <div id="habitaciones" class="seccion">
-        <h2>Habitaciones</h2>
-        <p>Listado y estado de todas las habitaciones disponibles y ocupadas.</p>
+        <h2>Gestión de Habitaciones</h2>
+        
+        <!-- Mensajes dinámicos -->
+        <div id="habitacion-messages"></div>
 
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <p>Administración completa del inventario de habitaciones del hotel.</p>
+          <button class="btn btn-primary" onclick="mostrarModalHabitacion()">
+            <i class="fas fa-plus-circle"></i> Nueva Habitación
+          </button>
+        </div>
+
+        <!-- Estadísticas en tiempo real -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-3">
+            <div class="card info-card">
+              <div class="card-body text-center">
+                <h5 class="card-title"><i class="fas fa-bed text-warning"></i> Total</h5>
+                <p class="card-text fs-4" id="total-habitaciones">{{ $habitaciones->count() }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card info-card">
+              <div class="card-body text-center">
+                <h5 class="card-title"><i class="fas fa-check-circle text-success"></i> Disponibles</h5>
+                <p class="card-text fs-4" id="habitaciones-disponibles">
+                  {{ $habitaciones->where('estado', 'disponible')->count() }}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card info-card">
+              <div class="card-body text-center">
+                <h5 class="card-title"><i class="fas fa-times-circle text-danger"></i> Ocupadas</h5>
+                <p class="card-text fs-4" id="habitaciones-ocupadas">
+                  {{ $habitaciones->where('estado', 'ocupada')->count() }}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card info-card">
+              <div class="card-body text-center">
+                <h5 class="card-title"><i class="fas fa-tools text-warning"></i> Mantenimiento</h5>
+                <p class="card-text fs-4" id="habitaciones-mantenimiento">
+                  {{ $habitaciones->where('estado', 'mantenimiento')->count() }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Listado de habitaciones desde BD -->
         <div class="habitaciones-container">
           <input 
             type="text" 
             id="buscarHabitacion" 
             class="habitaciones-input" 
-            placeholder="Buscar habitación..."
+            placeholder="Buscar por número, tipo o estado..."
           />
 
           <table class="tabla-habitaciones">
@@ -122,16 +175,149 @@
               <tr>
                 <th># Habitación</th>
                 <th>Tipo</th>
-                <th>Precio por noche</th>
+                <th>Capacidad</th>
+                <th>Precio/Noche</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="listaHabitaciones">
-              <!-- Las habitaciones se cargarán automáticamente aquí -->
+              @foreach($habitaciones as $habitacion)
+              <tr data-habitacion-id="{{ $habitacion->id }}">
+                <td><strong>{{ $habitacion->numero }}</strong></td>
+                <td>{{ $habitacion->tipoHabitacion->nombre }}</td>
+                <td>{{ $habitacion->capacidad }} personas</td>
+                <td>${{ number_format($habitacion->tipoHabitacion->precio_base, 2) }}</td>
+                <td>
+                  @php
+                    $estadoColors = [
+                      'disponible' => 'success',
+                      'ocupada' => 'danger', 
+                      'mantenimiento' => 'warning',
+                      'limpieza' => 'info'
+                    ];
+                    $estadoTextos = [
+                      'disponible' => 'Disponible',
+                      'ocupada' => 'Ocupada',
+                      'mantenimiento' => 'Mantenimiento',
+                      'limpieza' => 'Limpieza'
+                    ];
+                  @endphp
+                  <span class="badge bg-{{ $estadoColors[$habitacion->estado] ?? 'secondary' }}">
+                    {{ $estadoTextos[$habitacion->estado] ?? ucfirst($habitacion->estado) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-warning" onclick="editarHabitacion({{ $habitacion->id }})" title="Editar">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger" onclick="eliminarHabitacion({{ $habitacion->id }})" title="Eliminar">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              @endforeach
             </tbody>
           </table>
         </div>
+
+        @if($habitaciones->isEmpty())
+        <div class="text-center py-5">
+          <i class="fas fa-door-open fa-3x text-muted mb-3"></i>
+          <h4 class="text-muted">No hay habitaciones registradas</h4>
+          <p class="text-muted">Comienza agregando la primera habitación del hotel.</p>
+          <button class="btn btn-primary" onclick="mostrarModalHabitacion()">
+            <i class="fas fa-plus-circle"></i> Agregar Primera Habitación
+          </button>
+        </div>
+        @endif
       </div>
+
+      <!-- Modal para Habitaciones CORREGIDO -->
+<div id="modalHabitacion" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModalHabitacion()">&times;</span>
+    <h2 id="modalHabitacionTitulo">Nueva Habitación</h2>
+    
+    <form id="formHabitacion">
+      @csrf
+      <div id="method-field"></div>
+      
+      <div class="mb-3">
+        <label for="numero" class="form-label">Número de Habitación *</label>
+        <input type="text" class="form-control" id="numero" name="numero" required 
+               placeholder="Ej: 101, 202, 305">
+      </div>
+
+      <div class="mb-3">
+        <label for="tipo_habitacion_id" class="form-label">Tipo de Habitación *</label>
+        <select class="form-select" id="tipo_habitacion_id" name="tipo_habitacion_id" required>
+          <option value="">Seleccionar tipo</option>
+          @foreach($tiposHabitacion = \App\Models\TipoHabitacion::all() as $tipo)
+            <option value="{{ $tipo->id }}">
+              {{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}
+            </option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="capacidad" class="form-label">Capacidad *</label>
+            <input type="number" class="form-control" id="capacidad" name="capacidad" 
+                   min="1" max="10" value="2" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="estado" class="form-label">Estado *</label>
+            <select class="form-select" id="estado" name="estado" required>
+              <option value="disponible">Disponible</option>
+              <option value="ocupada">Ocupada</option>
+              <option value="mantenimiento">Mantenimiento</option>
+              <option value="limpieza">Limpieza</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="caracteristicas" class="form-label">Características</label>
+        <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3" 
+                  placeholder="Descripción de la habitación, comodidades, vista..."></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Amenidades</label>
+        <div class="row">
+          @php
+            $amenidades = ['TV', 'Aire Acondicionado', 'WiFi', 'Minibar', 'Caja Fuerte', 'Jacuzzi', 'Balcón', 'Vista al Mar'];
+          @endphp
+          @foreach($amenidades as $amenidad)
+          <div class="col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="amenidades[]" 
+                     value="{{ $amenidad }}" id="amenidad{{ $loop->index }}">
+              <label class="form-check-label" for="amenidad{{ $loop->index }}">
+                {{ $amenidad }}
+              </label>
+            </div>
+          </div>
+          @endforeach
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn-confirmar">
+          <i class="fas fa-save"></i> Guardar Habitación
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
       <!-- Sección: Usuarios -->
       <!-- Sección: Usuarios -->
@@ -484,7 +670,7 @@
     </main>
   </div>
 
-  <script>
+    <script>
     // Navegación entre secciones principales
     const links = document.querySelectorAll('.nav-link');
     const secciones = document.querySelectorAll('.seccion');
@@ -524,23 +710,22 @@
       }
     }
 
-    // Sistema de pestañas para usuarios (SIMPLIFICADO)
-    // Sistema de pestañas para usuarios (ACTUALIZADO)
-function mostrarTab(tabName) {
-  // Ocultar todos los contenidos de pestañas
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.classList.remove('active');
-  });
-  
-  // Mostrar la pestaña seleccionada
-  document.getElementById('tab-' + tabName).classList.add('active');
-  
-  // Actualizar botones activos
-  document.querySelectorAll('.tab-button').forEach(button => {
-    button.classList.remove('active');
-  });
-  event.target.classList.add('active');
-}
+    // Sistema de pestañas para usuarios
+    function mostrarTab(tabName) {
+      // Ocultar todos los contenidos de pestañas
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Mostrar la pestaña seleccionada
+      document.getElementById('tab-' + tabName).classList.add('active');
+      
+      // Actualizar botones activos
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
 
     // Inicializar gráficas de reportes
     function inicializarGraficas() {
@@ -645,73 +830,308 @@ function mostrarTab(tabName) {
       });
     }
 
-    // Datos de ejemplo para reservas y habitaciones
+    // Búsqueda en tiempo real para habitaciones (SOLO PARA DATOS REALES)
     document.addEventListener('DOMContentLoaded', function() {
-      // Datos de ejemplo para reservas
-      const reservas = [
-        { habitacion: '101', huesped: 'Juan Pérez', checkin: '2024-01-15', checkout: '2024-01-20', estado: 'Activa' },
-        { habitacion: '205', huesped: 'María García', checkin: '2024-01-14', checkout: '2024-01-18', estado: 'Activa' },
-        { habitacion: '312', huesped: 'Carlos López', checkin: '2024-01-16', checkout: '2024-01-22', estado: 'Activa' }
-      ];
-
-      // Datos de ejemplo para habitaciones
-      const habitaciones = [
-        { numero: '101', tipo: 'Sencilla', precio: '$800', estado: 'Ocupada' },
-        { numero: '102', tipo: 'Sencilla', precio: '$800', estado: 'Disponible' },
-        { numero: '201', tipo: 'Doble', precio: '$1200', estado: 'Ocupada' },
-        { numero: '202', tipo: 'Doble', precio: '$1200', estado: 'Disponible' },
-        { numero: '301', tipo: 'Suite', precio: '$2000', estado: 'Ocupada' }
-      ];
-
-      // Llenar tabla de reservas
-      const listaReservas = document.getElementById('listaReservas');
-      reservas.forEach(reserva => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${reserva.habitacion}</td>
-          <td>${reserva.huesped}</td>
-          <td>${reserva.checkin}</td>
-          <td>${reserva.checkout}</td>
-          <td><span class="badge bg-success">${reserva.estado}</span></td>
-        `;
-        listaReservas.appendChild(tr);
-      });
-
-      // Llenar tabla de habitaciones
-      const listaHabitaciones = document.getElementById('listaHabitaciones');
-      habitaciones.forEach(habitacion => {
-        const tr = document.createElement('tr');
-        const estadoBadge = habitacion.estado === 'Ocupada' ? 'bg-warning' : 'bg-success';
-        tr.innerHTML = `
-          <td>${habitacion.numero}</td>
-          <td>${habitacion.tipo}</td>
-          <td>${habitacion.precio}</td>
-          <td><span class="badge ${estadoBadge}">${habitacion.estado}</span></td>
-        `;
-        listaHabitaciones.appendChild(tr);
-      });
-
-      // Funcionalidad de búsqueda
-      document.getElementById('buscarReserva').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = listaReservas.getElementsByTagName('tr');
-        
-        for (let row of rows) {
-          const text = row.textContent.toLowerCase();
-          row.style.display = text.includes(searchTerm) ? '' : 'none';
-        }
-      });
-
+      // Búsqueda para habitaciones (datos reales desde BD)
       document.getElementById('buscarHabitacion').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();
-        const rows = listaHabitaciones.getElementsByTagName('tr');
+        const rows = document.querySelectorAll('#listaHabitaciones tr');
         
-        for (let row of rows) {
+        rows.forEach(row => {
           const text = row.textContent.toLowerCase();
           row.style.display = text.includes(searchTerm) ? '' : 'none';
-        }
+        });
       });
+
+      // Búsqueda para reservas (solo si hay datos reales)
+document.getElementById('buscarReserva').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#listaReservas tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
     });
   </script>
+
+
+
+<script>
+// =============================================
+// GESTIÓN DE HABITACIONES - FUNCIONALIDAD COMPLETA
+// =============================================
+
+let habitacionEditando = null;
+
+// Mostrar modal para nueva/editar habitación
+function mostrarModalHabitacion(habitacionId = null) {
+  habitacionEditando = habitacionId;
+  const modal = document.getElementById('modalHabitacion');
+  const titulo = document.getElementById('modalHabitacionTitulo');
+  const form = document.getElementById('formHabitacion');
+  const methodField = document.getElementById('method-field');
+  
+  if (habitacionId) {
+    titulo.textContent = 'Editar Habitación';
+    cargarDatosHabitacion(habitacionId);
+    methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+  } else {
+    titulo.textContent = 'Nueva Habitación';
+    form.reset();
+    methodField.innerHTML = '';
+    
+    // Establecer valores por defecto
+    document.getElementById('capacidad').value = '2';
+    document.getElementById('estado').value = 'disponible';
+  }
+  
+  modal.style.display = 'flex';
+}
+
+// Cerrar modal
+function cerrarModalHabitacion() {
+  document.getElementById('modalHabitacion').style.display = 'none';
+  habitacionEditando = null;
+}
+
+// Cargar datos para edición
+// Cargar datos para edición - VERSIÓN MEJORADA CON DEBUG
+function cargarDatosHabitacion(habitacionId) {
+    console.log('🔍 Cargando datos para habitación ID:', habitacionId);
+    
+    // Mostrar loading
+    const submitBtn = document.querySelector('#formHabitacion button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+    submitBtn.disabled = true;
+
+    fetch(`/gerente/habitaciones/${habitacionId}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            // Si la respuesta no es exitosa, obtener más detalles del error
+            return response.text().then(text => {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}. Detalles: ${text}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('📦 Datos recibidos:', data);
+        
+        if (data.success === false) {
+            throw new Error(data.message || 'Error en la respuesta del servidor');
+        }
+        
+        // Cargar datos en el formulario
+        document.getElementById('numero').value = data.numero || '';
+        document.getElementById('tipo_habitacion_id').value = data.tipo_habitacion_id || '';
+        document.getElementById('capacidad').value = data.capacidad || '2';
+        document.getElementById('estado').value = data.estado || 'disponible';
+        document.getElementById('caracteristicas').value = data.caracteristicas || '';
+        
+        // Cargar amenidades
+        console.log('🏷️ Amenidades recibidas:', data.amenidades);
+        if (data.amenidades && Array.isArray(data.amenidades)) {
+            document.querySelectorAll('input[name="amenidades[]"]').forEach(checkbox => {
+                checkbox.checked = data.amenidades.includes(checkbox.value);
+                console.log(`✅ Checkbox ${checkbox.value}: ${checkbox.checked}`);
+            });
+        } else {
+            // Limpiar checkboxes si no hay amenidades
+            document.querySelectorAll('input[name="amenidades[]"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+        
+        console.log('✅ Formulario cargado correctamente');
+        mostrarMensaje('Datos cargados correctamente', 'success');
+    })
+    .catch(error => {
+        console.error('❌ Error al cargar datos:', error);
+        mostrarMensaje('Error al cargar los datos de la habitación: ' + error.message, 'danger');
+    })
+    .finally(() => {
+        // Restaurar botón
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Habitación';
+        submitBtn.disabled = false;
+        console.log('🔚 Finalizado proceso de carga');
+    });
+}
+// Enviar formulario de habitación
+// =============================================
+// FORMULARIO HABITACIONES - VERSIÓN CORREGIDA
+// =============================================
+
+document.getElementById('formHabitacion').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  // 1. Recopilar datos como OBJETO JSON (no FormData)
+  const formData = {
+    numero: document.getElementById('numero').value.trim(),
+    tipo_habitacion_id: parseInt(document.getElementById('tipo_habitacion_id').value),
+    capacidad: parseInt(document.getElementById('capacidad').value),
+    estado: document.getElementById('estado').value,
+    caracteristicas: document.getElementById('caracteristicas').value,
+    amenidades: Array.from(document.querySelectorAll('input[name="amenidades[]"]:checked'))
+                 .map(cb => cb.value)
+  };
+
+  console.log('📤 Datos a enviar:', formData);
+
+  const url = habitacionEditando 
+    ? `/gerente/habitaciones/${habitacionEditando}`
+    : '/gerente/habitaciones';
+
+  const method = habitacionEditando ? 'PUT' : 'POST';
+
+  // 2. Enviar como JSON (no FormData)
+  fetch(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify(formData)
+  })
+  .then(response => {
+    console.log('📥 Respuesta HTTP:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      // Obtener detalles del error 422
+      return response.json().then(errorData => {
+        console.error('❌ Error del servidor:', errorData);
+        throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('✅ Respuesta exitosa:', data);
+    if (data.success) {
+      mostrarMensaje(data.message, 'success');
+      cerrarModalHabitacion();
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      mostrarMensaje(data.message || 'Error desconocido', 'danger');
+    }
+  })
+  .catch(error => {
+    console.error('❌ Error en fetch:', error);
+    mostrarMensaje('Error al procesar la solicitud: ' + error.message, 'danger');
+  });
+});
+
+// Eliminar habitación - VERSIÓN MEJORADA
+function eliminarHabitacion(habitacionId) {
+  if (!confirm('¿Estás seguro de que deseas eliminar esta habitación?\nEsta acción no se puede deshacer.')) {
+    return;
+  }
+
+  // Mostrar loading en el botón
+  const deleteBtn = document.querySelector(`button[onclick="eliminarHabitacion(${habitacionId})"]`);
+  const originalHtml = deleteBtn.innerHTML;
+  deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  deleteBtn.disabled = true;
+
+  fetch(`/gerente/habitaciones/${habitacionId}`, {
+    method: 'DELETE',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Error en la respuesta del servidor');
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      mostrarMensaje(data.message, 'success');
+      // Eliminar la fila de la tabla
+      const fila = document.querySelector(`tr[data-habitacion-id="${habitacionId}"]`);
+      if (fila) {
+        fila.remove();
+      }
+      // Actualizar estadísticas
+      actualizarEstadisticas();
+    } else {
+      mostrarMensaje(data.message || 'Error al eliminar la habitación', 'danger');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    mostrarMensaje('Error al eliminar la habitación: ' + error.message, 'danger');
+  })
+  .finally(() => {
+    // Restaurar botón
+    deleteBtn.innerHTML = originalHtml;
+    deleteBtn.disabled = false;
+  });
+}
+
+// Función alias para editar
+function editarHabitacion(habitacionId) {
+  mostrarModalHabitacion(habitacionId);
+}
+
+// Mostrar mensajes
+function mostrarMensaje(mensaje, tipo) {
+  const container = document.getElementById('habitacion-messages');
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${tipo} alert-dismissible fade show`;
+  alert.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  container.innerHTML = ''; // Limpiar mensajes anteriores
+  container.appendChild(alert);
+  
+  setTimeout(() => {
+    if (alert.parentNode) {
+      alert.remove();
+    }
+  }, 5000);
+}
+
+// Actualizar estadísticas
+function actualizarEstadisticas() {
+  // Recargar la página para actualizar estadísticas
+  setTimeout(() => location.reload(), 1000);
+}
+
+// Búsqueda en tiempo real
+document.getElementById('buscarHabitacion').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const rows = document.querySelectorAll('#listaHabitaciones tr');
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  });
+});
+
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', function(e) {
+  const modal = document.getElementById('modalHabitacion');
+  if (e.target === modal) {
+    cerrarModalHabitacion();
+  }
+});
+</script>
+  
 </body>
 </html>

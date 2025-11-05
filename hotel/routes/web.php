@@ -63,12 +63,15 @@ Route::middleware(['auth'])->group(function () {
     })->name('logout');
 });
 
-// Rutas de administración de usuarios - AHORA CON VERIFICACIÓN DE ESTADO
+// =============================================
+// RUTAS DE ADMINISTRACIÓN DE USUARIOS Y HABITACIONES
+// =============================================
+
 Route::middleware(['auth', 'empleado.activo'])->group(function () {
     // Ruta específica para el dashboard del gerente con datos
     Route::get('/gerente/dashboard', [AdminUserController::class, 'index'])->name('gerente.dashboard');
     
-    // Rutas de administración
+    // Rutas de administración de usuarios
     Route::get('/admin/usuarios', [AdminUserController::class, 'index'])->name('admin.usuarios');
     Route::get('/admin/empleados/crear', [AdminUserController::class, 'createEmpleado'])->name('admin.empleados.create');
     Route::post('/admin/empleados', [AdminUserController::class, 'storeEmpleado'])->name('admin.empleados.store');
@@ -76,6 +79,12 @@ Route::middleware(['auth', 'empleado.activo'])->group(function () {
     Route::put('/admin/empleados/{id}', [AdminUserController::class, 'updateEmpleado'])->name('admin.empleados.update');
     Route::delete('/admin/usuarios/{id}', [AdminUserController::class, 'destroy'])->name('admin.usuarios.destroy');
     Route::post('/admin/empleados/{id}/cambiar-estado', [AdminUserController::class, 'cambiarEstado'])->name('admin.empleados.cambiar-estado');
+    
+    // 🆕 RUTAS PARA GESTIÓN DE HABITACIONES (AJAX)
+    Route::get('/gerente/habitaciones/{id}', [AdminUserController::class, 'showHabitacion'])->name('gerente.habitaciones.show');
+    Route::post('/gerente/habitaciones', [AdminUserController::class, 'storeHabitacion'])->name('gerente.habitaciones.store');
+    Route::put('/gerente/habitaciones/{id}', [AdminUserController::class, 'updateHabitacion'])->name('gerente.habitaciones.update');
+    Route::delete('/gerente/habitaciones/{id}', [AdminUserController::class, 'destroyHabitacion'])->name('gerente.habitaciones.destroy');
 });
 
 // Rutas de recepcionista con verificación de estado Y rol

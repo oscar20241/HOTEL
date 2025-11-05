@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User; // ← AÑADIR ESTA IMPORTACIÓN
 
 class LoginRequest extends FormRequest
 {
@@ -41,6 +42,33 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // PRIMERO: Verificar si el usuario existe y es empleado inactivo
+        $user = User::where('email', $this->email)->first();
+        
+        if ($user && $user->empleado) {
+            // Verificar el estado del empleado
+            switch ($user->empleado->estado) {
+                case 'inactivo':
+                    RateLimiter::hit($this->throttleKey());
+                    throw ValidationException::withMessages([
+                        'email' => '❌ Tu cuenta está desactivada. Contacta al administrador.',
+                    ]);
+                    
+                case 'vacaciones':
+                    RateLimiter::hit($this->throttleKey());
+                    throw ValidationException::withMessages([
+                        'email' => '🏖️ Tu cuenta está en modo vacaciones. Vuelve a activarla cuando regreses.',
+                    ]);
+                    
+                case 'licencia':
+                    RateLimiter::hit($this->throttleKey());
+                    throw ValidationException::withMessages([
+                        'email' => '📄 Tu cuenta está en licencia. Contacta al administrador para reactivarla.',
+                    ]);
+            }
+        }
+
+        // SEGUNDO: Intentar autenticación normal
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
