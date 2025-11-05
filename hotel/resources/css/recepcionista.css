@@ -209,3 +209,61 @@
 .card h5 {
   color: #f1c40f;
 }
+.nueva-reserva-card {
+  background-color: rgb(0, 0, 0) !important; /* Transparente */
+  border: 1px solid rgb(0, 0, 0); /* Borde sutil */
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0);
+  backdrop-filter: blur(10px); /* Efecto de vidrio */
+  color: #ffffff; /* Texto blanco para contraste */
+}
+
+/* Asegura buena visibilidad de los labels e inputs */
+.nueva-reserva-card .form-label {
+  color: #ffffff00;
+}
+
+.nueva-reserva-card .form-control,
+.nueva-reserva-card .form-select,
+.nueva-reserva-card textarea {
+  background-color: rgb(0, 0, 0);
+  border: 1px solid rgba(255, 255, 255, 0);
+  color: #00000004;
+}
+
+.nueva-reserva-card .form-control::placeholder,
+.nueva-reserva-card textarea::placeholder {
+  color: rgba(0, 0, 0, 0);
+}
+
+.nueva-reserva-card .form-control:focus,
+.nueva-reserva-card .form-select:focus {
+  background-color: rgba(0, 0, 0, 0.051);
+  border-color: #ffc107;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+.card input.form-control,
+.card select.form-select,
+.card textarea.form-control {
+  background-color: rgba(255, 255, 255, 0.05); /* Transparente sutil */
+  color: #fff; /* Texto blanco */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card input.form-control::placeholder,
+.card textarea.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.card select.form-select option {
+  color: #000; /* el texto del menú desplegable */
+}
+
+/* Hover y focus con el color amarillo dorado del tema */
+.card input.form-control:focus,
+.card select.form-select:focus,
+.card textarea.form-control:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: #ffc107;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+  color: #fff;
+}
