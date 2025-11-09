@@ -73,13 +73,7 @@ class Habitacion extends Model
         $tarifaEspecial = $this->tipoHabitacion->tarifasDinamicas()
             ->where('fecha_inicio', '<=', $hoy)
             ->where('fecha_fin', '>=', $hoy)
-            ->orderByRaw(
-                "CASE tipo_temporada " .
-                "WHEN 'especial' THEN 1 " .
-                "WHEN 'alta' THEN 2 " .
-                "WHEN 'baja' THEN 3 " .
-                "ELSE 4 END"
-            )
+            ->orderByRaw("FIELD(tipo_temporada, 'especial', 'alta', 'baja')")
             ->orderByDesc('fecha_inicio')
             ->first();
 
