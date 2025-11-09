@@ -85,6 +85,13 @@ Route::middleware(['auth', 'empleado.activo'])->group(function () {
     Route::post('/gerente/habitaciones', [AdminUserController::class, 'storeHabitacion'])->name('gerente.habitaciones.store');
     Route::put('/gerente/habitaciones/{id}', [AdminUserController::class, 'updateHabitacion'])->name('gerente.habitaciones.update');
     Route::delete('/gerente/habitaciones/{id}', [AdminUserController::class, 'destroyHabitacion'])->name('gerente.habitaciones.destroy');
+
+    // 🆕 RUTAS PARA GESTIÓN DE TARIFAS DINÁMICAS
+    Route::get('/gerente/tarifas', [AdminUserController::class, 'listTarifas'])->name('gerente.tarifas.index');
+    Route::get('/gerente/tarifas/{id}', [AdminUserController::class, 'showTarifa'])->name('gerente.tarifas.show');
+    Route::post('/gerente/tarifas', [AdminUserController::class, 'storeTarifa'])->name('gerente.tarifas.store');
+    Route::put('/gerente/tarifas/{id}', [AdminUserController::class, 'updateTarifa'])->name('gerente.tarifas.update');
+    Route::delete('/gerente/tarifas/{id}', [AdminUserController::class, 'destroyTarifa'])->name('gerente.tarifas.destroy');
 });
 
 // Rutas de recepcionista con verificación de estado Y rol

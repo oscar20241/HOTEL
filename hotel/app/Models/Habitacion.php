@@ -12,11 +12,32 @@ class Habitacion extends Model
     
     protected $table = 'habitaciones';
 
-    protected $fillable = ['numero', 'tipo_habitacion_id', 'estado', 'caracteristicas'];
+    protected $fillable = [
+        'numero',
+        'tipo_habitacion_id',
+        'estado',
+        'capacidad',
+        'caracteristicas',
+        'amenidades'
+    ];
+
+    protected $casts = [
+        'amenidades' => 'array'
+    ];
 
     public function tipoHabitacion()
     {
         return $this->belongsTo(TipoHabitacion::class);
+    }
+
+    public function imagenes()
+    {
+        return $this->hasMany(HabitacionImagen::class)->orderBy('orden');
+    }
+
+    public function imagenPrincipal()
+    {
+        return $this->hasOne(HabitacionImagen::class)->where('es_principal', true);
     }
 
     public function reservaciones()
@@ -52,8 +73,16 @@ class Habitacion extends Model
         $tarifaEspecial = $this->tipoHabitacion->tarifasDinamicas()
             ->where('fecha_inicio', '<=', $hoy)
             ->where('fecha_fin', '>=', $hoy)
+            ->orderByRaw(
+                "CASE tipo_temporada " .
+                "WHEN 'especial' THEN 1 " .
+                "WHEN 'alta' THEN 2 " .
+                "WHEN 'baja' THEN 3 " .
+                "ELSE 4 END"
+            )
+            ->orderByDesc('fecha_inicio')
             ->first();
 
-        return $tarifaEspecial ? $tarifaEspecial->precio_modificado : $this->tipoHabitacion->precio_base;
+        return $tarifaEspecial ? (float) $tarifaEspecial->precio_modificado : (float) $this->tipoHabitacion->precio_base;
     }
 }
