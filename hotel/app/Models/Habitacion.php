@@ -12,11 +12,32 @@ class Habitacion extends Model
     
     protected $table = 'habitaciones';
 
-    protected $fillable = ['numero', 'tipo_habitacion_id', 'estado', 'caracteristicas'];
+    protected $fillable = [
+        'numero',
+        'tipo_habitacion_id',
+        'estado',
+        'capacidad',
+        'caracteristicas',
+        'amenidades'
+    ];
+
+    protected $casts = [
+        'amenidades' => 'array'
+    ];
 
     public function tipoHabitacion()
     {
         return $this->belongsTo(TipoHabitacion::class);
+    }
+
+    public function imagenes()
+    {
+        return $this->hasMany(HabitacionImagen::class)->orderBy('orden');
+    }
+
+    public function imagenPrincipal()
+    {
+        return $this->hasOne(HabitacionImagen::class)->where('es_principal', true);
     }
 
     public function reservaciones()
@@ -49,11 +70,41 @@ class Habitacion extends Model
     {
         $hoy = Carbon::today();
         
-        $tarifaEspecial = $this->tipoHabitacion->tarifasDinamicas()
+        $tarifas = $this->tipoHabitacion->tarifasDinamicas()
             ->where('fecha_inicio', '<=', $hoy)
             ->where('fecha_fin', '>=', $hoy)
+            ->get();
+
+        $prioridades = [
+            'especial' => 1,
+            'alta' => 2,
+            'baja' => 3,
+        ];
+
+        $tarifaEspecial = $tarifas
+            ->sort(function ($tarifaA, $tarifaB) use ($prioridades) {
+                $prioridadA = $prioridades[$tarifaA->tipo_temporada] ?? 4;
+                $prioridadB = $prioridades[$tarifaB->tipo_temporada] ?? 4;
+
+                if ($prioridadA !== $prioridadB) {
+                    return $prioridadA <=> $prioridadB;
+                }
+
+                $inicioA = $tarifaA->fecha_inicio instanceof Carbon
+                    ? $tarifaA->fecha_inicio
+                    : Carbon::parse($tarifaA->fecha_inicio);
+                $inicioB = $tarifaB->fecha_inicio instanceof Carbon
+                    ? $tarifaB->fecha_inicio
+                    : Carbon::parse($tarifaB->fecha_inicio);
+
+                if ($inicioA->equalTo($inicioB)) {
+                    return 0;
+                }
+
+                return $inicioA->greaterThan($inicioB) ? -1 : 1;
+            })
             ->first();
 
-        return $tarifaEspecial ? $tarifaEspecial->precio_modificado : $this->tipoHabitacion->precio_base;
+        return $tarifaEspecial ? (float) $tarifaEspecial->precio_modificado : (float) $this->tipoHabitacion->precio_base;
     }
 }
