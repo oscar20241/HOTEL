@@ -30,6 +30,9 @@
         <a href="#" class="nav-link" data-target="habitaciones">
           <i class="fas fa-door-closed"></i> Habitaciones
         </a>
+        <a href="#" class="nav-link" data-target="tarifas">
+          <i class="fas fa-dollar-sign"></i> Tarifas
+        </a>
         <a href="#" class="nav-link" data-target="usuarios">
           <i class="fas fa-id-badge"></i> Usuarios
         </a>
@@ -174,6 +177,7 @@
             <thead>
               <tr>
                 <th># Habitación</th>
+                <th>Imagen</th>
                 <th>Tipo</th>
                 <th>Capacidad</th>
                 <th>Precio/Noche</th>
@@ -185,9 +189,38 @@
               @foreach($habitaciones as $habitacion)
               <tr data-habitacion-id="{{ $habitacion->id }}">
                 <td><strong>{{ $habitacion->numero }}</strong></td>
+                <td>
+                  @php
+                    $imagenPrincipal = $habitacion->imagenes->firstWhere('es_principal', true) ?? $habitacion->imagenes->first();
+                  @endphp
+                  @if($imagenPrincipal)
+                    <img src="{{ asset('storage/' . $imagenPrincipal->ruta_imagen) }}" alt="Imagen de la habitación {{ $habitacion->numero }}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                  @else
+                    <span class="text-muted small">Sin imagen</span>
+                  @endif
+                </td>
                 <td>{{ $habitacion->tipoHabitacion->nombre }}</td>
                 <td>{{ $habitacion->capacidad }} personas</td>
-                <td>${{ number_format($habitacion->tipoHabitacion->precio_base, 2) }}</td>
+                <td>
+                  @php
+                    $hoy = \Carbon\Carbon::today();
+                    $tarifaActual = $habitacion->tipoHabitacion->tarifasDinamicas
+                      ->filter(fn($tarifa) => $tarifa->fecha_inicio->lte($hoy) && $tarifa->fecha_fin->gte($hoy))
+                      ->sortBy(function ($tarifa) {
+                        $prioridad = ['especial' => 0, 'alta' => 1, 'baja' => 2];
+                        return $prioridad[$tarifa->tipo_temporada] ?? 3;
+                      })
+                      ->first();
+                  @endphp
+                  <strong>${{ number_format($habitacion->precio_actual, 2) }}</strong>
+                  <div class="small text-muted">
+                    @if($tarifaActual)
+                      {{ ucfirst($tarifaActual->tipo_temporada) }} · {{ $tarifaActual->fecha_inicio->format('d/m') }} - {{ $tarifaActual->fecha_fin->format('d/m') }}
+                    @else
+                      Tarifa base
+                    @endif
+                  </div>
+                </td>
                 <td>
                   @php
                     $estadoColors = [
@@ -232,7 +265,83 @@
             <i class="fas fa-plus-circle"></i> Agregar Primera Habitación
           </button>
         </div>
-        @endif
+      @endif
+      </div>
+
+      <!-- Sección: Tarifas dinámicas -->
+      <div id="tarifas" class="seccion">
+        <h2>Tarifas dinámicas</h2>
+
+        <div id="tarifa-messages"></div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <p class="mb-0">Configura temporadas altas, bajas o especiales para ajustar los precios automáticamente.</p>
+          <button class="btn btn-primary" onclick="mostrarModalTarifa()">
+            <i class="fas fa-plus-circle"></i> Nueva tarifa
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Tipo de habitación</th>
+                <th>Temporada</th>
+                <th>Vigencia</th>
+                <th>Precio</th>
+                <th>Descripción</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="listaTarifas">
+              @forelse($tarifasDinamicas as $tarifa)
+              <tr data-tarifa-id="{{ $tarifa->id }}">
+                <td>
+                  <strong>{{ $tarifa->tipoHabitacion->nombre }}</strong>
+                  <div class="small text-muted">Base: ${{ number_format($tarifa->tipoHabitacion->precio_base, 2) }}</div>
+                </td>
+                <td>
+                  @php
+                    $temporadasLabels = [
+                      'alta' => 'Alta',
+                      'baja' => 'Baja',
+                      'especial' => 'Especial'
+                    ];
+                    $temporadasColors = [
+                      'alta' => 'danger',
+                      'baja' => 'info',
+                      'especial' => 'warning'
+                    ];
+                  @endphp
+                  <span class="badge bg-{{ $temporadasColors[$tarifa->tipo_temporada] ?? 'secondary' }}">
+                    {{ $temporadasLabels[$tarifa->tipo_temporada] ?? ucfirst($tarifa->tipo_temporada) }}
+                  </span>
+                </td>
+                <td>{{ $tarifa->fecha_inicio->format('d/m/Y') }} - {{ $tarifa->fecha_fin->format('d/m/Y') }}</td>
+                <td>${{ number_format($tarifa->precio_modificado, 2) }}</td>
+                <td>{{ $tarifa->descripcion ?? '—' }}</td>
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-warning" onclick="editarTarifa({{ $tarifa->id }})" title="Editar">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger" onclick="eliminarTarifa({{ $tarifa->id }})" title="Eliminar">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              @empty
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                  <p class="mb-0">Aún no hay temporadas configuradas.</p>
+                </td>
+              </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Modal para Habitaciones CORREGIDO -->
@@ -241,7 +350,7 @@
     <span class="cerrar" onclick="cerrarModalHabitacion()">&times;</span>
     <h2 id="modalHabitacionTitulo">Nueva Habitación</h2>
     
-    <form id="formHabitacion">
+    <form id="formHabitacion" enctype="multipart/form-data">
       @csrf
       <div id="method-field"></div>
       
@@ -255,7 +364,7 @@
         <label for="tipo_habitacion_id" class="form-label">Tipo de Habitación *</label>
         <select class="form-select" id="tipo_habitacion_id" name="tipo_habitacion_id" required>
           <option value="">Seleccionar tipo</option>
-          @foreach($tiposHabitacion = \App\Models\TipoHabitacion::all() as $tipo)
+          @foreach($tiposHabitacion as $tipo)
             <option value="{{ $tipo->id }}">
               {{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}
             </option>
@@ -310,9 +419,96 @@
         </div>
       </div>
 
+      <div class="mb-3">
+        <label for="imagenes" class="form-label">Imágenes de la habitación</label>
+        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
+        <small class="text-muted d-block mt-1">Puedes seleccionar varias imágenes; la primera será marcada como principal.</small>
+      </div>
+
+      <div class="mb-3 d-none" id="nuevasImagenesWrapper">
+        <label class="form-label">Vista previa de nuevas imágenes</label>
+        <div id="nuevasImagenesPreview" class="row g-2"></div>
+      </div>
+
+      <div class="mb-3 d-none" id="imagenesActualesWrapper">
+        <label class="form-label">Imágenes registradas</label>
+        <div id="imagenesActuales" class="row g-2"></div>
+      </div>
+
       <div class="text-center">
         <button type="submit" class="btn-confirmar">
           <i class="fas fa-save"></i> Guardar Habitación
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para Tarifa dinámica -->
+<div id="modalTarifa" class="modal">
+  <div class="modal-contenido modal-md">
+    <span class="cerrar" onclick="cerrarModalTarifa()">&times;</span>
+    <h2 id="modalTarifaTitulo">Nueva tarifa</h2>
+
+    <form id="formTarifa">
+      @csrf
+      <div id="tarifa-method-field"></div>
+
+      <div class="mb-3">
+        <label for="tarifa_tipo_habitacion_id" class="form-label">Tipo de habitación *</label>
+        <select class="form-select" id="tarifa_tipo_habitacion_id" name="tipo_habitacion_id" required>
+          <option value="">Seleccionar tipo</option>
+          @foreach($tiposHabitacion as $tipo)
+            <option value="{{ $tipo->id }}">{{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_fecha_inicio" class="form-label">Fecha de inicio *</label>
+            <input type="date" class="form-control" id="tarifa_fecha_inicio" name="fecha_inicio" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_fecha_fin" class="form-label">Fecha de fin *</label>
+            <input type="date" class="form-control" id="tarifa_fecha_fin" name="fecha_fin" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_tipo_temporada" class="form-label">Temporada *</label>
+            <select class="form-select" id="tarifa_tipo_temporada" name="tipo_temporada" required>
+              <option value="alta">Temporada alta</option>
+              <option value="baja">Temporada baja</option>
+              <option value="especial">Temporada especial</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_precio_modificado" class="form-label">Precio por noche *</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="number" min="0" step="0.01" class="form-control" id="tarifa_precio_modificado" name="precio_modificado" required>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="tarifa_descripcion" class="form-label">Descripción</label>
+        <textarea class="form-control" id="tarifa_descripcion" name="descripcion" rows="3" placeholder="Notas internas, por ejemplo: Evento local, vacaciones..." maxlength="500"></textarea>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn-confirmar">
+          <i class="fas fa-save"></i> Guardar tarifa
         </button>
       </div>
     </form>
@@ -864,6 +1060,8 @@ document.getElementById('buscarReserva').addEventListener('input', function(e) {
 // =============================================
 
 let habitacionEditando = null;
+let tarifaEditando = null;
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 // Mostrar modal para nueva/editar habitación
 function mostrarModalHabitacion(habitacionId = null) {
@@ -872,7 +1070,10 @@ function mostrarModalHabitacion(habitacionId = null) {
   const titulo = document.getElementById('modalHabitacionTitulo');
   const form = document.getElementById('formHabitacion');
   const methodField = document.getElementById('method-field');
-  
+  const inputImagenes = document.getElementById('imagenes');
+
+  mostrarImagenesActuales([]);
+
   if (habitacionId) {
     titulo.textContent = 'Editar Habitación';
     cargarDatosHabitacion(habitacionId);
@@ -881,18 +1082,31 @@ function mostrarModalHabitacion(habitacionId = null) {
     titulo.textContent = 'Nueva Habitación';
     form.reset();
     methodField.innerHTML = '';
-    
+
     // Establecer valores por defecto
     document.getElementById('capacidad').value = '2';
     document.getElementById('estado').value = 'disponible';
   }
-  
+
+  if (inputImagenes) {
+    inputImagenes.value = '';
+  }
+  mostrarPreviewNuevas();
+
   modal.style.display = 'flex';
 }
 
 // Cerrar modal
 function cerrarModalHabitacion() {
-  document.getElementById('modalHabitacion').style.display = 'none';
+  const modal = document.getElementById('modalHabitacion');
+  const form = document.getElementById('formHabitacion');
+
+  modal.style.display = 'none';
+  if (form) {
+    form.reset();
+  }
+  mostrarImagenesActuales([]);
+  mostrarPreviewNuevas();
   habitacionEditando = null;
 }
 
@@ -937,7 +1151,7 @@ function cargarDatosHabitacion(habitacionId) {
         document.getElementById('capacidad').value = data.capacidad || '2';
         document.getElementById('estado').value = data.estado || 'disponible';
         document.getElementById('caracteristicas').value = data.caracteristicas || '';
-        
+
         // Cargar amenidades
         console.log('🏷️ Amenidades recibidas:', data.amenidades);
         if (data.amenidades && Array.isArray(data.amenidades)) {
@@ -951,7 +1165,10 @@ function cargarDatosHabitacion(habitacionId) {
                 checkbox.checked = false;
             });
         }
-        
+
+        mostrarImagenesActuales(data.imagenes || []);
+        mostrarPreviewNuevas();
+
         console.log('✅ Formulario cargado correctamente');
         mostrarMensaje('Datos cargados correctamente', 'success');
     })
@@ -973,62 +1190,68 @@ function cargarDatosHabitacion(habitacionId) {
 
 document.getElementById('formHabitacion').addEventListener('submit', function(e) {
   e.preventDefault();
-  
-  // 1. Recopilar datos como OBJETO JSON (no FormData)
-  const formData = {
-    numero: document.getElementById('numero').value.trim(),
-    tipo_habitacion_id: parseInt(document.getElementById('tipo_habitacion_id').value),
-    capacidad: parseInt(document.getElementById('capacidad').value),
-    estado: document.getElementById('estado').value,
-    caracteristicas: document.getElementById('caracteristicas').value,
-    amenidades: Array.from(document.querySelectorAll('input[name="amenidades[]"]:checked'))
-                 .map(cb => cb.value)
-  };
 
-  console.log('📤 Datos a enviar:', formData);
+  const formElement = e.target;
+  const submitBtn = formElement.querySelector('button[type="submit"]');
+  const originalHtml = submitBtn.innerHTML;
 
-  const url = habitacionEditando 
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+  submitBtn.disabled = true;
+
+  const formData = new FormData(formElement);
+
+  if (habitacionEditando) {
+    formData.append('_method', 'PUT');
+  }
+
+  const url = habitacionEditando
     ? `/gerente/habitaciones/${habitacionEditando}`
     : '/gerente/habitaciones';
 
-  const method = habitacionEditando ? 'PUT' : 'POST';
-
-  // 2. Enviar como JSON (no FormData)
   fetch(url, {
-    method: method,
+    method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
       'X-Requested-With': 'XMLHttpRequest',
       'Accept': 'application/json'
     },
-    body: JSON.stringify(formData)
+    body: formData
   })
-  .then(response => {
-    console.log('📥 Respuesta HTTP:', response.status, response.statusText);
-    
+  .then(async response => {
+    const data = await response.json().catch(() => null);
+
     if (!response.ok) {
-      // Obtener detalles del error 422
-      return response.json().then(errorData => {
-        console.error('❌ Error del servidor:', errorData);
-        throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
-      });
+      let message = 'Error al procesar la solicitud.';
+
+      if (data && data.errors) {
+        const errores = Object.values(data.errors).flat();
+        message = errores.join(' ');
+      } else if (data && data.message) {
+        message = data.message;
+      }
+
+      throw new Error(message);
     }
-    return response.json();
+
+    return data;
   })
   .then(data => {
-    console.log('✅ Respuesta exitosa:', data);
-    if (data.success) {
+    if (data && data.success) {
       mostrarMensaje(data.message, 'success');
       cerrarModalHabitacion();
-      setTimeout(() => location.reload(), 1500);
+      setTimeout(() => location.reload(), 1200);
     } else {
-      mostrarMensaje(data.message || 'Error desconocido', 'danger');
+      const message = (data && (data.message || data.error)) || 'Error desconocido.';
+      mostrarMensaje(message, 'danger');
     }
   })
   .catch(error => {
     console.error('❌ Error en fetch:', error);
     mostrarMensaje('Error al procesar la solicitud: ' + error.message, 'danger');
+  })
+  .finally(() => {
+    submitBtn.innerHTML = originalHtml;
+    submitBtn.disabled = false;
   });
 });
 
@@ -1099,12 +1322,311 @@ function mostrarMensaje(mensaje, tipo) {
   `;
   container.innerHTML = ''; // Limpiar mensajes anteriores
   container.appendChild(alert);
-  
+
   setTimeout(() => {
     if (alert.parentNode) {
       alert.remove();
     }
   }, 5000);
+}
+
+function mostrarMensajeTarifas(mensaje, tipo) {
+  const container = document.getElementById('tarifa-messages');
+  if (!container) {
+    return;
+  }
+
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${tipo} alert-dismissible fade show`;
+  alert.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  container.innerHTML = '';
+  container.appendChild(alert);
+
+  setTimeout(() => {
+    if (alert.parentNode) {
+      alert.remove();
+    }
+  }, 5000);
+}
+
+function mostrarModalTarifa(tarifaId = null) {
+  tarifaEditando = tarifaId;
+  const modal = document.getElementById('modalTarifa');
+  const titulo = document.getElementById('modalTarifaTitulo');
+  const form = document.getElementById('formTarifa');
+  const methodField = document.getElementById('tarifa-method-field');
+
+  if (!modal || !form) {
+    return;
+  }
+
+  form.reset();
+  methodField.innerHTML = '';
+
+  if (tarifaId) {
+    titulo.textContent = 'Editar tarifa';
+    methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+
+    fetch(`/gerente/tarifas/${tarifaId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('No se pudieron cargar los datos de la tarifa.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        document.getElementById('tarifa_tipo_habitacion_id').value = data.tipo_habitacion_id;
+        document.getElementById('tarifa_fecha_inicio').value = data.fecha_inicio;
+        document.getElementById('tarifa_fecha_fin').value = data.fecha_fin;
+        document.getElementById('tarifa_tipo_temporada').value = data.tipo_temporada;
+        document.getElementById('tarifa_precio_modificado').value = data.precio_modificado;
+        document.getElementById('tarifa_descripcion').value = data.descripcion || '';
+      })
+      .catch(error => {
+        console.error('Error al cargar la tarifa:', error);
+        mostrarMensajeTarifas(error.message, 'danger');
+      });
+  } else {
+    titulo.textContent = 'Nueva tarifa';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function cerrarModalTarifa() {
+  const modal = document.getElementById('modalTarifa');
+  const form = document.getElementById('formTarifa');
+  const methodField = document.getElementById('tarifa-method-field');
+
+  if (modal) {
+    modal.style.display = 'none';
+  }
+
+  if (form) {
+    form.reset();
+  }
+
+  if (methodField) {
+    methodField.innerHTML = '';
+  }
+
+  tarifaEditando = null;
+}
+
+const formTarifa = document.getElementById('formTarifa');
+if (formTarifa) {
+  formTarifa.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const submitBtn = formTarifa.querySelector('button[type="submit"]');
+    const originalHtml = submitBtn.innerHTML;
+
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    submitBtn.disabled = true;
+
+    const payload = {
+      tipo_habitacion_id: document.getElementById('tarifa_tipo_habitacion_id').value,
+      fecha_inicio: document.getElementById('tarifa_fecha_inicio').value,
+      fecha_fin: document.getElementById('tarifa_fecha_fin').value,
+      tipo_temporada: document.getElementById('tarifa_tipo_temporada').value,
+      precio_modificado: document.getElementById('tarifa_precio_modificado').value,
+      descripcion: document.getElementById('tarifa_descripcion').value
+    };
+
+    const url = tarifaEditando ? `/gerente/tarifas/${tarifaEditando}` : '/gerente/tarifas';
+    const method = tarifaEditando ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(async response => {
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          let message = 'Error al guardar la tarifa.';
+
+          if (data && data.errors) {
+            const errores = Object.values(data.errors).flat();
+            message = errores.join(' ');
+          } else if (data && data.message) {
+            message = data.message;
+          }
+
+          throw new Error(message);
+        }
+
+        return data;
+      })
+      .then(data => {
+        if (data && data.success) {
+          mostrarMensajeTarifas(data.message, 'success');
+          cerrarModalTarifa();
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          const message = (data && (data.message || data.error)) || 'Error desconocido.';
+          mostrarMensajeTarifas(message, 'danger');
+        }
+      })
+      .catch(error => {
+        console.error('Error al guardar tarifa:', error);
+        mostrarMensajeTarifas(error.message, 'danger');
+      })
+      .finally(() => {
+        submitBtn.innerHTML = originalHtml;
+        submitBtn.disabled = false;
+      });
+  });
+}
+
+function editarTarifa(tarifaId) {
+  mostrarModalTarifa(tarifaId);
+}
+
+function eliminarTarifa(tarifaId) {
+  if (!confirm('¿Eliminar esta tarifa dinámica?')) {
+    return;
+  }
+
+  const deleteBtn = document.querySelector(`button[onclick="eliminarTarifa(${tarifaId})"]`);
+  const originalHtml = deleteBtn ? deleteBtn.innerHTML : null;
+
+  if (deleteBtn) {
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    deleteBtn.disabled = true;
+  }
+
+  fetch(`/gerente/tarifas/${tarifaId}`, {
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-TOKEN': csrfToken
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Error al eliminar la tarifa.');
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        mostrarMensajeTarifas(data.message, 'success');
+        const fila = document.querySelector(`tr[data-tarifa-id="${tarifaId}"]`);
+        if (fila) {
+          fila.remove();
+        }
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        mostrarMensajeTarifas(data.message || 'No se pudo eliminar la tarifa.', 'danger');
+      }
+    })
+    .catch(error => {
+      console.error('Error al eliminar tarifa:', error);
+      mostrarMensajeTarifas(error.message, 'danger');
+    })
+    .finally(() => {
+      if (deleteBtn) {
+        deleteBtn.innerHTML = originalHtml;
+        deleteBtn.disabled = false;
+      }
+    });
+}
+
+function mostrarImagenesActuales(imagenes = []) {
+  const wrapper = document.getElementById('imagenesActualesWrapper');
+  const container = document.getElementById('imagenesActuales');
+
+  if (!wrapper || !container) {
+    return;
+  }
+
+  container.innerHTML = '';
+
+  if (!Array.isArray(imagenes) || imagenes.length === 0) {
+    wrapper.classList.add('d-none');
+    return;
+  }
+
+  wrapper.classList.remove('d-none');
+
+  imagenes.forEach(imagen => {
+    const col = document.createElement('div');
+    col.className = 'col-4';
+
+    const badge = imagen.es_principal
+      ? '<span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1">Principal</span>'
+      : '';
+
+    col.innerHTML = `
+      <div class="position-relative">
+        ${badge}
+        <img src="${imagen.url}" alt="Imagen existente" class="img-fluid rounded border" style="height: 90px; width: 100%; object-fit: cover;">
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+function mostrarPreviewNuevas(filesList) {
+  const wrapper = document.getElementById('nuevasImagenesWrapper');
+  const container = document.getElementById('nuevasImagenesPreview');
+
+  if (!wrapper || !container) {
+    return;
+  }
+
+  const files = filesList ? Array.from(filesList) : [];
+  container.innerHTML = '';
+
+  if (files.length === 0) {
+    wrapper.classList.add('d-none');
+    return;
+  }
+
+  wrapper.classList.remove('d-none');
+
+  files.forEach((file, index) => {
+    const col = document.createElement('div');
+    col.className = 'col-4';
+
+    const objectUrl = URL.createObjectURL(file);
+
+    col.innerHTML = `
+      <div class="position-relative">
+        ${index === 0 ? '<span class="badge bg-info text-dark position-absolute top-0 start-0 m-1">Principal</span>' : ''}
+        <img src="${objectUrl}" alt="Nueva imagen" class="img-fluid rounded border" style="height: 90px; width: 100%; object-fit: cover;">
+      </div>
+    `;
+
+    const imgElement = col.querySelector('img');
+    imgElement.onload = () => URL.revokeObjectURL(objectUrl);
+
+    container.appendChild(col);
+  });
+}
+
+const inputImagenesHabitacion = document.getElementById('imagenes');
+if (inputImagenesHabitacion) {
+  inputImagenesHabitacion.addEventListener('change', event => {
+    mostrarPreviewNuevas(event.target.files);
+  });
 }
 
 // Actualizar estadísticas
@@ -1127,8 +1649,12 @@ document.getElementById('buscarHabitacion').addEventListener('input', function(e
 // Cerrar modal al hacer clic fuera
 window.addEventListener('click', function(e) {
   const modal = document.getElementById('modalHabitacion');
+  const modalTarifa = document.getElementById('modalTarifa');
   if (e.target === modal) {
     cerrarModalHabitacion();
+  }
+  if (e.target === modalTarifa) {
+    cerrarModalTarifa();
   }
 });
 </script>

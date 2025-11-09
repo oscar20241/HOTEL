@@ -7,6 +7,8 @@ use App\Models\Empleado;
 use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
 use App\Models\HabitacionImagen;
+use App\Models\TarifaDinamica;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -26,12 +28,22 @@ public function index()
         ->with('empleado')
         ->get();
     
-    // 🆕 Obtener habitaciones para el dashboard (SIN IMÁGENES TEMPORALMENTE)
-    $habitaciones = Habitacion::with('tipoHabitacion') // Solo cargar tipoHabitacion
+    // Obtener habitaciones para el dashboard con sus imágenes
+    $habitaciones = Habitacion::with(['tipoHabitacion.tarifasDinamicas' => function ($query) {
+            $query->orderBy('fecha_inicio');
+        }, 'imagenes'])
         ->orderBy('numero')
         ->get();
-    
-    return view('Gerente', compact('huespedes', 'empleados', 'habitaciones'));
+
+    $tiposHabitacion = TipoHabitacion::with(['tarifasDinamicas' => function ($query) {
+            $query->orderBy('fecha_inicio');
+        }])->orderBy('nombre')->get();
+
+    $tarifasDinamicas = TarifaDinamica::with('tipoHabitacion')
+        ->orderBy('fecha_inicio')
+        ->get();
+
+    return view('Gerente', compact('huespedes', 'empleados', 'habitaciones', 'tiposHabitacion', 'tarifasDinamicas'));
 }
 
     // =============================================
@@ -224,15 +236,24 @@ public function index()
     // 🆕 Obtener datos de una habitación para edición
     public function showHabitacion($id)
     {
-        $habitacion = Habitacion::with('tipoHabitacion')->findOrFail($id);
-        
+        $habitacion = Habitacion::with(['tipoHabitacion', 'imagenes'])->findOrFail($id);
+
         return response()->json([
             'numero' => $habitacion->numero,
             'tipo_habitacion_id' => $habitacion->tipo_habitacion_id,
             'capacidad' => $habitacion->capacidad,
             'estado' => $habitacion->estado,
             'caracteristicas' => $habitacion->caracteristicas,
-            'amenidades' => $habitacion->amenidades ?? []
+            'amenidades' => $habitacion->amenidades ?? [],
+            'precio_actual' => $habitacion->precio_actual,
+            'imagenes' => $habitacion->imagenes->map(function ($imagen) {
+                return [
+                    'id' => $imagen->id,
+                    'url' => Storage::url($imagen->ruta_imagen),
+                    'nombre' => $imagen->nombre_original,
+                    'es_principal' => $imagen->es_principal,
+                ];
+            })
         ]);
     }
 
@@ -246,7 +267,8 @@ public function storeHabitacion(Request $request)
         'capacidad' => 'required|integer|min:1|max:10',
         'caracteristicas' => 'nullable|string|max:500',
         'amenidades' => 'nullable|array',
-        // 'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' // Comentar temporalmente
+        'imagenes' => 'nullable|array',
+        'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096'
     ]);
 
     if ($validator->fails()) {
@@ -266,25 +288,24 @@ public function storeHabitacion(Request $request)
         'amenidades' => $request->amenidades ?? []
     ]);
 
-    // Procesar imágenes (COMENTAR TEMPORALMENTE)
-    // if ($request->hasFile('imagenes')) {
-    //     foreach ($request->file('imagenes') as $index => $imagen) {
-    //         $path = $imagen->store('habitaciones', 'public');
-    //         
-    //         HabitacionImagen::create([
-    //             'habitacion_id' => $habitacion->id,
-    //             'ruta_imagen' => $path,
-    //             'nombre_original' => $imagen->getClientOriginalName(),
-    //             'es_principal' => $index === 0,
-    //             'orden' => $index
-    //         ]);
-    //     }
-    // }
+    if ($request->hasFile('imagenes')) {
+        foreach ($request->file('imagenes') as $index => $imagen) {
+            $path = $imagen->store('habitaciones', 'public');
+
+            HabitacionImagen::create([
+                'habitacion_id' => $habitacion->id,
+                'ruta_imagen' => $path,
+                'nombre_original' => $imagen->getClientOriginalName(),
+                'es_principal' => $index === 0,
+                'orden' => $index
+            ]);
+        }
+    }
 
     return response()->json([
         'success' => true,
         'message' => 'Habitación creada exitosamente.',
-        'habitacion' => $habitacion->load('tipoHabitacion') // Solo cargar tipoHabitacion
+        'habitacion' => $habitacion->load(['tipoHabitacion.tarifasDinamicas', 'imagenes'])
     ]);
 }
 
@@ -299,7 +320,9 @@ public function storeHabitacion(Request $request)
             'estado' => 'required|in:disponible,ocupada,mantenimiento,limpieza',
             'capacidad' => 'required|integer|min:1|max:10',
             'caracteristicas' => 'nullable|string|max:500',
-            'amenidades' => 'nullable|array'
+            'amenidades' => 'nullable|array',
+            'imagenes' => 'nullable|array',
+            'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096'
         ]);
 
         if ($validator->fails()) {
@@ -318,10 +341,33 @@ public function storeHabitacion(Request $request)
             'amenidades' => $request->amenidades ?? []
         ]);
 
+        if ($request->hasFile('imagenes')) {
+            $ordenBase = $habitacion->imagenes()->count();
+
+            foreach ($request->file('imagenes') as $index => $imagen) {
+                $path = $imagen->store('habitaciones', 'public');
+
+                HabitacionImagen::create([
+                    'habitacion_id' => $habitacion->id,
+                    'ruta_imagen' => $path,
+                    'nombre_original' => $imagen->getClientOriginalName(),
+                    'es_principal' => $habitacion->imagenes()->where('es_principal', true)->exists() ? false : $index === 0,
+                    'orden' => $ordenBase + $index
+                ]);
+            }
+        }
+
+        if (!$habitacion->imagenes()->where('es_principal', true)->exists()) {
+            $primeraImagen = $habitacion->imagenes()->orderBy('orden')->first();
+            if ($primeraImagen) {
+                $primeraImagen->update(['es_principal' => true]);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Habitación actualizada exitosamente.',
-            'habitacion' => $habitacion->load('tipoHabitacion')
+            'habitacion' => $habitacion->load(['tipoHabitacion.tarifasDinamicas', 'imagenes'])
         ]);
     }
 
@@ -340,13 +386,12 @@ public function destroyHabitacion($id)
             ], 422);
         }
 
-        // Eliminar imágenes asociadas (COMENTAR TEMPORALMENTE)
-        // if ($habitacion->imagenes()->exists()) {
-        //     foreach ($habitacion->imagenes as $imagen) {
-        //         Storage::disk('public')->delete($imagen->ruta_imagen);
-        //         $imagen->delete();
-        //     }
-        // }
+        if ($habitacion->imagenes()->exists()) {
+            foreach ($habitacion->imagenes as $imagen) {
+                Storage::disk('public')->delete($imagen->ruta_imagen);
+                $imagen->delete();
+            }
+        }
 
         $habitacion->delete();
 
@@ -362,4 +407,159 @@ public function destroyHabitacion($id)
         ], 500);
     }
 }
+
+    // =============================================
+    // GESTIÓN DE TARIFAS DINÁMICAS
+    // =============================================
+
+    public function listTarifas()
+    {
+        $tarifas = TarifaDinamica::with('tipoHabitacion')
+            ->orderBy('fecha_inicio')
+            ->get()
+            ->map(function ($tarifa) {
+                return [
+                    'id' => $tarifa->id,
+                    'tipo_habitacion_id' => $tarifa->tipo_habitacion_id,
+                    'tipo_habitacion' => $tarifa->tipoHabitacion->nombre,
+                    'fecha_inicio' => $tarifa->fecha_inicio->toDateString(),
+                    'fecha_fin' => $tarifa->fecha_fin->toDateString(),
+                    'precio_modificado' => (float) $tarifa->precio_modificado,
+                    'tipo_temporada' => $tarifa->tipo_temporada,
+                    'descripcion' => $tarifa->descripcion,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'tarifas' => $tarifas,
+        ]);
+    }
+
+    public function showTarifa($id)
+    {
+        $tarifa = TarifaDinamica::with('tipoHabitacion')->findOrFail($id);
+
+        return response()->json([
+            'id' => $tarifa->id,
+            'tipo_habitacion_id' => $tarifa->tipo_habitacion_id,
+            'fecha_inicio' => $tarifa->fecha_inicio->toDateString(),
+            'fecha_fin' => $tarifa->fecha_fin->toDateString(),
+            'precio_modificado' => (float) $tarifa->precio_modificado,
+            'tipo_temporada' => $tarifa->tipo_temporada,
+            'descripcion' => $tarifa->descripcion,
+        ]);
+    }
+
+    public function storeTarifa(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'tipo_habitacion_id' => 'required|exists:tipos_habitacion,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'precio_modificado' => 'required|numeric|min:0',
+            'tipo_temporada' => 'required|in:alta,baja,especial',
+            'descripcion' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($this->existeSolapamiento($request->tipo_habitacion_id, $request->fecha_inicio, $request->fecha_fin)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ya existe una tarifa configurada para estas fechas en el mismo tipo de habitación.',
+            ], 422);
+        }
+
+        $tarifa = TarifaDinamica::create([
+            'tipo_habitacion_id' => $request->tipo_habitacion_id,
+            'fecha_inicio' => Carbon::parse($request->fecha_inicio),
+            'fecha_fin' => Carbon::parse($request->fecha_fin),
+            'precio_modificado' => $request->precio_modificado,
+            'tipo_temporada' => $request->tipo_temporada,
+            'descripcion' => $request->descripcion,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tarifa dinámica creada correctamente.',
+            'tarifa' => $tarifa->load('tipoHabitacion'),
+        ], 201);
+    }
+
+    public function updateTarifa(Request $request, $id)
+    {
+        $tarifa = TarifaDinamica::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'tipo_habitacion_id' => 'required|exists:tipos_habitacion,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'precio_modificado' => 'required|numeric|min:0',
+            'tipo_temporada' => 'required|in:alta,baja,especial',
+            'descripcion' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($this->existeSolapamiento($request->tipo_habitacion_id, $request->fecha_inicio, $request->fecha_fin, $tarifa->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ya existe una tarifa configurada para estas fechas en el mismo tipo de habitación.',
+            ], 422);
+        }
+
+        $tarifa->update([
+            'tipo_habitacion_id' => $request->tipo_habitacion_id,
+            'fecha_inicio' => Carbon::parse($request->fecha_inicio),
+            'fecha_fin' => Carbon::parse($request->fecha_fin),
+            'precio_modificado' => $request->precio_modificado,
+            'tipo_temporada' => $request->tipo_temporada,
+            'descripcion' => $request->descripcion,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tarifa dinámica actualizada correctamente.',
+            'tarifa' => $tarifa->load('tipoHabitacion'),
+        ]);
+    }
+
+    public function destroyTarifa($id)
+    {
+        $tarifa = TarifaDinamica::findOrFail($id);
+        $tarifa->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tarifa dinámica eliminada correctamente.',
+        ]);
+    }
+
+    private function existeSolapamiento($tipoHabitacionId, $fechaInicio, $fechaFin, $ignorarId = null)
+    {
+        return TarifaDinamica::where('tipo_habitacion_id', $tipoHabitacionId)
+            ->when($ignorarId, function ($query) use ($ignorarId) {
+                $query->where('id', '!=', $ignorarId);
+            })
+            ->where(function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
+                    ->orWhereBetween('fecha_fin', [$fechaInicio, $fechaFin])
+                    ->orWhere(function ($subquery) use ($fechaInicio, $fechaFin) {
+                        $subquery->where('fecha_inicio', '<=', $fechaInicio)
+                            ->where('fecha_fin', '>=', $fechaFin);
+                    });
+            })
+            ->exists();
+    }
 }
