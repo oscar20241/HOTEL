@@ -70,7 +70,7 @@ class Habitacion extends Model
     {
         $hoy = Carbon::today();
         
-        $tarifaEspecial = $this->tipoHabitacion->tarifasDinamicas()
+        $tarifas = $this->tipoHabitacion->tarifasDinamicas()
             ->where('fecha_inicio', '<=', $hoy)
             ->where('fecha_fin', '>=', $hoy)
             ->orderByRaw("FIELD(tipo_temporada, 'especial', 'alta', 'baja')")
