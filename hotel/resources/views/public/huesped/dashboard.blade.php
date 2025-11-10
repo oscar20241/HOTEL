@@ -264,7 +264,8 @@
                                                     class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
                                                     data-paypal-trigger
                                                     data-reservacion-id="{{ $reservacion->id }}"
-                                                    data-monto="{{ number_format($reservacion->precio_total, 2, '.', '') }}">
+                                                    data-monto="{{ number_format($reservacion->precio_total, 2, '.', '') }}"
+                                                    data-paypal-url="{{ route('reservaciones.pago.paypal', $reservacion) }}">
                                                     Pagar con PayPal
                                                 </button>
                                             @endif
@@ -384,6 +385,7 @@
             const successMessage = document.getElementById('paypal-message');
             const errorMessage = document.getElementById('paypal-error');
             let currentReservation = null;
+            let currentPaypalUrl = null;
 
             const hideModal = () => {
                 modal.classList.add('hidden');
@@ -391,9 +393,10 @@
                 successMessage.classList.add('hidden');
                 errorMessage.classList.add('hidden');
                 currentReservation = null;
+                currentPaypalUrl = null;
             };
 
-            const renderPaypalButtons = (reservationId, amount) => {
+            const renderPaypalButtons = (paypalUrl, amount) => {
                 buttonContainer.innerHTML = '';
                 successMessage.classList.add('hidden');
                 errorMessage.classList.add('hidden');
@@ -417,17 +420,20 @@
                     },
                     onApprove: (data, actions) => {
                         return actions.order.capture().then(() => {
-                            return fetch(`/reservaciones/${reservationId}/pago/paypal`, {
+                            return fetch(paypalUrl, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                                 },
                                 body: JSON.stringify({ paypal_order_id: data.orderID })
                             })
-                                .then(response => {
+                                .then(async response => {
                                     if (!response.ok) {
-                                        throw new Error('No se pudo registrar el pago.');
+                                        const payload = await response.json().catch(() => null);
+                                        const message = payload?.message || 'No se pudo registrar el pago.';
+                                        throw new Error(message);
                                     }
                                     return response.json();
                                 })
@@ -438,8 +444,8 @@
                                         window.location.reload();
                                     }, 1500);
                                 })
-                                .catch(() => {
-                                    errorMessage.textContent = 'Ocurrió un problema al registrar el pago. Intenta nuevamente.';
+                                .catch(error => {
+                                    errorMessage.textContent = error.message || 'Ocurrió un problema al registrar el pago. Intenta nuevamente.';
                                     errorMessage.classList.remove('hidden');
                                 });
                         });
@@ -454,9 +460,10 @@
             document.querySelectorAll('[data-paypal-trigger]').forEach(button => {
                 button.addEventListener('click', () => {
                     currentReservation = button.dataset.reservacionId;
+                    currentPaypalUrl = button.dataset.paypalUrl;
                     const amount = button.dataset.monto;
                     modal.classList.remove('hidden');
-                    renderPaypalButtons(currentReservation, amount);
+                    renderPaypalButtons(currentPaypalUrl, amount);
                 });
             });
 
