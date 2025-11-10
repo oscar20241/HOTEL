@@ -31,7 +31,11 @@ class GuestPortalController extends Controller
             ->get();
 
         $reservaciones = $user->reservaciones()
-            ->with(['habitacion.tipoHabitacion', 'habitacion.imagenPrincipal'])
+            ->with([
+                'habitacion.tipoHabitacion',
+                'habitacion.imagenPrincipal',
+                'pagos' => fn ($query) => $query->where('estado', 'completado'),
+            ])
             ->orderByDesc('fecha_entrada')
             ->get();
 
