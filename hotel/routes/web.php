@@ -8,6 +8,9 @@ use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\PublicHabitacionController;
+use App\Http\Controllers\GuestPortalController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\ReservacionController;
 use Illuminate\Support\Facades\Auth;
 
 // routes/web.php
@@ -22,16 +25,8 @@ Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
 // Página de detalles de habitación pública
 Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
 
-// Página de detalles de habitación pública
-Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
-
 // Rutas de autenticación (Breeze)
 require __DIR__.'/auth.php';
-
-// La ruta /dashboard puede redirigir a /
-Route::get('/dashboard', function () {
-    return redirect('/');
-})->middleware(['auth'])->name('dashboard');
 
 // Tus otras rutas de admin, recepcionista, huésped...
 Route::prefix('admin')->middleware(['auth', 'empleado.activo', 'es.admin'])->group(function () {
@@ -45,12 +40,33 @@ Route::post('/registro', [RegistroController::class, 'store'])->name('registro.s
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/reservaciones', [ReservacionController::class, 'store'])->name('reservaciones.store');
+    Route::get('/reservaciones/{reservacion}/editar', [ReservacionController::class, 'edit'])->name('reservaciones.edit');
+    Route::put('/reservaciones/{reservacion}', [ReservacionController::class, 'update'])->name('reservaciones.update');
     Route::delete('/reservaciones/{reservacion}', [ReservacionController::class, 'destroy'])->name('reservaciones.destroy');
+
+    Route::post('/reservaciones/{reservacion}/pago/paypal', [PagoController::class, 'storePaypal'])
+        ->name('reservaciones.pagar.paypal');
+
+    Route::get('/mi-panel', [GuestPortalController::class, 'index'])->name('huesped.dashboard');
+
+    Route::get('/dashboard', function () {
+        $user = Auth::user();
+
+        if ($user->esAdministrador() || $user->esGerente()) {
+            return redirect()->route('gerente.dashboard');
+        }
+
+        if ($user->esRecepcionista()) {
+            return redirect()->route('home');
+        }
+
+        return redirect()->route('huesped.dashboard');
+    })->name('dashboard');
 
     Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil');
     Route::put('/perfil/update', [PerfilController::class, 'update'])->name('perfil.update');
     Route::put('/perfil/change-password', [PerfilController::class, 'changePassword'])->name('perfil.change-password');
-    
+
     // Ruta de logout
     Route::post('/logout', function () {
         Auth::logout();

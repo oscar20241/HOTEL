@@ -120,7 +120,7 @@
                             <select id="habitacion_id" name="habitacion_id" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
                                 <option value="" disabled selected>Selecciona una habitación</option>
                                 @foreach ($habitaciones as $habitacion)
-                                    <option value="{{ $habitacion->id }}" @selected(old('habitacion_id') == $habitacion->id)>
+                                    <option value="{{ $habitacion->id }}" data-capacidad="{{ $habitacion->capacidad }}" @selected(old('habitacion_id') == $habitacion->id)>
                                         {{ $habitacion->numero }} · {{ $habitacion->tipoHabitacion->nombre }} · Capacidad {{ $habitacion->capacidad }} huéspedes
                                     </option>
                                 @endforeach
@@ -129,11 +129,25 @@
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="fecha_entrada" class="block text-sm font-semibold text-slate-600">Fecha de llegada</label>
-                                <input type="date" id="fecha_entrada" name="fecha_entrada" value="{{ old('fecha_entrada') }}" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                                <div class="mt-1 relative">
+                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="fecha_entrada" name="fecha_entrada" value="{{ old('fecha_entrada') }}" placeholder="Selecciona la fecha" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 pl-10 py-2" autocomplete="off" required>
+                                </div>
                             </div>
                             <div>
                                 <label for="fecha_salida" class="block text-sm font-semibold text-slate-600">Fecha de salida</label>
-                                <input type="date" id="fecha_salida" name="fecha_salida" value="{{ old('fecha_salida') }}" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                                <div class="mt-1 relative">
+                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="fecha_salida" name="fecha_salida" value="{{ old('fecha_salida') }}" placeholder="Selecciona la fecha" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 pl-10 py-2" autocomplete="off" required>
+                                </div>
                             </div>
                         </div>
                         <div class="grid sm:grid-cols-2 gap-4">
@@ -245,6 +259,20 @@
                                             <a href="{{ route('habitaciones.show', $reservacion->habitacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
                                                 Ver habitación
                                             </a>
+                                            @if ($reservacion->puedeModificarse())
+                                                <a href="{{ route('reservaciones.edit', $reservacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800">
+                                                    Editar
+                                                </a>
+                                            @endif
+                                            @if ($reservacion->estado === 'pendiente')
+                                                <button type="button"
+                                                    class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                                                    data-paypal-trigger
+                                                    data-reservacion-id="{{ $reservacion->id }}"
+                                                    data-monto="{{ number_format($reservacion->precio_total, 2, '.', '') }}">
+                                                    Pagar con PayPal
+                                                </button>
+                                            @endif
                                             @if ($reservacion->puedeCancelarse())
                                                 <form method="POST" action="{{ route('reservaciones.destroy', $reservacion) }}" onsubmit="return confirm('¿Cancelar la reservación {{ $reservacion->codigo_reserva }}?');">
                                                     @csrf
@@ -325,4 +353,223 @@
             </div>
         </div>
     </section>
+
+    <div id="paypal-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+        <div class="relative h-full w-full flex items-center justify-center px-4">
+            <div class="w-full max-w-md rounded-3xl bg-white shadow-2xl shadow-slate-900/40 p-6 space-y-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-900">Completar pago con PayPal</h3>
+                        <p class="text-sm text-slate-500">Utiliza nuestro entorno sandbox para simular el pago de tu reservación.</p>
+                    </div>
+                    <button type="button" id="paypal-modal-close" class="text-slate-400 hover:text-slate-600">
+                        <span class="sr-only">Cerrar</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="paypal-message" class="text-sm text-emerald-600 hidden"></div>
+                <div id="paypal-error" class="text-sm text-rose-600 hidden"></div>
+                <div id="paypal-button-container" class="mt-2"></div>
+                <p class="text-xs text-slate-400">Este flujo utiliza credenciales de prueba (sandbox). No se realizan cargos reales.</p>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('styles')
+    @once('flatpickr-css')
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    @endonce
+@endpush
+
+@push('scripts')
+    @once('flatpickr-lib')
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @endonce
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.flatpickr) {
+                return;
+            }
+
+            const entradaInput = document.getElementById('fecha_entrada');
+            const salidaInput = document.getElementById('fecha_salida');
+            const personasInput = document.getElementById('numero_huespedes');
+            const habitacionSelect = document.getElementById('habitacion_id');
+
+            if (!entradaInput || !salidaInput) {
+                return;
+            }
+
+            const aplicarCapacidad = () => {
+                if (!personasInput) {
+                    return;
+                }
+
+                const capacidad = habitacionSelect?.selectedOptions[0]?.dataset.capacidad;
+                const capacidadMaxima = capacidad ? parseInt(capacidad, 10) : null;
+
+                if (capacidadMaxima && capacidadMaxima > 0) {
+                    personasInput.setAttribute('max', capacidadMaxima);
+                } else {
+                    personasInput.removeAttribute('max');
+                }
+
+                let valor = parseInt(personasInput.value, 10);
+
+                if (Number.isNaN(valor) || valor < 1) {
+                    valor = 1;
+                }
+
+                if (capacidadMaxima && capacidadMaxima > 0) {
+                    valor = Math.min(valor, capacidadMaxima);
+                }
+
+                personasInput.value = valor;
+            };
+
+            const salidaPicker = flatpickr(salidaInput, {
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                disableMobile: true
+            });
+
+            flatpickr(entradaInput, {
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                disableMobile: true,
+                onChange: (selectedDates) => {
+                    if (!selectedDates.length) {
+                        salidaPicker.set('minDate', 'today');
+                        return;
+                    }
+
+                    const entradaDate = selectedDates[0];
+                    const nuevaSalidaMin = entradaDate.fp_incr(1);
+                    salidaPicker.set('minDate', nuevaSalidaMin);
+
+                    if (salidaInput.value) {
+                        const salidaDate = salidaPicker.parseDate(salidaInput.value, 'Y-m-d');
+                        if (salidaDate && salidaDate <= entradaDate) {
+                            salidaPicker.clear();
+                        }
+                    }
+                }
+            });
+
+            if (habitacionSelect && personasInput) {
+                habitacionSelect.addEventListener('change', aplicarCapacidad);
+                ['input', 'change', 'blur'].forEach((evento) => {
+                    personasInput.addEventListener(evento, aplicarCapacidad);
+                });
+                aplicarCapacidad();
+            }
+        });
+    </script>
+@endpush
+
+@push('scripts')
+    <script src="https://www.paypal.com/sdk/js?client-id=test&currency=MXN"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('paypal-modal');
+            const closeModal = document.getElementById('paypal-modal-close');
+            const buttonContainer = document.getElementById('paypal-button-container');
+            const successMessage = document.getElementById('paypal-message');
+            const errorMessage = document.getElementById('paypal-error');
+            let currentReservation = null;
+
+            const hideModal = () => {
+                modal.classList.add('hidden');
+                buttonContainer.innerHTML = '';
+                successMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                currentReservation = null;
+            };
+
+            const renderPaypalButtons = (reservationId, amount) => {
+                buttonContainer.innerHTML = '';
+                successMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                paypal.Buttons({
+                    style: {
+                        color: 'gold',
+                        shape: 'pill',
+                        label: 'pay',
+                        layout: 'vertical'
+                    },
+                    createOrder: (data, actions) => {
+                        return actions.order.create({
+                            purchase_units: [{
+                                amount: {
+                                    value: amount,
+                                    currency_code: 'MXN'
+                                }
+                            }]
+                        });
+                    },
+                    onApprove: (data, actions) => {
+                        return actions.order.capture().then(() => {
+                            return fetch(`/reservaciones/${reservationId}/pago/paypal`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({ paypal_order_id: data.orderID })
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('No se pudo registrar el pago.');
+                                    }
+                                    return response.json();
+                                })
+                                .then(() => {
+                                    successMessage.textContent = '¡Pago completado! Actualizaremos tu reservación.';
+                                    successMessage.classList.remove('hidden');
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
+                                })
+                                .catch(() => {
+                                    errorMessage.textContent = 'Ocurrió un problema al registrar el pago. Intenta nuevamente.';
+                                    errorMessage.classList.remove('hidden');
+                                });
+                        });
+                    },
+                    onError: () => {
+                        errorMessage.textContent = 'No fue posible iniciar el proceso con PayPal en este momento.';
+                        errorMessage.classList.remove('hidden');
+                    }
+                }).render('#paypal-button-container');
+            };
+
+            document.querySelectorAll('[data-paypal-trigger]').forEach(button => {
+                button.addEventListener('click', () => {
+                    currentReservation = button.dataset.reservacionId;
+                    const amount = button.dataset.monto;
+                    modal.classList.remove('hidden');
+                    renderPaypalButtons(currentReservation, amount);
+                });
+            });
+
+            closeModal.addEventListener('click', hideModal);
+
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    hideModal();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    hideModal();
+                }
+            });
+        });
+    </script>
+@endpush

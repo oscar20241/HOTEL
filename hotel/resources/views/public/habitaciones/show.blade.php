@@ -1,10 +1,15 @@
 @extends('layouts.public')
 
 @php
+    use Illuminate\Support\Carbon;
     use Illuminate\Support\Facades\Storage;
+
     $imagenes = $habitacion->imagenes;
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
+
+    $oldEntradaFormatted = optional(Carbon::make(old('fecha_entrada')))->translatedFormat('d M Y') ?? '';
+    $oldSalidaFormatted = optional(Carbon::make(old('fecha_salida')))->translatedFormat('d M Y') ?? '';
 @endphp
 
 @section('content')
@@ -55,12 +60,12 @@
 
                     @if ($imagenes->count() > 1)
                         <button type="button" data-carousel-prev class="absolute top-1/2 left-3 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg shadow-slate-900/10 text-slate-600 hover:bg-slate-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                             </svg>
                         </button>
                         <button type="button" data-carousel-next class="absolute top-1/2 right-3 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg shadow-slate-900/10 text-slate-600 hover:bg-slate-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5L15.75 12l-7.5 7.5" />
                             </svg>
                         </button>
@@ -107,7 +112,7 @@
                     <div class="rounded-3xl bg-indigo-50 border border-indigo-100 p-6 space-y-4">
                         <div class="flex flex-wrap items-center gap-3">
                             <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21M9 9.75l3 3 3-3m-3 3V3" />
                                 </svg>
                             </div>
@@ -122,23 +127,23 @@
                             <div class="flex flex-wrap gap-3">
                                 <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
                                     Iniciar sesión
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                     </svg>
                                 </a>
                                 <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
                                     Llamar a recepción
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                                     </svg>
                                 </a>
                             </div>
                         @else
-                            @if(auth()->user()->esAdministrador() || auth()->user()->esRecepcionista())
+                            @if(auth()->user()->esAdministrador() || auth()->user()->esGerente() || auth()->user()->esRecepcionista())
                                 <div class="flex flex-wrap gap-3">
-                                    <a href="{{ route('gerente.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
                                         Ir a tu panel
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                         </svg>
                                     </a>
@@ -152,22 +157,53 @@
                                         <div>
                                             <label class="block text-sm font-medium text-indigo-900 mb-1">Personas</label>
                                             <input type="number" name="numero_huespedes" id="numero_huespedes"
-                                                   min="1" max="{{ $habitacion->capacidad }}" value="1"
+                                                   min="1" max="{{ $habitacion->capacidad }}" value="{{ old('numero_huespedes', 1) }}"
                                                    class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                                                    {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
                                             <small class="text-indigo-900/70">Capacidad máx: {{ $habitacion->capacidad }}</small>
                                             @error('numero_huespedes') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-indigo-900 mb-1">Fechas (entrada / salida)</label>
-                                            <input type="text" id="rango-fechas"
-                                                   placeholder="Selecciona entrada y salida"
-                                                   class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                                                   {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
-                                            <input type="hidden" name="fecha_entrada" id="fecha_entrada">
-                                            <input type="hidden" name="fecha_salida" id="fecha_salida">
+                                            <label class="block text-sm font-medium text-indigo-900 mb-1">Fechas</label>
+                                            <div class="grid sm:grid-cols-2 gap-3">
+                                                <div class="relative">
+                                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
+                                                        </svg>
+                                                    </span>
+                                                    <input type="text" id="fecha_entrada_visible" value="{{ $oldEntradaFormatted }}" placeholder="Fecha de llegada" class="w-full rounded-xl border border-indigo-100 px-3 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                                           autocomplete="off" readonly {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }}>
+                                                </div>
+                                                <div class="relative">
+                                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
+                                                        </svg>
+                                                    </span>
+                                                    <input type="text" id="fecha_salida_visible" value="{{ $oldSalidaFormatted }}" placeholder="Fecha de salida" class="w-full rounded-xl border border-indigo-100 px-3 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                                           autocomplete="off" readonly {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }}>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="fecha_entrada" id="fecha_entrada" value="{{ old('fecha_entrada') }}">
+                                            <input type="hidden" name="fecha_salida" id="fecha_salida" value="{{ old('fecha_salida') }}">
+                                            <input type="text" id="rango-fechas" class="hidden" {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }}>
                                             @error('fecha_entrada') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                                             @error('fecha_salida') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-indigo-900/70">
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/70"></span>
+                                                    Disponible
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-amber-500/80"></span>
+                                                    Mantenimiento
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-rose-500/80"></span>
+                                                    Ocupada
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -196,14 +232,21 @@
                                         <button type="submit" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
                                             {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }}>
                                             Confirmar reservación
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                             </svg>
                                         </button>
 
+                                        <a href="{{ route('huesped.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200 transition">
+                                            Ver mis reservaciones
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m6.75-2.25v12A2.25 2.25 0 0119.5 21H4.5A2.25 2.25 0 012.25 18V6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6z" />
+                                            </svg>
+                                        </a>
+
                                         <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
                                             Llamar a recepción
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                                             </svg>
                                         </a>
@@ -214,6 +257,9 @@
                                             Esta habitación está en mantenimiento y no se puede reservar por ahora.
                                         </p>
                                     @endif
+                                    @error('habitacion_id')
+                                        <div class="text-red-600 text-sm">{{ $message }}</div>
+                                    @enderror
                                 </form>
                             @endif
                         @endguest
@@ -233,7 +279,7 @@
                     <ul class="space-y-3 text-white/80 text-sm">
                         <li class="flex items-center gap-3">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
                             </span>
@@ -241,7 +287,7 @@
                         </li>
                         <li class="flex items-center gap-3">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                                 </svg>
                             </span>
@@ -249,7 +295,7 @@
                         </li>
                         <li class="flex items-center gap-3">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.5c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v4.5h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                                 </svg>
@@ -267,16 +313,53 @@
 @endsection
 
 @push('styles')
-    {{-- Flatpickr CSS --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    @once('flatpickr-css')
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    @endonce
+    <style>
+        .flatpickr-day.is-disponible,
+        .flatpickr-day.is-disponible.flatpickr-disabled {
+            background-color: rgba(16, 185, 129, 0.12) !important;
+            color: #0f172a !important;
+            border-radius: 6px;
+        }
+
+        .flatpickr-day.is-disponible:hover,
+        .flatpickr-day.is-disponible:focus {
+            background-color: rgba(16, 185, 129, 0.28) !important;
+        }
+
+        .flatpickr-day.is-ocupada,
+        .flatpickr-day.is-ocupada.flatpickr-disabled,
+        .flatpickr-day.is-ocupada:hover,
+        .flatpickr-day.is-ocupada:focus {
+            background-color: #ef4444 !important;
+            color: #fff !important;
+            border-radius: 6px;
+        }
+
+        .flatpickr-day.is-mantenimiento,
+        .flatpickr-day.is-mantenimiento.flatpickr-disabled,
+        .flatpickr-day.is-mantenimiento:hover,
+        .flatpickr-day.is-mantenimiento:focus {
+            background-color: #f59e0b !important;
+            color: #0f172a !important;
+            border-radius: 6px;
+        }
+    </style>
 @endpush
 
 @push('scripts')
-    {{-- Flatpickr JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @once('flatpickr-lib')
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @endonce
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            if (!window.flatpickr) {
+                return;
+            }
+
             // Carousel
             document.querySelectorAll('[data-carousel]').forEach((carousel) => {
                 const slides = carousel.querySelectorAll('[data-carousel-slide]');
@@ -324,58 +407,171 @@
 
             // Reserva (solo si existe el input rango-fechas, es decir, si se muestra el formulario)
             const rango = document.getElementById('rango-fechas');
-            if (rango) {
-                const capacidadMax = {{ (int) $habitacion->capacidad }};
-                const precioNoche  = {{ (float) $habitacion->precio_actual }};
-                const inpPersonas  = document.getElementById('numero_huespedes');
-                const nochesSpan   = document.getElementById('noches');
-                const precioSpan   = document.getElementById('precio_estimado');
-                const fechaIn      = document.getElementById('fecha_entrada');
-                const fechaOut     = document.getElementById('fecha_salida');
+            if (rango && !rango.disabled) {
+                const capacidadMax   = {{ (int) $habitacion->capacidad }};
+                const precioNoche    = {{ (float) $habitacion->precio_actual }};
+                const inpPersonas    = document.getElementById('numero_huespedes');
+                const nochesSpan     = document.getElementById('noches');
+                const precioSpan     = document.getElementById('precio_estimado');
+                const fechaIn        = document.getElementById('fecha_entrada');
+                const fechaOut       = document.getElementById('fecha_salida');
+                const entradaVisible = document.getElementById('fecha_entrada_visible');
+                const salidaVisible  = document.getElementById('fecha_salida_visible');
 
-                // Asegura el límite de capacidad también en UI
-                if (inpPersonas) inpPersonas.setAttribute('max', capacidadMax);
+                if (inpPersonas) {
+                    inpPersonas.setAttribute('max', capacidadMax);
 
-                const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
-                fetch(endpoint)
-                    .then(r => r.json())
-                    .then(data => {
-                        const disabled = (data.bloques || []).map(b => ({ from: b.from, to: b.to }));
-                        const fp = flatpickr("#rango-fechas", {
-                            mode: "range",
-                            dateFormat: "Y-m-d",
-                            minDate: "today",
+                    const clampPersonas = () => {
+                        let valor = parseInt(inpPersonas.value, 10);
+
+                        if (Number.isNaN(valor)) {
+                            valor = 1;
+                        }
+
+                        valor = Math.min(Math.max(valor, 1), capacidadMax);
+                        inpPersonas.value = valor;
+                    };
+
+                    ['input', 'change', 'blur'].forEach((evento) => {
+                        inpPersonas.addEventListener(evento, clampPersonas);
+                    });
+                }
+
+                const disponibilidadActual = { bloques: [] };
+                let fpInstance = null;
+
+                const isValidDate = (date) => date instanceof Date && !Number.isNaN(date.getTime());
+                const formatDisplay = (date) => date.toLocaleDateString('es-MX', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                const updateResumen = (startDate, endDate) => {
+                    const inicioValido = isValidDate(startDate);
+                    const finValido = isValidDate(endDate);
+
+                    if (entradaVisible) {
+                        entradaVisible.value = inicioValido ? formatDisplay(startDate) : '';
+                    }
+
+                    if (salidaVisible) {
+                        salidaVisible.value = finValido ? formatDisplay(endDate) : '';
+                    }
+
+                    if (!inicioValido || !finValido) {
+                        nochesSpan.textContent = '0';
+                        precioSpan.textContent = '0.00';
+                        return;
+                    }
+
+                    const diff = Math.max(0, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
+                    nochesSpan.textContent = diff;
+                    const total = diff > 0 ? diff * precioNoche : 0;
+                    precioSpan.textContent = total.toFixed(2);
+                };
+
+                const openCalendar = (event) => {
+                    event?.preventDefault();
+                    if (fpInstance) {
+                        fpInstance.open();
+                    }
+                };
+
+                [entradaVisible, salidaVisible].forEach((input) => {
+                    if (!input) {
+                        return;
+                    }
+
+                    input.addEventListener('click', openCalendar);
+                    input.addEventListener('focus', openCalendar);
+                    input.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            openCalendar();
+                        }
+                    });
+                });
+
+                const decorateDay = (dayElem) => {
+                    const date = dayElem.dateObj.toISOString().slice(0, 10);
+                    const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
+
+                    dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
+                    dayElem.style.borderRadius = '6px';
+
+                    const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
+                    dayElem.dataset.baseLabel = baseLabel;
+
+                    if (bloque) {
+                        dayElem.classList.add(`is-${bloque.estado}`);
+                        const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
+                        dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
+                    } else {
+                        dayElem.classList.add('is-disponible');
+                        dayElem.setAttribute('aria-label', baseLabel);
+                    }
+                };
+
+                const inicializarCalendario = (bloques) => {
+                    disponibilidadActual.bloques = bloques || [];
+                    const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
+                    const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
+
+                    if (!fpInstance) {
+                        fpInstance = flatpickr(rango, {
+                            mode: 'range',
+                            dateFormat: 'Y-m-d',
+                            minDate: 'today',
+                            clickOpens: false,
                             disable: disabled,
+                            defaultDate: defaultRange,
+                            onReady: (selectedDates, dateStr, instance) => {
+                                if (selectedDates.length === 2) {
+                                    updateResumen(selectedDates[0], selectedDates[1]);
+                                } else if (defaultRange && defaultRange.length === 2) {
+                                    updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
+                                } else {
+                                    updateResumen(null, null);
+                                }
+                                instance.calendarContainer.classList.add('rounded-xl');
+                            },
                             onChange: (dates) => {
                                 if (dates.length === 2) {
                                     const [start, end] = dates;
-                                    const entrada = start.toISOString().slice(0,10);
-                                    const salida  = end.toISOString().slice(0,10);
-                                    fechaIn.value  = entrada;
+                                    const entrada = start.toISOString().slice(0, 10);
+                                    const salida = end.toISOString().slice(0, 10);
+                                    fechaIn.value = entrada;
                                     fechaOut.value = salida;
-
-                                    const noches = Math.round((end - start) / (1000*60*60*24));
-                                    nochesSpan.textContent = noches;
-
-                                    const total = (noches > 0) ? (noches * precioNoche) : 0;
-                                    precioSpan.textContent = total.toFixed(2);
+                                    updateResumen(start, end);
+                                } else {
+                                    fechaIn.value = '';
+                                    fechaOut.value = '';
+                                    updateResumen(null, null);
                                 }
                             },
-                            onDayCreate: function(_, __, ___, dayElem) {
-                                const date = dayElem.dateObj.toISOString().slice(0,10);
-                                const bloque = (data.bloques || []).find(b => date >= b.from && date < b.to);
-                                if (bloque) {
-                                    dayElem.style.borderRadius = '6px';
-                                    dayElem.style.color = '#fff';
-                                    dayElem.style.opacity = 0.90;
-                                    dayElem.style.cursor = 'not-allowed';
-                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545'; // mantenimiento=amarillo, ocupada=rojo
-                                }
+                            onDayCreate: function (_, __, ___, dayElem) {
+                                decorateDay(dayElem);
                             }
                         });
+                    } else {
+                        fpInstance.set('disable', disabled);
+                        fpInstance.redraw();
+                    }
+
+                    if (!defaultRange) {
+                        updateResumen(null, null);
+                    }
+                };
+
+                const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
+                fetch(endpoint)
+                    .then((r) => r.json())
+                    .then((data) => {
+                        inicializarCalendario(data.bloques || []);
                     })
                     .catch(() => {
-                        // En caso de error, no romper la UI
+                        inicializarCalendario([]);
                     });
             }
         });

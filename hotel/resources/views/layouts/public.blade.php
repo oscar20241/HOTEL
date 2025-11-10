@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600;playfair-display:600&display=swap" rel="stylesheet" />
 
+    @stack('styles')
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-50 text-slate-700">
@@ -27,6 +29,14 @@
                 <div class="flex items-center gap-4">
                     @auth
                         <span class="hidden sm:inline text-sm text-slate-500">Hola, {{ Auth::user()->name }}</span>
+                        @if (Auth::user()->esHuesped())
+                            <a href="{{ route('huesped.dashboard') }}#mis-reservas" class="hidden sm:inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m6.75-2.25v12A2.25 2.25 0 0119.5 21H4.5A2.25 2.25 0 012.25 18V6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6z" />
+                                </svg>
+                                Mis reservaciones
+                            </a>
+                        @endif
                         <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75l7.5-3 7.5 3m-15 0l7.5 3 7.5-3m-15 0v10.5l7.5 3m7.5-13.5v10.5l-7.5 3" />

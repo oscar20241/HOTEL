@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
-use App\Models\Reservacion;
+use Illuminate\Http\Request;
+
 class PublicHabitacionController extends Controller
 {
     /**
@@ -11,21 +12,18 @@ class PublicHabitacionController extends Controller
      */
     public function index()
     {
-        // Si es admin/gerente, mándalo a su panel.
         if (auth()->check()) {
             $user = auth()->user();
 
             if ($user->esAdministrador() || $user->esGerente()) {
                 return redirect()->route('gerente.dashboard');
             }
-            // Recepcionista y Huésped se quedan en la portada pública.
         }
 
         $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal', 'imagenes'])
             ->orderBy('numero')
             ->get();
 
-        // Siempre mostrar la portada pública con habitaciones.
         return view('public.habitaciones.index', compact('habitaciones'));
     }
 
@@ -45,46 +43,48 @@ class PublicHabitacionController extends Controller
         ]);
     }
 
+    /**
+     * Return JSON availability blocks for the requested room.
+     */
+    public function disponibilidad(Request $request, Habitacion $habitacion)
+    {
+        $bloques = [];
 
+        if ($habitacion->estado === 'mantenimiento') {
+            $bloques[] = [
+                'from' => now()->toDateString(),
+                'to' => now()->addDays(180)->toDateString(),
+                'estado' => 'mantenimiento',
+            ];
+        }
 
+        $reservacionIgnorada = $request->query('exclude_reservacion');
 
+        $reservas = $habitacion->reservaciones()
+            ->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
+            ->when($reservacionIgnorada, function ($query) use ($reservacionIgnorada) {
+                $query->where('id', '!=', $reservacionIgnorada);
+            })
+            ->orderBy('fecha_entrada')
+            ->get(['fecha_entrada', 'fecha_salida', 'estado']);
 
-public function disponibilidad(Habitacion $habitacion)
-{
-    // Si está en mantenimiento, bloquea un rango amplio (ej. próximos 180 días)
-    $bloques = [];
-    if ($habitacion->estado === 'mantenimiento') {
-        $bloques[] = [
-            'from' => now()->toDateString(),
-            'to'   => now()->addDays(180)->toDateString(),
-            'type' => 'mantenimiento'
-        ];
+        foreach ($reservas as $reserva) {
+            $noches = $reserva->fecha_entrada->diffInDays($reserva->fecha_salida);
+
+            if ($noches < 1) {
+                continue;
+            }
+
+            $bloques[] = [
+                'from' => $reserva->fecha_entrada->toDateString(),
+                'to' => $reserva->fecha_salida->copy()->subDay()->toDateString(),
+                'estado' => 'ocupada',
+            ];
+        }
+
+        return response()->json([
+            'capacidad' => (int) $habitacion->capacidad,
+            'bloques' => $bloques,
+        ]);
     }
-
-    // Rango de interés (por ejemplo, próximos 12 meses)
-    $desde = now()->startOfDay();
-    $hasta = now()->addYear()->startOfDay();
-
-    $reservas = $habitacion->reservaciones()
-        ->whereIn('estado', ['pendiente','confirmada','activa'])
-        ->whereBetween('fecha_entrada', [$desde->copy()->subYear(), $hasta]) // algo generoso
-        ->get(['fecha_entrada','fecha_salida','estado']);
-
-    foreach ($reservas as $r) {
-        $bloques[] = [
-            'from' => $r->fecha_entrada->toDateString(),
-            'to'   => $r->fecha_salida->toDateString(),
-            'type' => 'ocupada'
-        ];
-    }
-
-    return response()->json([
-        'capacidad' => (int) $habitacion->capacidad,
-        'bloques'   => $bloques, // [{from:'YYYY-MM-DD', to:'YYYY-MM-DD', type:'ocupada|mantenimiento'}]
-    ]);
-}
-
-
-
-
 }
