@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
-use Carbon\Carbon;
 
 class PublicHabitacionController extends Controller
 {
@@ -12,47 +11,25 @@ class PublicHabitacionController extends Controller
      */
     public function index()
     {
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            if ($user->esAdministrador() || $user->esGerente()) {
+                return app(AdminUserController::class)->index();
+            }
+
+            if ($user->esRecepcionista()) {
+                return view('Recepcionista');
+            }
+
+            return view('Huesped');
+        }
+
         $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal', 'imagenes'])
-            ->where('estado', '!=', 'mantenimiento')
             ->orderBy('numero')
             ->get();
 
-        if (!auth()->check()) {
-            return view('public.habitaciones.index', [
-                'habitaciones' => $habitaciones,
-                'reservaciones' => collect(),
-                'proximaReservacion' => null,
-            ]);
-        }
-
-        $user = auth()->user();
-
-        if ($user->esAdministrador() || $user->esGerente()) {
-            return app(AdminUserController::class)->index();
-        }
-
-        if ($user->esRecepcionista()) {
-            return view('Recepcionista');
-        }
-
-        $reservaciones = $user->reservaciones()
-            ->with(['habitacion.tipoHabitacion', 'habitacion.imagenPrincipal'])
-            ->orderByDesc('fecha_entrada')
-            ->get();
-
-        $proximaReservacion = $reservaciones
-            ->filter(function ($reservacion) {
-                return in_array($reservacion->estado, ['pendiente', 'confirmada', 'activa'])
-                    && $reservacion->fecha_entrada->greaterThanOrEqualTo(Carbon::today());
-            })
-            ->sortBy('fecha_entrada')
-            ->first();
-
-        return view('public.habitaciones.index', [
-            'habitaciones' => $habitaciones,
-            'reservaciones' => $reservaciones,
-            'proximaReservacion' => $proximaReservacion,
-        ]);
+        return view('public.habitaciones.index', compact('habitaciones'));
     }
 
     /**

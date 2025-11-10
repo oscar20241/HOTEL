@@ -1,14 +1,10 @@
 @extends('layouts.public')
 
 @php
-    use Carbon\Carbon;
     use Illuminate\Support\Facades\Storage;
     $imagenes = $habitacion->imagenes;
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
-    $defaultCheckIn = old('fecha_entrada', Carbon::today()->toDateString());
-    $defaultCheckOut = old('fecha_salida', Carbon::tomorrow()->toDateString());
-    $defaultGuests = old('numero_huespedes', 1);
 @endphp
 
 @section('content')
@@ -115,7 +111,7 @@
                         </div>
                     </div>
 
-                    <div id="reservar" class="rounded-3xl bg-indigo-50 border border-indigo-100 p-6 space-y-6">
+                    <div class="rounded-3xl bg-indigo-50 border border-indigo-100 p-6 space-y-4">
                         <div class="flex flex-wrap items-center gap-3">
                             <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -124,85 +120,24 @@
                             </div>
                             <div>
                                 <p class="text-sm uppercase tracking-[0.2em] text-indigo-500">Reserva tu estancia</p>
-                                <p class="text-lg font-semibold text-indigo-900">Confirma tu visita desde aquí mismo</p>
+                                <p class="text-lg font-semibold text-indigo-900">Atención personalizada 24/7</p>
                             </div>
                         </div>
-                        @auth
-                            <form method="POST" action="{{ route('reservaciones.store') }}" class="space-y-4">
-                                @csrf
-                                <input type="hidden" name="habitacion_id" value="{{ $habitacion->id }}">
-                                <div class="grid sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="fecha_entrada" class="block text-xs uppercase tracking-[0.3em] text-indigo-500">Fecha de llegada</label>
-                                        <input type="date" id="fecha_entrada" name="fecha_entrada" value="{{ $defaultCheckIn }}" min="{{ Carbon::today()->toDateString() }}" class="mt-2 block w-full rounded-2xl border border-indigo-100 bg-white px-4 py-3 text-sm text-indigo-900 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200">
-                                        @error('fecha_entrada')
-                                            <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div>
-                                        <label for="fecha_salida" class="block text-xs uppercase tracking-[0.3em] text-indigo-500">Fecha de salida</label>
-                                        <input type="date" id="fecha_salida" name="fecha_salida" value="{{ $defaultCheckOut }}" min="{{ Carbon::tomorrow()->toDateString() }}" class="mt-2 block w-full rounded-2xl border border-indigo-100 bg-white px-4 py-3 text-sm text-indigo-900 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200">
-                                        @error('fecha_salida')
-                                            <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div>
-                                        <label for="numero_huespedes" class="block text-xs uppercase tracking-[0.3em] text-indigo-500">Huéspedes</label>
-                                        <input type="number" id="numero_huespedes" name="numero_huespedes" min="1" max="{{ $habitacion->capacidad }}" value="{{ $defaultGuests }}" class="mt-2 block w-full rounded-2xl border border-indigo-100 bg-white px-4 py-3 text-sm text-indigo-900 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200">
-                                        @error('numero_huespedes')
-                                            <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs uppercase tracking-[0.3em] text-indigo-500">Estancia estimada</label>
-                                        <p class="mt-3 text-sm text-indigo-900/70">Desde ${{ number_format($habitacion->precio_actual, 2) }} MXN por noche</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label for="notas" class="block text-xs uppercase tracking-[0.3em] text-indigo-500">Notas especiales (opcional)</label>
-                                    <textarea id="notas" name="notas" rows="3" class="mt-2 block w-full rounded-2xl border border-indigo-100 bg-white px-4 py-3 text-sm text-indigo-900 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200" placeholder="Comparte necesidades dietéticas, horarios especiales o celebraciones.">{{ old('notas') }}</textarea>
-                                    @error('notas')
-                                        <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="flex flex-wrap items-center gap-3">
-                                    <button type="submit" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
-                                        Confirmar reservación
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-                                    </button>
-                                    <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
-                                        Llamar a recepción
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </form>
-                        @else
-                            <p class="text-sm text-indigo-900/80">Nuestro equipo de reservaciones está listo para ayudarte a planear tu visita y diseñar experiencias a la medida. Inicia sesión para confirmar tu reserva.</p>
-                            <div class="flex flex-wrap gap-3">
-                                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
-                                    Iniciar sesión para reservar
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                                    </svg>
-                                </a>
-                                <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
-                                    Crear cuenta nueva
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                </a>
-                            </div>
-                            <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600/10 text-indigo-700 text-sm font-semibold border border-indigo-200 hover:bg-indigo-600/20 transition">
+                        <p class="text-sm text-indigo-900/80">Nuestro equipo de reservaciones está listo para ayudarte a planear tu visita y diseñar experiencias a la medida. Inicia sesión para confirmar tu reserva.</p>
+                        <div class="flex flex-wrap gap-3">
+                            <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                Reservar ahora
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                </svg>
+                            </a>
+                            <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
                                 Llamar a recepción
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                                 </svg>
                             </a>
-                        @endauth
+                        </div>
                     </div>
                 </div>
             </div>
