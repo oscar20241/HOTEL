@@ -259,11 +259,6 @@
                                             <a href="{{ route('habitaciones.show', $reservacion->habitacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
                                                 Ver habitación
                                             </a>
-                                            @if ($reservacion->puedeModificarse())
-                                                <a href="{{ route('reservaciones.edit', $reservacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800">
-                                                    Editar
-                                                </a>
-                                            @endif
                                             @if ($reservacion->estado === 'pendiente')
                                                 <button type="button"
                                                     class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
@@ -378,61 +373,6 @@
         </div>
     </div>
 @endsection
-
-@push('styles')
-    @once('flatpickr-css')
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    @endonce
-@endpush
-
-@push('scripts')
-    @once('flatpickr-lib')
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    @endonce
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.flatpickr) {
-                return;
-            }
-
-            const entradaInput = document.getElementById('fecha_entrada');
-            const salidaInput = document.getElementById('fecha_salida');
-
-            if (!entradaInput || !salidaInput) {
-                return;
-            }
-
-            const salidaPicker = flatpickr(salidaInput, {
-                dateFormat: 'Y-m-d',
-                minDate: 'today',
-                disableMobile: true
-            });
-
-            flatpickr(entradaInput, {
-                dateFormat: 'Y-m-d',
-                minDate: 'today',
-                disableMobile: true,
-                onChange: (selectedDates) => {
-                    if (!selectedDates.length) {
-                        salidaPicker.set('minDate', 'today');
-                        return;
-                    }
-
-                    const entradaDate = selectedDates[0];
-                    const nuevaSalidaMin = entradaDate.fp_incr(1);
-                    salidaPicker.set('minDate', nuevaSalidaMin);
-
-                    if (salidaInput.value) {
-                        const salidaDate = salidaPicker.parseDate(salidaInput.value, 'Y-m-d');
-                        if (salidaDate && salidaDate <= entradaDate) {
-                            salidaPicker.clear();
-                        }
-                    }
-                }
-            });
-        });
-    </script>
-@endpush
 
 @push('scripts')
     <script src="https://www.paypal.com/sdk/js?client-id=test&currency=MXN"></script>
