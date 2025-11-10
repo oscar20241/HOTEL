@@ -10,11 +10,6 @@ use Illuminate\Support\Facades\Http;
 
 class PagoController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     // --- Helpers PayPal ---
     protected function paypalApiBase(): string
     {
@@ -41,12 +36,13 @@ class PagoController extends Controller
      */
     public function storePaypal(Request $request, Reservacion $reservacion): JsonResponse
     {
+        // Seguridad: la reservación debe pertenecer al usuario autenticado
         $user = $request->user();
-
-        if ($reservacion->user_id !== $user->id) {
+        if (!$user || $reservacion->user_id !== $user->id) {
             abort(403);
         }
 
+        // Solo permitir pago si está pendiente
         if ($reservacion->estado !== 'pendiente') {
             return response()->json([
                 'message' => 'La reservación ya fue procesada o cancelada.',
@@ -55,19 +51,18 @@ class PagoController extends Controller
 
         $validated = $request->validate([
             'paypal_order_id' => ['required', 'string', 'max:191'],
-            // Si quieres reforzar: 'monto' => ['required'] y comparar
         ]);
 
         $orderId = $validated['paypal_order_id'];
 
-        // 1) Obtener token y consultar la orden (o capturar aquí si no confías en el cliente)
+        // 1) Obtener token y consultar/capturar la orden
         $base  = $this->paypalApiBase();
         $token = $this->paypalAccessToken();
 
-        // (A) Verificar estado si YA capturaste en el cliente con actions.order.capture():
+        // Si ya capturaste en el cliente (onApprove -> actions.order.capture()):
         $order = Http::withToken($token)->get("$base/v2/checkout/orders/{$orderId}")->json();
 
-        // (B) Alternativa: Capturar en servidor (si NO capturas en el cliente)
+        // (Alternativa) Capturar en servidor si no capturas en el cliente:
         // $order = Http::withToken($token)->post("$base/v2/checkout/orders/{$orderId}/capture")->json();
 
         if (($order['status'] ?? null) !== 'COMPLETED') {
@@ -77,7 +72,7 @@ class PagoController extends Controller
             ], 422);
         }
 
-        // 2) Validar monto/moneda
+        // 2) Validar monto y moneda
         $pu        = $order['purchase_units'][0] ?? [];
         $amountVal = $pu['amount']['value'] ?? null;
         $currency  = $pu['amount']['currency_code'] ?? null;
@@ -91,7 +86,7 @@ class PagoController extends Controller
             ], 422);
         }
 
-        // 3) Registrar pago y confirmar reservación (transacción por seguridad)
+        // 3) Registrar pago y confirmar reservación (transacción)
         $pagoId = null;
         DB::transaction(function () use ($reservacion, $orderId, $esperado, &$pagoId) {
             $pago = $reservacion->pagos()->create([
@@ -104,9 +99,9 @@ class PagoController extends Controller
             $pagoId = $pago->id;
 
             $reservacion->update([
-                'estado'           => 'confirmada',
-                // si tienes columnas:
-                // 'paypal_order_id'   => $orderId,
+                'estado' => 'confirmada',
+                // si tienes columnas extra, puedes guardarlas aquí
+                // 'paypal_order_id' => $orderId,
                 // 'fecha_confirmacion' => now(),
             ]);
         });
