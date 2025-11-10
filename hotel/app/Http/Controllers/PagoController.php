@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ReservacionConfirmada;
 use App\Models\Reservacion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class PagoController extends Controller
 {
@@ -115,6 +117,17 @@ class PagoController extends Controller
                 'estado' => $saldoRestante <= 0 ? 'confirmada' : 'pendiente',
             ]);
         });
+
+        $reservacion->refresh();
+
+        if ($reservacion->estado === 'confirmada') {
+            $reservacion->loadMissing(['user', 'habitacion.tipoHabitacion']);
+
+            if ($reservacion->user && $reservacion->user->email) {
+                Mail::to($reservacion->user->email)
+                    ->send(new ReservacionConfirmada($reservacion));
+            }
+        }
 
         return response()->json([
             'message' => 'Pago registrado correctamente.',
