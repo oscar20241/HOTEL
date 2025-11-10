@@ -129,11 +129,25 @@
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="fecha_entrada" class="block text-sm font-semibold text-slate-600">Fecha de llegada</label>
-                                <input type="date" id="fecha_entrada" name="fecha_entrada" value="{{ old('fecha_entrada') }}" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                                <div class="mt-1 relative">
+                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="fecha_entrada" name="fecha_entrada" value="{{ old('fecha_entrada') }}" placeholder="Selecciona la fecha" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 pl-10 py-2" autocomplete="off" required>
+                                </div>
                             </div>
                             <div>
                                 <label for="fecha_salida" class="block text-sm font-semibold text-slate-600">Fecha de salida</label>
-                                <input type="date" id="fecha_salida" name="fecha_salida" value="{{ old('fecha_salida') }}" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                                <div class="mt-1 relative">
+                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="fecha_salida" name="fecha_salida" value="{{ old('fecha_salida') }}" placeholder="Selecciona la fecha" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 pl-10 py-2" autocomplete="off" required>
+                                </div>
                             </div>
                         </div>
                         <div class="grid sm:grid-cols-2 gap-4">

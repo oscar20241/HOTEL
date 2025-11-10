@@ -1,10 +1,15 @@
 @extends('layouts.public')
 
 @php
+    use Illuminate\Support\Carbon;
     use Illuminate\Support\Facades\Storage;
+
     $imagenes = $habitacion->imagenes;
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
+
+    $oldEntradaFormatted = optional(Carbon::make(old('fecha_entrada')))->translatedFormat('d M Y') ?? '';
+    $oldSalidaFormatted = optional(Carbon::make(old('fecha_salida')))->translatedFormat('d M Y') ?? '';
 @endphp
 
 @section('content')
@@ -307,11 +312,16 @@
 @endpush
 
 @push('scripts')
-    {{-- Flatpickr JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @once('flatpickr-lib')
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @endonce
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            if (!window.flatpickr) {
+                return;
+            }
+
             // Carousel
             document.querySelectorAll('[data-carousel]').forEach((carousel) => {
                 const slides = carousel.querySelectorAll('[data-carousel-slide]');
