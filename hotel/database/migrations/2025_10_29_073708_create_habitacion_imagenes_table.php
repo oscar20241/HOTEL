@@ -10,7 +10,7 @@ class CreateHabitacionImagenesTable extends Migration
     {
         Schema::create('habitacion_imagenes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('habitacion_id')->constrained()->onDelete('cascade');
+            $table->foreignId('habitacion_id')->constrained('habitaciones')->cascadeOnDelete();
             $table->string('ruta_imagen');
             $table->string('nombre_original');
             $table->boolean('es_principal')->default(false);

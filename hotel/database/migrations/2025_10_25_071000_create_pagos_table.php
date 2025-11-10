@@ -10,7 +10,10 @@ class CreatePagosTable extends Migration
     {
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('reservacion_id')->constrained();
+            $table->foreignId('reservacion_id')
+      ->constrained('reservaciones')
+      ->cascadeOnDelete();
+
             $table->decimal('monto', 10, 2);
             $table->enum('metodo_pago', ['tarjeta', 'efectivo', 'transferencia', 'paypal']);
             $table->enum('estado', ['pendiente', 'completado', 'fallido', 'reembolsado'])->default('pendiente');

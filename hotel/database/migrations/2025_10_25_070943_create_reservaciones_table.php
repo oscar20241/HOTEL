@@ -1,9 +1,9 @@
 <?php
-// database/migrations/xxxx_xx_xx_xxxxxx_create_reservaciones_table.php
+// database/migrations/2025_10_25_070943_create_reservaciones_table.php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 class CreateReservacionesTable extends Migration
 {
@@ -12,8 +12,11 @@ class CreateReservacionesTable extends Migration
         Schema::create('reservaciones', function (Blueprint $table) {
             $table->id();
             $table->string('codigo_reserva')->unique();
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('habitacion_id')->constrained();
+
+            // FK correctas
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('habitacion_id')->constrained('habitaciones')->cascadeOnDelete();
+
             $table->date('fecha_entrada');
             $table->date('fecha_salida');
             $table->integer('numero_huespedes');

@@ -77,6 +77,9 @@ class Habitacion extends Model
             ->orderByDesc('fecha_inicio')
             ->first();
 
-        return $tarifaEspecial ? (float) $tarifaEspecial->precio_modificado : (float) $this->tipoHabitacion->precio_base;
+        return $tarifas 
+    ? (float) $tarifas->precio_modificado 
+    : (float) $this->tipoHabitacion->precio_base;
+
     }
 }
