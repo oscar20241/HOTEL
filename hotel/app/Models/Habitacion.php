@@ -54,13 +54,13 @@ class Habitacion extends Model
 
         // Verificar si hay reservaciones conflictivas
         return !$this->reservaciones()
-            ->where(function($query) use ($fechaEntrada, $fechaSalida) {
+            ->where(function ($query) use ($fechaEntrada, $fechaSalida) {
                 $query->whereBetween('fecha_entrada', [$fechaEntrada, $fechaSalida])
-                      ->orWhereBetween('fecha_salida', [$fechaEntrada, $fechaSalida])
-                      ->orWhere(function($q) use ($fechaEntrada, $fechaSalida) {
-                          $q->where('fecha_entrada', '<=', $fechaEntrada)
+                    ->orWhereBetween('fecha_salida', [$fechaEntrada, $fechaSalida])
+                    ->orWhere(function ($q) use ($fechaEntrada, $fechaSalida) {
+                        $q->where('fecha_entrada', '<=', $fechaEntrada)
                             ->where('fecha_salida', '>=', $fechaSalida);
-                      });
+                    });
             })
             ->whereIn('estado', ['confirmada', 'activa', 'pendiente'])
             ->exists();

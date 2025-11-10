@@ -12,7 +12,7 @@ class RegistroController extends Controller
     // Muestra el formulario de registro
     public function create()
     {
-        return view('registro'); // Ajusta esto al nombre de tu vista
+        return view('Registro'); // Ajusta esto al nombre de tu vista
     }
 
     // Procesa el formulario de registro

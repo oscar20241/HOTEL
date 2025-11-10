@@ -13,7 +13,7 @@ class PerfilController extends Controller
     public function show()
     {
         $user = Auth::user();
-        return view('huesped.perfil', compact('user'));
+        return view('public.huesped.perfil', compact('user'));
     }
 
     // Actualizar información del perfil
@@ -44,7 +44,7 @@ class PerfilController extends Controller
             // No actualizamos fecha_nacimiento
         ]);
 
-        return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
+        return redirect()->route('perfil')->with('success', 'Perfil actualizado correctamente.');
     }
 
     // Cambiar contraseña
@@ -73,6 +73,6 @@ class PerfilController extends Controller
             'password' => Hash::make($request->new_password)
         ]);
 
-        return redirect()->back()->with('success', 'Contraseña actualizada correctamente.');
+        return redirect()->route('perfil')->with('success', 'Contraseña actualizada correctamente.');
     }
 }
