@@ -120,7 +120,7 @@
                             <select id="habitacion_id" name="habitacion_id" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
                                 <option value="" disabled selected>Selecciona una habitación</option>
                                 @foreach ($habitaciones as $habitacion)
-                                    <option value="{{ $habitacion->id }}" @selected(old('habitacion_id') == $habitacion->id)>
+                                    <option value="{{ $habitacion->id }}" data-capacidad="{{ $habitacion->capacidad }}" @selected(old('habitacion_id') == $habitacion->id)>
                                         {{ $habitacion->numero }} · {{ $habitacion->tipoHabitacion->nombre }} · Capacidad {{ $habitacion->capacidad }} huéspedes
                                     </option>
                                 @endforeach
