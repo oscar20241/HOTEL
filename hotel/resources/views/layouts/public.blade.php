@@ -26,28 +26,14 @@
                 </a>
                 <div class="flex items-center gap-4">
                     @auth
-                        <div class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-500">
-                            <span class="text-slate-400">Hola, {{ Auth::user()->name }}</span>
-                            <a href="{{ route('home') }}#reservar" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-6M9 9v12.75a.75.75 0 001.125.65l1.875-1.125a.75.75 0 01.75 0l1.875 1.125a.75.75 0 001.125-.65V9m-6 0L3.75 3m5.25 6l10.5-6" />
-                                </svg>
-                                Reservar
-                            </a>
-                            <a href="{{ route('home') }}#mis-reservas" class="inline-flex items-center gap-1 hover:text-indigo-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5l1.5 1.5L9 4.5m0 0L7.5 3 3 7.5M9 4.5h9.75A1.5 1.5 0 0120.25 6v12a1.5 1.5 0 01-1.5 1.5h-12A1.5 1.5 0 015.25 18V9" />
-                                </svg>
-                                Mis reservaciones
-                            </a>
-                            <a href="{{ route('perfil') }}" class="inline-flex items-center gap-1 hover:text-indigo-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a9.75 9.75 0 1115 0v.75H4.5v-.75z" />
-                                </svg>
-                                Mi perfil
-                            </a>
-                        </div>
-                        <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
+                        <span class="hidden sm:inline text-sm text-slate-500">Hola, {{ Auth::user()->name }}</span>
+                        <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75l7.5-3 7.5 3m-15 0l7.5 3 7.5-3m-15 0v10.5l7.5 3m7.5-13.5v10.5l-7.5 3" />
+                            </svg>
+                            Ir a tu panel
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}" class="hidden sm:block">
                             @csrf
                             <button type="submit" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -56,23 +42,6 @@
                                 Cerrar sesión
                             </button>
                         </form>
-                        <div class="md:hidden flex items-center gap-3">
-                            <a href="{{ route('perfil') }}" class="inline-flex items-center justify-center h-9 w-9 rounded-full bg-indigo-600 text-white">
-                                <span class="sr-only">Abrir perfil</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a9.75 9.75 0 1115 0v.75H4.5v-.75z" />
-                                </svg>
-                            </a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="inline-flex items-center justify-center h-9 w-9 rounded-full border border-slate-300 text-slate-500">
-                                    <span class="sr-only">Cerrar sesión</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H3" />
-                                    </svg>
-                                </button>
-                            </form>
-                        </div>
                     @else
                         <a href="{{ route('login') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">
                             <span class="flex items-center justify-center h-9 w-9 rounded-full border border-indigo-200">

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
-use Carbon\Carbon;
 
 class PublicHabitacionController extends Controller
 {
@@ -23,29 +22,7 @@ class PublicHabitacionController extends Controller
                 return view('Recepcionista');
             }
 
-            $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal'])
-                ->where('estado', '!=', 'mantenimiento')
-                ->orderBy('numero')
-                ->get();
-
-            $reservaciones = $user->reservaciones()
-                ->with(['habitacion.tipoHabitacion', 'habitacion.imagenPrincipal'])
-                ->orderByDesc('fecha_entrada')
-                ->get();
-
-            $proximaReservacion = $reservaciones
-                ->filter(function ($reservacion) {
-                    return in_array($reservacion->estado, ['pendiente', 'confirmada', 'activa'])
-                        && $reservacion->fecha_entrada->greaterThanOrEqualTo(Carbon::today());
-                })
-                ->sortBy('fecha_entrada')
-                ->first();
-
-            return view('public.huesped.dashboard', [
-                'habitaciones' => $habitaciones,
-                'reservaciones' => $reservaciones,
-                'proximaReservacion' => $proximaReservacion,
-            ]);
+            return view('Huesped');
         }
 
         $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal', 'imagenes'])

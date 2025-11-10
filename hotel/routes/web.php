@@ -8,11 +8,13 @@ use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\PublicHabitacionController;
-use App\Http\Controllers\ReservacionController;
 use Illuminate\Support\Facades\Auth;
 
 // Página principal pública con listado de habitaciones
 Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
+
+// Página de detalles de habitación pública
+Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
 
 // Página de detalles de habitación pública
 Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
