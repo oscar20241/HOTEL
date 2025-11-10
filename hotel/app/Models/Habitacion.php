@@ -66,7 +66,7 @@ class Habitacion extends Model
             ->exists();
     }
 
-    public function getPrecioActualAttribute()
+    public function getPrecioActualAttrbute()
     {
         $hoy = Carbon::today();
         
