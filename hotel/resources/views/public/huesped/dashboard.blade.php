@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @php
+    use Carbon\Carbon;
     use Illuminate\Support\Facades\Auth;
     use Illuminate\Support\Facades\Storage;
 @endphp
@@ -113,56 +114,98 @@
                 <div class="p-8 rounded-3xl bg-white shadow-xl">
                     <h2 class="text-2xl font-semibold text-slate-800">Generar una nueva reservación</h2>
                     <p class="mt-2 text-sm text-slate-500">Selecciona fechas y la habitación ideal para tu estancia. Nuestro equipo confirmará la disponibilidad.</p>
-                    <form method="POST" action="{{ route('reservaciones.store') }}" class="mt-6 space-y-4">
+                    @php
+                        $habitacionSeleccionada = $habitaciones->firstWhere('id', old('habitacion_id')) ?? $habitaciones->first();
+                        $capacidadInicial = $habitacionSeleccionada?->capacidad;
+                        $tarifaInicial = $habitacionSeleccionada ? number_format($habitacionSeleccionada->precio_actual, 2, '.', '') : '0.00';
+                        $nochesIniciales = 0;
+                        $estimadoInicial = 0.00;
+
+                        if (old('fecha_entrada') && old('fecha_salida') && $habitacionSeleccionada) {
+                            try {
+                                $entradaAnterior = Carbon::parse(old('fecha_entrada'));
+                                $salidaAnterior = Carbon::parse(old('fecha_salida'));
+                                $nochesIniciales = max(0, $entradaAnterior->diffInDays($salidaAnterior));
+                                $estimadoInicial = $nochesIniciales * (float) $habitacionSeleccionada->precio_actual;
+                            } catch (\Throwable $e) {
+                                $nochesIniciales = 0;
+                                $estimadoInicial = 0.00;
+                            }
+                        }
+                    @endphp
+                    <form method="POST" action="{{ route('reservaciones.store') }}" class="mt-6 space-y-6" id="form-nueva-reserva">
                         @csrf
                         <div>
                             <label for="habitacion_id" class="block text-sm font-semibold text-slate-600">Habitación</label>
                             <select id="habitacion_id" name="habitacion_id" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
-                                <option value="" disabled selected>Selecciona una habitación</option>
+                                <option value="" disabled>Selecciona una habitación</option>
                                 @foreach ($habitaciones as $habitacion)
-                                    <option value="{{ $habitacion->id }}" data-capacidad="{{ $habitacion->capacidad }}" @selected(old('habitacion_id') == $habitacion->id)>
+                                    <option value="{{ $habitacion->id }}"
+                                        data-capacidad="{{ $habitacion->capacidad }}"
+                                        data-precio="{{ number_format($habitacion->precio_actual, 2, '.', '') }}"
+                                        data-availability="{{ route('habitaciones.disponibilidad', $habitacion) }}"
+                                        @selected(old('habitacion_id', $habitacionSeleccionada?->id) == $habitacion->id)>
                                         {{ $habitacion->numero }} · {{ $habitacion->tipoHabitacion->nombre }} · Capacidad {{ $habitacion->capacidad }} huéspedes
                                     </option>
                                 @endforeach
                             </select>
+                            @error('habitacion_id')
+                                <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="fecha_entrada" class="block text-sm font-semibold text-slate-600">Fecha de llegada</label>
-                                <div class="mt-1 relative">
-                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
-                                        </svg>
-                                    </span>
-                                    <input type="text" id="fecha_entrada" name="fecha_entrada" value="{{ old('fecha_entrada') }}" placeholder="Selecciona la fecha" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 pl-10 py-2" autocomplete="off" required>
+                        <div class="grid lg:grid-cols-2 gap-4">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="numero_huespedes" class="block text-sm font-semibold text-slate-600">Número de huéspedes</label>
+                                    <input type="number" min="1" id="numero_huespedes" name="numero_huespedes" value="{{ old('numero_huespedes', 1) }}" max="{{ $capacidadInicial ?? '' }}" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                                    <small class="text-slate-500">Capacidad máx: <span id="texto-capacidad">{{ $capacidadInicial ?? '—' }}</span></small>
+                                    @error('numero_huespedes')
+                                        <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="rounded-xl border border-indigo-100 bg-indigo-50/80 p-4">
+                                    <p class="text-xs text-indigo-800 uppercase tracking-wide font-semibold">Tip</p>
+                                    <p class="text-sm text-indigo-900/80">Los precios se calculan con la tarifa vigente de cada categoría. Recibirás la confirmación por correo.</p>
                                 </div>
                             </div>
                             <div>
-                                <label for="fecha_salida" class="block text-sm font-semibold text-slate-600">Fecha de salida</label>
-                                <div class="mt-1 relative">
-                                    <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
-                                        </svg>
-                                    </span>
-                                    <input type="text" id="fecha_salida" name="fecha_salida" value="{{ old('fecha_salida') }}" placeholder="Selecciona la fecha" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 pl-10 py-2" autocomplete="off" required>
+                                <label class="block text-sm font-semibold text-slate-600 mb-1">Fechas (entrada / salida)</label>
+                                <input type="text" id="rango-fechas" class="w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700 px-3 py-2" placeholder="Selecciona el rango de fechas" autocomplete="off" required>
+                                <input type="hidden" name="fecha_entrada" id="fecha_entrada" value="{{ old('fecha_entrada') }}">
+                                <input type="hidden" name="fecha_salida" id="fecha_salida" value="{{ old('fecha_salida') }}">
+                                @error('fecha_entrada')
+                                    <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                                @enderror
+                                @error('fecha_salida')
+                                    <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                                @enderror
+                                <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500/70"></span> Disponible</span>
+                                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-amber-500/80"></span> Mantenimiento</span>
+                                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-rose-500/80"></span> Ocupada</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="numero_huespedes" class="block text-sm font-semibold text-slate-600">Número de huéspedes</label>
-                                <input type="number" min="1" id="numero_huespedes" name="numero_huespedes" value="{{ old('numero_huespedes', 1) }}" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                        <div class="grid sm:grid-cols-3 gap-4">
+                            <div class="rounded-2xl bg-slate-50 p-4">
+                                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Noches</p>
+                                <p class="mt-1 text-xl font-semibold text-slate-800"><span id="noches">{{ $nochesIniciales }}</span></p>
                             </div>
-                            <div class="rounded-xl border border-indigo-100 bg-indigo-50/80 p-4">
-                                <p class="text-xs text-indigo-800 uppercase tracking-wide font-semibold">Tip</p>
-                                <p class="text-sm text-indigo-900/80">Los precios se calculan con la tarifa vigente de cada categoría. Recibirás la confirmación por correo.</p>
+                            <div class="rounded-2xl bg-slate-50 p-4">
+                                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Tarifa por noche</p>
+                                <p class="mt-1 text-xl font-semibold text-slate-800">$<span id="tarifa_noche">{{ $tarifaInicial }}</span> MXN</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 p-4">
+                                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Estimado total</p>
+                                <p class="mt-1 text-xl font-semibold text-slate-800">$<span id="precio_estimado">{{ number_format($estimadoInicial, 2, '.', '') }}</span> MXN</p>
                             </div>
                         </div>
                         <div>
                             <label for="notas" class="block text-sm font-semibold text-slate-600">Notas adicionales</label>
                             <textarea id="notas" name="notas" rows="3" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" placeholder="Comparte preferencias, horarios de llegada o necesidades especiales">{{ old('notas') }}</textarea>
+                            @error('notas')
+                                <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                         <button type="submit" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -239,7 +282,14 @@
                                         <p class="font-semibold text-slate-800">{{ $reservacion->fecha_entrada->translatedFormat('d M') }} – {{ $reservacion->fecha_salida->translatedFormat('d M Y') }}</p>
                                         <p class="text-xs text-slate-500">{{ $reservacion->fecha_entrada->diffInDays($reservacion->fecha_salida) }} noches</p>
                                     </td>
-                                    <td class="px-6 py-4 font-semibold text-slate-800">${{ number_format($reservacion->precio_total, 2) }}</td>
+                                    <td class="px-6 py-4">
+                                        <p class="font-semibold text-slate-800">${{ number_format($reservacion->precio_total, 2) }}</p>
+                                        @if ($reservacion->saldo_pendiente > 0)
+                                            <p class="text-xs text-rose-600 mt-1">Saldo pendiente: ${{ number_format($reservacion->saldo_pendiente, 2) }} MXN</p>
+                                        @else
+                                            <p class="text-xs text-emerald-600 mt-1">Pagado</p>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4">
                                         @php
                                             $estados = [
@@ -259,15 +309,23 @@
                                             <a href="{{ route('habitaciones.show', $reservacion->habitacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
                                                 Ver habitación
                                             </a>
+                                            @if ($reservacion->estado === 'confirmada' || $reservacion->estado === 'activa' || ($reservacion->estado === 'pendiente' && $reservacion->total_pagado > 0))
+                                                <a href="{{ route('reservaciones.edit', $reservacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800">
+                                                    Editar
+                                                </a>
+                                            @endif
                                             @if ($reservacion->estado === 'pendiente')
                                                 <button type="button"
                                                     class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
                                                     data-paypal-trigger
                                                     data-reservacion-id="{{ $reservacion->id }}"
-                                                    data-monto="{{ number_format($reservacion->precio_total, 2, '.', '') }}"
+                                                    data-monto="{{ number_format($reservacion->saldo_pendiente, 2, '.', '') }}"
                                                     data-paypal-url="{{ route('reservaciones.pago.paypal', $reservacion) }}">
                                                     Pagar con PayPal
                                                 </button>
+                                                @if ($reservacion->total_pagado > 0 && $reservacion->saldo_pendiente > 0)
+                                                    <span class="text-[11px] text-emerald-600">Saldo adicional por ajustes recientes.</span>
+                                                @endif
                                             @endif
                                             @if ($reservacion->puedeCancelarse())
                                                 <form method="POST" action="{{ route('reservaciones.destroy', $reservacion) }}" onsubmit="return confirm('¿Cancelar la reservación {{ $reservacion->codigo_reserva }}?');">
@@ -375,7 +433,197 @@
     </div>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .flatpickr-day.is-disponible {
+            background-color: rgba(14, 165, 233, 0.12);
+        }
+
+        .flatpickr-day.is-ocupada,
+        .flatpickr-day.is-ocupada:hover,
+        .flatpickr-day.is-ocupada:focus {
+            background-color: #ef4444 !important;
+            color: #fff !important;
+        }
+
+        .flatpickr-day.is-mantenimiento,
+        .flatpickr-day.is-mantenimiento:hover,
+        .flatpickr-day.is-mantenimiento:focus {
+            background-color: #f59e0b !important;
+            color: #0f172a !important;
+        }
+    </style>
+@endpush
+
 @push('scripts')
+    @once('flatpickr-lib')
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    @endonce
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectHabitacion = document.getElementById('habitacion_id');
+            const rangoFechas = document.getElementById('rango-fechas');
+            const inpPersonas = document.getElementById('numero_huespedes');
+            const textoCapacidad = document.getElementById('texto-capacidad');
+            const tarifaNocheSpan = document.getElementById('tarifa_noche');
+            const nochesSpan = document.getElementById('noches');
+            const totalSpan = document.getElementById('precio_estimado');
+            const fechaEntradaInput = document.getElementById('fecha_entrada');
+            const fechaSalidaInput = document.getElementById('fecha_salida');
+
+            if (!selectHabitacion || !rangoFechas || !window.flatpickr) {
+                return;
+            }
+
+            if (window.flatpickr.l10ns?.es) {
+                window.flatpickr.localize(window.flatpickr.l10ns.es);
+            }
+
+            const disponibilidadActual = { bloques: [] };
+            let fpInstance = null;
+            let nightlyRate = parseFloat(selectHabitacion.selectedOptions[0]?.dataset.precio || tarifaNocheSpan?.textContent || '0');
+
+            const clampHuespedes = () => {
+                if (!inpPersonas) {
+                    return;
+                }
+                const capacidad = parseInt(textoCapacidad?.textContent || inpPersonas.max || '1', 10) || 1;
+                let value = parseInt(inpPersonas.value || '1', 10);
+                if (Number.isNaN(value) || value < 1) {
+                    value = 1;
+                }
+                if (value > capacidad) {
+                    value = capacidad;
+                }
+                inpPersonas.value = value;
+            };
+
+            const updateResumen = (startDate, endDate) => {
+                if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+                    nochesSpan.textContent = '0';
+                    totalSpan.textContent = '0.00';
+                    return;
+                }
+
+                const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+                nochesSpan.textContent = diff;
+                const total = diff > 0 ? diff * nightlyRate : 0;
+                totalSpan.textContent = total.toFixed(2);
+            };
+
+            const decorateDay = (dayElem) => {
+                const date = dayElem.dateObj.toISOString().slice(0, 10);
+                const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
+
+                dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
+                dayElem.style.borderRadius = '6px';
+
+                if (bloque) {
+                    dayElem.classList.add(`is-${bloque.estado}`);
+                    const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
+                    dayElem.setAttribute('aria-label', `${dayElem.getAttribute('aria-label')} – ${estadoTexto}`);
+                } else {
+                    dayElem.classList.add('is-disponible');
+                }
+            };
+
+            const inicializarCalendario = (bloques, defaultRange = null) => {
+                disponibilidadActual.bloques = bloques || [];
+                const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
+
+                if (!fpInstance) {
+                    fpInstance = flatpickr(rangoFechas, {
+                        mode: 'range',
+                        dateFormat: 'Y-m-d',
+                        minDate: 'today',
+                        disable: disabled,
+                        defaultDate: defaultRange,
+                        onReady: (selectedDates, _, instance) => {
+                            instance.calendarContainer.classList.add('rounded-xl');
+                            if (selectedDates.length === 2) {
+                                updateResumen(selectedDates[0], selectedDates[1]);
+                            }
+                        },
+                        onChange: (dates) => {
+                            if (dates.length === 2) {
+                                const [start, end] = dates;
+                                fechaEntradaInput.value = start.toISOString().slice(0, 10);
+                                fechaSalidaInput.value = end.toISOString().slice(0, 10);
+                                updateResumen(start, end);
+                            } else {
+                                fechaEntradaInput.value = '';
+                                fechaSalidaInput.value = '';
+                                updateResumen(null, null);
+                            }
+                        },
+                        onDayCreate: (_, __, ___, dayElem) => decorateDay(dayElem),
+                    });
+                } else {
+                    fpInstance.set('disable', disabled);
+                    fpInstance.redraw();
+                    const selectedDates = fpInstance.selectedDates;
+                    if (selectedDates.length === 2) {
+                        updateResumen(selectedDates[0], selectedDates[1]);
+                    }
+                }
+            };
+
+            const cargarDisponibilidad = (option, defaultRange = null) => {
+                if (!option) {
+                    inicializarCalendario([], defaultRange);
+                    return;
+                }
+
+                const url = option.dataset.availability;
+                fetch(url)
+                    .then((response) => (response.ok ? response.json() : Promise.reject()))
+                    .then((data) => {
+                        inicializarCalendario(data.bloques || [], defaultRange);
+                    })
+                    .catch(() => {
+                        inicializarCalendario([], defaultRange);
+                    });
+            };
+
+            const actualizarHabitacion = (option) => {
+                if (!option) {
+                    return;
+                }
+
+                nightlyRate = parseFloat(option.dataset.precio || nightlyRate || '0');
+                if (tarifaNocheSpan) {
+                    tarifaNocheSpan.textContent = nightlyRate.toFixed(2);
+                }
+
+                if (inpPersonas) {
+                    const capacidad = option.dataset.capacidad || inpPersonas.max || '1';
+                    inpPersonas.max = capacidad;
+                    if (textoCapacidad) {
+                        textoCapacidad.textContent = capacidad;
+                    }
+                    clampHuespedes();
+                }
+            };
+
+            const defaultRange = (fechaEntradaInput.value && fechaSalidaInput.value)
+                ? [fechaEntradaInput.value, fechaSalidaInput.value]
+                : null;
+
+            const opcionInicial = selectHabitacion.selectedOptions[0];
+            actualizarHabitacion(opcionInicial);
+            inicializarCalendario([], defaultRange);
+            cargarDisponibilidad(opcionInicial, defaultRange);
+
+            selectHabitacion.addEventListener('change', () => {
+                const option = selectHabitacion.selectedOptions[0];
+                actualizarHabitacion(option);
+                cargarDisponibilidad(option);
+            });
+
+            inpPersonas?.addEventListener('input', clampHuespedes);
+        });
+    </script>
     <script src="https://www.paypal.com/sdk/js?client-id={{ config('services.paypal.client_id') }}&currency=MXN&intent=capture"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

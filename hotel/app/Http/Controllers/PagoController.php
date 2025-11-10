@@ -42,6 +42,16 @@ class PagoController extends Controller
             abort(403);
         }
 
+        // Calcular saldo pendiente antes de continuar
+        $saldoPendienteFloat = (float) $reservacion->saldo_pendiente;
+        $saldoPendiente = number_format($saldoPendienteFloat, 2, '.', '');
+
+        if ($saldoPendienteFloat <= 0) {
+            return response()->json([
+                'message' => 'No hay saldo pendiente por cobrar en esta reservación.',
+            ], 422);
+        }
+
         // Solo permitir pago si está pendiente
         if ($reservacion->estado !== 'pendiente') {
             return response()->json([
@@ -77,20 +87,19 @@ class PagoController extends Controller
         $amountVal = $pu['amount']['value'] ?? null;
         $currency  = $pu['amount']['currency_code'] ?? null;
 
-        $esperado = number_format($reservacion->precio_total, 2, '.', '');
-        if ($amountVal !== $esperado || $currency !== 'MXN') {
+        if ($amountVal !== $saldoPendiente || $currency !== 'MXN') {
             return response()->json([
                 'message' => 'El monto o la moneda no coinciden con la reservación.',
                 'paypal_amount' => compact('amountVal', 'currency'),
-                'esperado' => ['value' => $esperado, 'currency' => 'MXN'],
+                'esperado' => ['value' => $saldoPendiente, 'currency' => 'MXN'],
             ], 422);
         }
 
         // 3) Registrar pago y confirmar reservación (transacción)
         $pagoId = null;
-        DB::transaction(function () use ($reservacion, $orderId, $esperado, &$pagoId) {
+        DB::transaction(function () use ($reservacion, $orderId, $saldoPendienteFloat, &$pagoId) {
             $pago = $reservacion->pagos()->create([
-                'monto'        => $esperado,
+                'monto'        => $saldoPendienteFloat,
                 'metodo_pago'  => 'paypal',
                 'estado'       => 'completado',
                 'referencia'   => $orderId,
@@ -98,11 +107,12 @@ class PagoController extends Controller
             ]);
             $pagoId = $pago->id;
 
+            $saldoRestante = max(0, (float) $reservacion->precio_total - (float) $reservacion->pagos()
+                ->where('estado', 'completado')
+                ->sum('monto'));
+
             $reservacion->update([
-                'estado' => 'confirmada',
-                // si tienes columnas extra, puedes guardarlas aquí
-                // 'paypal_order_id' => $orderId,
-                // 'fecha_confirmacion' => now(),
+                'estado' => $saldoRestante <= 0 ? 'confirmada' : 'pendiente',
             ]);
         });
 
