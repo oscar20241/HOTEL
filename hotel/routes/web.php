@@ -7,27 +7,14 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\PublicHabitacionController;
 use Illuminate\Support\Facades\Auth;
 
-// Ruta PRINCIPAL - funciona para ambos: login y dashboard
-Route::get('/', function () {
-    // Si está autenticado, mostrar dashboard según rol
-    if (auth()->check()) {
-        $user = auth()->user();
-        
-        if ($user->esAdministrador() || $user->esGerente()) {
-            // En lugar de cargar la vista directamente, redirige al controlador
-            return app(AdminUserController::class)->index();
-        } elseif ($user->esRecepcionista()) {
-            return view('Recepcionista');
-        } else {
-            return view('Huesped');
-        }
-    }
-    
-    // Si no está autenticado, mostrar login
-    return view('login');
-})->name('home');
+// Página principal pública con listado de habitaciones
+Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
+
+// Página de detalles de habitación pública
+Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
 
 Route::get('/registro', function () {
     return view('Registro');
