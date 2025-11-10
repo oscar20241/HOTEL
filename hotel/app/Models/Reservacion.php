@@ -56,6 +56,31 @@ class Reservacion extends Model
         return $this->hasMany(Pago::class);
     }
 
+    protected function pagosCompletadosSum(): float
+    {
+        if ($this->relationLoaded('pagos')) {
+            return (float) $this->pagos
+                ->where('estado', 'completado')
+                ->sum('monto');
+        }
+
+        return (float) $this->pagos()
+            ->where('estado', 'completado')
+            ->sum('monto');
+    }
+
+    public function getTotalPagadoAttribute(): float
+    {
+        return $this->pagosCompletadosSum();
+    }
+
+    public function getSaldoPendienteAttribute(): float
+    {
+        $saldo = (float) $this->precio_total - $this->pagosCompletadosSum();
+
+        return max(0, round($saldo, 2));
+    }
+
     public function getNochesAttribute()
     {
         return $this->fecha_entrada->diffInDays($this->fecha_salida);
@@ -63,7 +88,7 @@ class Reservacion extends Model
 
     public function puedeModificarse()
     {
-        return in_array($this->estado, ['pendiente', 'confirmada']);
+        return in_array($this->estado, ['pendiente', 'confirmada', 'activa']);
     }
 
     public function puedeCancelarse()

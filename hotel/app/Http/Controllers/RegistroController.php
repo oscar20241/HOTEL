@@ -6,18 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 
 class RegistroController extends Controller
 {
     // Muestra el formulario de registro
     public function create()
     {
-        return view('registro'); // Ajusta esto al nombre de tu vista
+        return view('Registro'); // Ajusta esto al nombre de tu vista
     }
 
     // Procesa el formulario de registro
     public function store(Request $request)
     {
+        $fechaMinima = Carbon::now()->subYears(18)->toDateString();
+
         // Validación de datos
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -25,7 +28,10 @@ class RegistroController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'telefono' => 'required|string|max:20',
             'direccion' => 'nullable|string|max:255',
-            'fecha_nacimiento' => 'nullable|date',
+            'fecha_nacimiento' => ['required', 'date', 'before_or_equal:' . $fechaMinima],
+        ], [
+            'fecha_nacimiento.before_or_equal' => 'Debes ser mayor de edad para registrarte.',
+            'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
         ]);
 
         // Si la validación falla, regresa con errores

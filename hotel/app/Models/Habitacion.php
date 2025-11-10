@@ -45,24 +45,23 @@ class Habitacion extends Model
         return $this->hasMany(Reservacion::class);
     }
 
-    public function estaDisponible($fechaEntrada, $fechaSalida)
+    public function estaDisponible($fechaEntrada, $fechaSalida, ?int $reservacionIgnorarId = null)
     {
         // No disponible si está en mantenimiento
         if ($this->estado === 'mantenimiento') {
             return false;
         }
 
-        // Verificar si hay reservaciones conflictivas
+        // Verificar si hay reservaciones conflictivas (se permite excluir una reservación existente)
         return !$this->reservaciones()
-            ->where(function($query) use ($fechaEntrada, $fechaSalida) {
-                $query->whereBetween('fecha_entrada', [$fechaEntrada, $fechaSalida])
-                      ->orWhereBetween('fecha_salida', [$fechaEntrada, $fechaSalida])
-                      ->orWhere(function($q) use ($fechaEntrada, $fechaSalida) {
-                          $q->where('fecha_entrada', '<=', $fechaEntrada)
-                            ->where('fecha_salida', '>=', $fechaSalida);
-                      });
-            })
             ->whereIn('estado', ['confirmada', 'activa', 'pendiente'])
+            ->when($reservacionIgnorarId, function ($query) use ($reservacionIgnorarId) {
+                $query->where('id', '!=', $reservacionIgnorarId);
+            })
+            ->where(function ($query) use ($fechaEntrada, $fechaSalida) {
+                $query->where('fecha_entrada', '<', $fechaSalida)
+                    ->where('fecha_salida', '>', $fechaEntrada);
+            })
             ->exists();
     }
 

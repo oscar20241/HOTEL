@@ -7,39 +7,35 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\RegistroController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\PublicHabitacionController;
+use App\Http\Controllers\GuestPortalController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\ReservacionController;
 use Illuminate\Support\Facades\Auth;
 
-// Ruta PRINCIPAL - funciona para ambos: login y dashboard
-Route::get('/', function () {
-    // Si está autenticado, mostrar dashboard según rol
-    if (auth()->check()) {
-        $user = auth()->user();
-        
-        if ($user->esAdministrador() || $user->esGerente()) {
-            // En lugar de cargar la vista directamente, redirige al controlador
-            return app(AdminUserController::class)->index();
-        } elseif ($user->esRecepcionista()) {
-            return view('Recepcionista');
-        } else {
-            return view('Huesped');
-        }
-    }
-    
-    // Si no está autenticado, mostrar login
-    return view('login');
-})->name('home');
+// routes/web.php
+Route::get('/habitaciones/{habitacion}/disponibilidad', [PublicHabitacionController::class, 'disponibilidad'])
+    ->name('habitaciones.disponibilidad');
 
-Route::get('/registro', function () {
-    return view('Registro');
-})->name('registro');
+
+
+
+Route::post('/reservaciones/{reservacion}/pago/paypal', [PagoController::class, 'storePaypal'])
+    ->name('reservaciones.pago.paypal')
+    ->middleware('auth');
+
+
+
+
+
+// Página principal pública con listado de habitaciones
+Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
+
+// Página de detalles de habitación pública
+Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
 
 // Rutas de autenticación (Breeze)
 require __DIR__.'/auth.php';
-
-// La ruta /dashboard puede redirigir a /
-Route::get('/dashboard', function () {
-    return redirect('/');
-})->middleware(['auth'])->name('dashboard');
 
 // Tus otras rutas de admin, recepcionista, huésped...
 Route::prefix('admin')->middleware(['auth', 'empleado.activo', 'es.admin'])->group(function () {
@@ -52,10 +48,32 @@ Route::get('/registro', [RegistroController::class, 'create'])->name('registro')
 Route::post('/registro', [RegistroController::class, 'store'])->name('registro.store');
 
 Route::middleware(['auth'])->group(function () {
+    Route::post('/reservaciones', [ReservacionController::class, 'store'])->name('reservaciones.store');
+    Route::get('/reservaciones/{reservacion}/editar', [ReservacionController::class, 'edit'])->name('reservaciones.edit');
+    Route::put('/reservaciones/{reservacion}', [ReservacionController::class, 'update'])->name('reservaciones.update');
+    Route::delete('/reservaciones/{reservacion}', [ReservacionController::class, 'destroy'])->name('reservaciones.destroy');
+
+
+    Route::get('/mi-panel', [GuestPortalController::class, 'index'])->name('huesped.dashboard');
+
+    Route::get('/dashboard', function () {
+        $user = Auth::user();
+
+        if ($user->esAdministrador() || $user->esGerente()) {
+            return redirect()->route('gerente.dashboard');
+        }
+
+        if ($user->esRecepcionista()) {
+            return redirect()->route('home');
+        }
+
+        return redirect()->route('huesped.dashboard');
+    })->name('dashboard');
+
     Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil');
     Route::put('/perfil/update', [PerfilController::class, 'update'])->name('perfil.update');
     Route::put('/perfil/change-password', [PerfilController::class, 'changePassword'])->name('perfil.change-password');
-    
+
     // Ruta de logout
     Route::post('/logout', function () {
         Auth::logout();
