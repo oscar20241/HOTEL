@@ -131,7 +131,7 @@
                                 <label for="fecha_entrada" class="block text-sm font-semibold text-slate-600">Fecha de llegada</label>
                                 <div class="mt-1 relative">
                                     <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
                                         </svg>
                                     </span>
@@ -142,7 +142,7 @@
                                 <label for="fecha_salida" class="block text-sm font-semibold text-slate-600">Fecha de salida</label>
                                 <div class="mt-1 relative">
                                     <span class="absolute inset-y-0 left-3 flex items-center text-indigo-400 pointer-events-none">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M5.25 7.5h13.5A1.5 1.5 0 0120.25 9v9.75A1.5 1.5 0 0118.75 20.25H5.25A1.5 1.5 0 013.75 18.75V9A1.5 1.5 0 015.25 7.5zM8.25 12.75h.008v.008H8.25v-.008zM8.25 15.75h.008v.008H8.25v-.008zM11.25 12.75h.008v.008h-.008v-.008z" />
                                         </svg>
                                     </span>
@@ -259,11 +259,6 @@
                                             <a href="{{ route('habitaciones.show', $reservacion->habitacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
                                                 Ver habitación
                                             </a>
-                                            @if ($reservacion->puedeModificarse())
-                                                <a href="{{ route('reservaciones.edit', $reservacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800">
-                                                    Editar
-                                                </a>
-                                            @endif
                                             @if ($reservacion->estado === 'pendiente')
                                                 <button type="button"
                                                     class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
@@ -365,7 +360,7 @@
                     </div>
                     <button type="button" id="paypal-modal-close" class="text-slate-400 hover:text-slate-600">
                         <span class="sr-only">Cerrar</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -378,98 +373,6 @@
         </div>
     </div>
 @endsection
-
-@push('styles')
-    @once('flatpickr-css')
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    @endonce
-@endpush
-
-@push('scripts')
-    @once('flatpickr-lib')
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    @endonce
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.flatpickr) {
-                return;
-            }
-
-            const entradaInput = document.getElementById('fecha_entrada');
-            const salidaInput = document.getElementById('fecha_salida');
-            const personasInput = document.getElementById('numero_huespedes');
-            const habitacionSelect = document.getElementById('habitacion_id');
-
-            if (!entradaInput || !salidaInput) {
-                return;
-            }
-
-            const aplicarCapacidad = () => {
-                if (!personasInput) {
-                    return;
-                }
-
-                const capacidad = habitacionSelect?.selectedOptions[0]?.dataset.capacidad;
-                const capacidadMaxima = capacidad ? parseInt(capacidad, 10) : null;
-
-                if (capacidadMaxima && capacidadMaxima > 0) {
-                    personasInput.setAttribute('max', capacidadMaxima);
-                } else {
-                    personasInput.removeAttribute('max');
-                }
-
-                let valor = parseInt(personasInput.value, 10);
-
-                if (Number.isNaN(valor) || valor < 1) {
-                    valor = 1;
-                }
-
-                if (capacidadMaxima && capacidadMaxima > 0) {
-                    valor = Math.min(valor, capacidadMaxima);
-                }
-
-                personasInput.value = valor;
-            };
-
-            const salidaPicker = flatpickr(salidaInput, {
-                dateFormat: 'Y-m-d',
-                minDate: 'today',
-                disableMobile: true
-            });
-
-            flatpickr(entradaInput, {
-                dateFormat: 'Y-m-d',
-                minDate: 'today',
-                disableMobile: true,
-                onChange: (selectedDates) => {
-                    if (!selectedDates.length) {
-                        salidaPicker.set('minDate', 'today');
-                        return;
-                    }
-
-                    const entradaDate = selectedDates[0];
-                    const nuevaSalidaMin = entradaDate.fp_incr(1);
-                    salidaPicker.set('minDate', nuevaSalidaMin);
-
-                    if (salidaInput.value) {
-                        const salidaDate = salidaPicker.parseDate(salidaInput.value, 'Y-m-d');
-                        if (salidaDate && salidaDate <= entradaDate) {
-                            salidaPicker.clear();
-                        }
-                    }
-                }
-            });
-
-            if (habitacionSelect && personasInput) {
-                habitacionSelect.addEventListener('change', aplicarCapacidad);
-                ['input', 'change', 'blur'].forEach((evento) => {
-                    personasInput.addEventListener(evento, aplicarCapacidad);
-                });
-                aplicarCapacidad();
-            }
-        });
-    </script>
-@endpush
 
 @push('scripts')
     <script src="https://www.paypal.com/sdk/js?client-id=test&currency=MXN"></script>
