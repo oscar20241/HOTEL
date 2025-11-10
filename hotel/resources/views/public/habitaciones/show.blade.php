@@ -294,28 +294,14 @@
     {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        .flatpickr-day.is-disponible {
-            background-color: rgba(16, 185, 129, 0.12);
+        .flatpickr-day.available-day {
+            background: rgba(16, 185, 129, 0.1);
             color: #0f172a;
         }
 
-        .flatpickr-day.is-disponible:hover,
-        .flatpickr-day.is-disponible:focus {
-            background-color: rgba(16, 185, 129, 0.28);
-        }
-
-        .flatpickr-day.is-ocupada,
-        .flatpickr-day.is-ocupada:hover,
-        .flatpickr-day.is-ocupada:focus {
-            background-color: #ef4444 !important;
-            color: #fff !important;
-        }
-
-        .flatpickr-day.is-mantenimiento,
-        .flatpickr-day.is-mantenimiento:hover,
-        .flatpickr-day.is-mantenimiento:focus {
-            background-color: #f59e0b !important;
-            color: #0f172a !important;
+        .flatpickr-day.available-day:hover,
+        .flatpickr-day.available-day:focus {
+            background: rgba(16, 185, 129, 0.25);
         }
     </style>
 @endpush
@@ -452,8 +438,21 @@
                                     updateResumen(null, null);
                                 }
                             },
-                            onDayCreate: function (_, __, ___, dayElem) {
-                                decorateDay(dayElem);
+                            onDayCreate: function(_, __, ___, dayElem) {
+                                const date = dayElem.dateObj.toISOString().slice(0,10);
+                                const bloque = (data.bloques || []).find(b => date >= b.from && date < b.to);
+
+                                dayElem.style.borderRadius = '6px';
+
+                                if (bloque) {
+                                    dayElem.style.color = '#fff';
+                                    dayElem.style.opacity = 0.90;
+                                    dayElem.style.cursor = 'not-allowed';
+                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545';
+                                    dayElem.classList.remove('available-day');
+                                } else {
+                                    dayElem.classList.add('available-day');
+                                }
                             }
                         });
                     } else {

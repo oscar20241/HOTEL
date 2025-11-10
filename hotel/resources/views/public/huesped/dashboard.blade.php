@@ -245,11 +245,6 @@
                                             <a href="{{ route('habitaciones.show', $reservacion->habitacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
                                                 Ver habitación
                                             </a>
-                                            @if ($reservacion->puedeModificarse())
-                                                <a href="{{ route('reservaciones.edit', $reservacion) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-800">
-                                                    Editar
-                                                </a>
-                                            @endif
                                             @if ($reservacion->estado === 'pendiente')
                                                 <button type="button"
                                                     class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
