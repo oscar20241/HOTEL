@@ -426,6 +426,20 @@
                 </div>
                 <div id="paypal-message" class="text-sm text-emerald-600 hidden"></div>
                 <div id="paypal-error" class="text-sm text-rose-600 hidden"></div>
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 text-sm text-slate-600">
+                        <input type="checkbox" id="paypal-remember-session"
+                            class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>
+                            Guardar mi sesión de PayPal en este dispositivo
+                            <span class="block text-xs text-slate-400">Solo se recordará para este navegador.</span>
+                        </span>
+                    </label>
+                    <button type="button" id="paypal-forget-session"
+                        class="text-xs font-semibold text-rose-500 hover:text-rose-600 hidden">
+                        Olvidar cuenta guardada
+                    </button>
+                </div>
                 <div id="paypal-button-container" class="mt-2"></div>
                 <p class="text-xs text-slate-400">Este flujo utiliza credenciales de prueba (sandbox). No se realizan cargos reales.</p>
             </div>
@@ -634,6 +648,91 @@
             const errorMessage = document.getElementById('paypal-error');
             let currentReservation = null;
             let currentPaypalUrl = null;
+            let currentAmount = null;
+            const rememberCheckbox = document.getElementById('paypal-remember-session');
+            const forgetButton = document.getElementById('paypal-forget-session');
+            const rememberKey = 'hotel-paypal-remember-session';
+
+            const supportsLocalStorage = (() => {
+                try {
+                    const probeKey = '__paypal_probe__';
+                    window.localStorage.setItem(probeKey, '1');
+                    window.localStorage.removeItem(probeKey);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            })();
+
+            const isRemembering = () => {
+                if (!supportsLocalStorage) {
+                    return false;
+                }
+                return window.localStorage.getItem(rememberKey) === '1';
+            };
+
+            const syncRememberControls = () => {
+                const remembered = isRemembering();
+                if (rememberCheckbox) {
+                    rememberCheckbox.checked = remembered;
+                    rememberCheckbox.disabled = !supportsLocalStorage;
+                }
+                if (forgetButton) {
+                    forgetButton.classList.toggle('hidden', !remembered);
+                    forgetButton.disabled = !supportsLocalStorage;
+                }
+            };
+
+            const setRemembering = (value) => {
+                if (!supportsLocalStorage) {
+                    return;
+                }
+                if (value) {
+                    window.localStorage.setItem(rememberKey, '1');
+                } else {
+                    window.localStorage.removeItem(rememberKey);
+                }
+                syncRememberControls();
+            };
+
+            syncRememberControls();
+
+            const flushPaypalSession = () => {
+                return new Promise(resolve => {
+                    let settled = false;
+                    const finalize = () => {
+                        if (!settled) {
+                            settled = true;
+                            resolve();
+                        }
+                    };
+
+                    const iframe = document.createElement('iframe');
+                    iframe.src = 'https://www.paypal.com/signout';
+                    iframe.title = 'paypal-signout';
+                    iframe.tabIndex = -1;
+                    iframe.setAttribute('aria-hidden', 'true');
+                    iframe.style.position = 'absolute';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = '0';
+                    iframe.onload = () => {
+                        finalize();
+                        setTimeout(() => iframe.remove(), 0);
+                    };
+                    iframe.onerror = () => {
+                        iframe.remove();
+                        finalize();
+                    };
+                    document.body.appendChild(iframe);
+                    setTimeout(() => {
+                        if (document.body.contains(iframe)) {
+                            iframe.remove();
+                        }
+                        finalize();
+                    }, 4000);
+                });
+            };
 
             const hideModal = () => {
                 modal.classList.add('hidden');
@@ -706,16 +805,62 @@
             };
 
             document.querySelectorAll('[data-paypal-trigger]').forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', async () => {
                     currentReservation = button.dataset.reservacionId;
                     currentPaypalUrl = button.dataset.paypalUrl;
-                    const amount = button.dataset.monto;
+                    currentAmount = button.dataset.monto;
                     modal.classList.remove('hidden');
-                    renderPaypalButtons(currentPaypalUrl, amount);
+                    syncRememberControls();
+                    if (isRemembering()) {
+                        buttonContainer.innerHTML = '<p class="text-sm text-slate-500">Recuperando tu sesión guardada…</p>';
+                    } else {
+                        buttonContainer.innerHTML = '<p class="text-sm text-slate-500">Preparando PayPal…</p>';
+                        await flushPaypalSession();
+                    }
+                    renderPaypalButtons(currentPaypalUrl, currentAmount);
                 });
             });
 
             closeModal.addEventListener('click', hideModal);
+
+            rememberCheckbox?.addEventListener('change', async () => {
+                if (rememberCheckbox.checked) {
+                    setRemembering(true);
+                    successMessage.textContent = 'Recordaremos tu sesión de PayPal en este dispositivo.';
+                    successMessage.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
+                } else {
+                    setRemembering(false);
+                    await flushPaypalSession();
+                    successMessage.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                    if (currentPaypalUrl && currentAmount) {
+                        buttonContainer.innerHTML = '<p class="text-sm text-slate-500">Preparando PayPal…</p>';
+                        renderPaypalButtons(currentPaypalUrl, currentAmount);
+                    }
+                }
+            });
+
+            forgetButton?.addEventListener('click', async () => {
+                setRemembering(false);
+                if (rememberCheckbox) {
+                    rememberCheckbox.checked = false;
+                }
+                await flushPaypalSession();
+                const announceCleared = () => {
+                    successMessage.textContent = 'Hemos olvidado la cuenta guardada de PayPal.';
+                    successMessage.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
+                };
+                if (currentPaypalUrl && currentAmount) {
+                    buttonContainer.innerHTML = '<p class="text-sm text-slate-500">Preparando PayPal…</p>';
+                    renderPaypalButtons(currentPaypalUrl, currentAmount);
+                    announceCleared();
+                } else {
+                    buttonContainer.innerHTML = '';
+                    announceCleared();
+                }
+            });
 
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) {
