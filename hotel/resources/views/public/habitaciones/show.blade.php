@@ -1,15 +1,11 @@
 @extends('layouts.public')
 
 @php
-    use Illuminate\Support\Carbon;
     use Illuminate\Support\Facades\Storage;
 
     $imagenes = $habitacion->imagenes;
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
-
-    $oldEntradaFormatted = optional(Carbon::make(old('fecha_entrada')))->translatedFormat('d M Y') ?? '';
-    $oldSalidaFormatted = optional(Carbon::make(old('fecha_salida')))->translatedFormat('d M Y') ?? '';
 @endphp
 
 @section('content')
@@ -299,14 +295,22 @@
     {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        .flatpickr-day.available-day {
-            background: rgba(16, 185, 129, 0.1);
-            color: #0f172a;
+        .flatpickr-day.is-disponible {
+            background-color: rgba(16, 185, 129, 0.18);
         }
 
-        .flatpickr-day.available-day:hover,
-        .flatpickr-day.available-day:focus {
-            background: rgba(16, 185, 129, 0.25);
+        .flatpickr-day.is-ocupada,
+        .flatpickr-day.is-ocupada:hover,
+        .flatpickr-day.is-ocupada:focus {
+            background-color: #ef4444 !important;
+            color: #fff !important;
+        }
+
+        .flatpickr-day.is-mantenimiento,
+        .flatpickr-day.is-mantenimiento:hover,
+        .flatpickr-day.is-mantenimiento:focus {
+            background-color: #f59e0b !important;
+            color: #0f172a !important;
         }
     </style>
 @endpush
@@ -318,14 +322,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (!window.flatpickr) {
-                return;
-            }
-
             // Carousel
             document.querySelectorAll('[data-carousel]').forEach((carousel) => {
                 const slides = carousel.querySelectorAll('[data-carousel-slide]');
-                if (!slides.length) return;
+                if (!slides.length) {
+                    return;
+                }
 
                 let current = 0;
                 const updateSlides = () => {
@@ -355,136 +357,152 @@
                         }
                     });
                 };
+
                 carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
-                    current = (current + 1) % slides.length; updateSlides();
+                    current = (current + 1) % slides.length;
+                    updateSlides();
                 });
+
                 carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
-                    current = (current - 1 + slides.length) % slides.length; updateSlides();
+                    current = (current - 1 + slides.length) % slides.length;
+                    updateSlides();
                 });
+
                 carousel.querySelectorAll('[data-carousel-thumb]').forEach((thumb, index) => {
-                    thumb.addEventListener('click', () => { current = index; updateSlides(); });
+                    thumb.addEventListener('click', () => {
+                        current = index;
+                        updateSlides();
+                    });
                 });
+
                 updateSlides();
             });
 
-            // Reserva (solo si existe el input rango-fechas, es decir, si se muestra el formulario)
             const rango = document.getElementById('rango-fechas');
-            if (rango) {
-                const capacidadMax = {{ (int) $habitacion->capacidad }};
-                const precioNoche  = {{ (float) $habitacion->precio_actual }};
-                const inpPersonas  = document.getElementById('numero_huespedes');
-                const nochesSpan   = document.getElementById('noches');
-                const precioSpan   = document.getElementById('precio_estimado');
-                const fechaIn      = document.getElementById('fecha_entrada');
-                const fechaOut     = document.getElementById('fecha_salida');
-
-                if (inpPersonas) inpPersonas.setAttribute('max', capacidadMax);
-
-                const disponibilidadActual = { bloques: [] };
-                let fpInstance = null;
-
-                const updateResumen = (startDate, endDate) => {
-                    if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
-                        nochesSpan.textContent = '0';
-                        precioSpan.textContent = '0.00';
-                        return;
-                    }
-
-                    const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
-                    nochesSpan.textContent = diff;
-                    const total = diff > 0 ? diff * precioNoche : 0;
-                    precioSpan.textContent = total.toFixed(2);
-                };
-
-                const decorateDay = (dayElem) => {
-                    const date = dayElem.dateObj.toISOString().slice(0, 10);
-                    const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
-
-                    dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
-                    dayElem.style.borderRadius = '6px';
-
-                    const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
-                    dayElem.dataset.baseLabel = baseLabel;
-
-                    if (bloque) {
-                        dayElem.classList.add(`is-${bloque.estado}`);
-                        const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
-                        dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
-                    } else {
-                        dayElem.classList.add('is-disponible');
-                        dayElem.setAttribute('aria-label', baseLabel);
-                    }
-                };
-
-                const inicializarCalendario = (bloques) => {
-                    disponibilidadActual.bloques = bloques || [];
-                    const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
-                    const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
-
-                    if (!fpInstance) {
-                        fpInstance = flatpickr(rango, {
-                            mode: 'range',
-                            dateFormat: 'Y-m-d',
-                            minDate: 'today',
-                            disable: disabled,
-                            defaultDate: defaultRange,
-                            onReady: (selectedDates, dateStr, instance) => {
-                                if (defaultRange && defaultRange.length === 2) {
-                                    updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
-                                }
-                                instance.calendarContainer.classList.add('rounded-xl');
-                            },
-                            onChange: (dates) => {
-                                if (dates.length === 2) {
-                                    const [start, end] = dates;
-                                    const entrada = start.toISOString().slice(0, 10);
-                                    const salida = end.toISOString().slice(0, 10);
-                                    fechaIn.value = entrada;
-                                    fechaOut.value = salida;
-                                    updateResumen(start, end);
-                                } else {
-                                    fechaIn.value = '';
-                                    fechaOut.value = '';
-                                    updateResumen(null, null);
-                                }
-                            },
-                            onDayCreate: function(_, __, ___, dayElem) {
-                                const date = dayElem.dateObj.toISOString().slice(0,10);
-                                const bloque = (data.bloques || []).find(b => date >= b.from && date < b.to);
-
-                                dayElem.style.borderRadius = '6px';
-
-                                if (bloque) {
-                                    dayElem.style.color = '#fff';
-                                    dayElem.style.opacity = 0.90;
-                                    dayElem.style.cursor = 'not-allowed';
-                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545';
-                                    dayElem.classList.remove('available-day');
-                                } else {
-                                    dayElem.classList.add('available-day');
-                                }
-                            }
-                        });
-                    } else {
-                        fpInstance.set('disable', disabled);
-                        fpInstance.redraw();
-                    }
-
-                    if (!defaultRange) {
-                        updateResumen(null, null);
-                    }
-                };
-
-                const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
-                fetch(endpoint)
-                    .then((r) => r.json())
-                    .then((data) => {
-                        inicializarCalendario(data.bloques || []);
-                    })
-                    .catch(() => {
-                        inicializarCalendario([]);
-                    });
+            if (!rango || !window.flatpickr) {
+                return;
             }
+
+            const capacidadMax = {{ (int) $habitacion->capacidad }};
+            const precioNoche = parseFloat('{{ number_format($habitacion->precio_actual, 2, '.', '') }}');
+            const inpPersonas = document.getElementById('numero_huespedes');
+            const nochesSpan = document.getElementById('noches');
+            const precioSpan = document.getElementById('precio_estimado');
+            const fechaIn = document.getElementById('fecha_entrada');
+            const fechaOut = document.getElementById('fecha_salida');
+
+            if (!nochesSpan || !precioSpan || !fechaIn || !fechaOut) {
+                return;
+            }
+
+            if (inpPersonas) {
+                inpPersonas.setAttribute('max', capacidadMax);
+                inpPersonas.addEventListener('input', () => {
+                    let value = parseInt(inpPersonas.value || '1', 10);
+                    if (Number.isNaN(value) || value < 1) {
+                        value = 1;
+                    }
+                    if (value > capacidadMax) {
+                        value = capacidadMax;
+                    }
+                    inpPersonas.value = value;
+                });
+            }
+
+            const disponibilidadActual = { bloques: [] };
+            let fpInstance = null;
+
+            const actualizarResumen = (startDate, endDate) => {
+                if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+                    nochesSpan.textContent = '0';
+                    precioSpan.textContent = '0.00';
+                    return;
+                }
+
+                const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+                nochesSpan.textContent = diff;
+                const total = diff > 0 ? diff * precioNoche : 0;
+                precioSpan.textContent = total.toFixed(2);
+            };
+
+            const decorateDay = (dayElem) => {
+                const date = dayElem.dateObj.toISOString().slice(0, 10);
+                const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
+
+                dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
+                dayElem.style.borderRadius = '6px';
+
+                const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
+                dayElem.dataset.baseLabel = baseLabel;
+
+                if (bloque) {
+                    dayElem.classList.add(`is-${bloque.estado}`);
+                    const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
+                    dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
+                } else {
+                    dayElem.classList.add('is-disponible');
+                    dayElem.setAttribute('aria-label', baseLabel);
+                }
+            };
+
+            const inicializarCalendario = (bloques, defaultRange = null) => {
+                disponibilidadActual.bloques = bloques || [];
+                const disabled = (disponibilidadActual.bloques || []).map((b) => ({ from: b.from, to: b.to }));
+
+                if (!fpInstance) {
+                    fpInstance = flatpickr(rango, {
+                        mode: 'range',
+                        dateFormat: 'Y-m-d',
+                        minDate: 'today',
+                        disable: disabled,
+                        defaultDate: defaultRange,
+                        onReady: (selectedDates, dateStr, instance) => {
+                            instance.calendarContainer.classList.add('rounded-xl');
+                            if (defaultRange && defaultRange.length === 2) {
+                                actualizarResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
+                            }
+                        },
+                        onChange: (dates) => {
+                            if (dates.length === 2) {
+                                const [start, end] = dates;
+                                fechaIn.value = start.toISOString().slice(0, 10);
+                                fechaOut.value = end.toISOString().slice(0, 10);
+                                actualizarResumen(start, end);
+                            } else {
+                                fechaIn.value = '';
+                                fechaOut.value = '';
+                                actualizarResumen(null, null);
+                            }
+                        },
+                        onDayCreate: (_, __, ___, dayElem) => {
+                            decorateDay(dayElem);
+                        },
+                    });
+                } else {
+                    fpInstance.set('disable', disabled);
+                    fpInstance.redraw();
+                    if (defaultRange && defaultRange.length === 2) {
+                        fpInstance.setDate(defaultRange, true);
+                        actualizarResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
+                    }
+                }
+
+                if (!defaultRange) {
+                    actualizarResumen(null, null);
+                }
+            };
+
+            const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
+            const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
+
+            fetch(endpoint)
+                .then((response) => (response.ok ? response.json() : Promise.reject()))
+                .then((data) => {
+                    inicializarCalendario(data.bloques || [], defaultRange);
+                })
+                .catch(() => {
+                    inicializarCalendario([], defaultRange);
+                });
         });
     </script>
 @endpush

@@ -12,6 +12,9 @@
   @vite(['resources/css/estilo.css'])
   @vite(['resources/css/huesped.css'])
 
+  <!-- Calendario -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
   <!-- Iconos -->
   <script src="https://kit.fontawesome.com/a2d04a4f5d.js" crossorigin="anonymous"></script>
  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -299,10 +302,27 @@
         </select>
 
         <label for="llegada">Fecha de llegada:</label>
-        <input type="date" id="llegada" required>
+        <input type="text" id="llegada" class="campo-fecha" placeholder="Selecciona la fecha de llegada" required autocomplete="off">
 
         <label for="salida">Fecha de salida:</label>
-        <input type="date" id="salida" required>
+        <input type="text" id="salida" class="campo-fecha" placeholder="Selecciona la fecha de salida" required autocomplete="off">
+
+        <div class="calendario-disponibilidad">
+          <div class="calendario-encabezado">
+            <button type="button" class="btn-calendario" id="mesAnterior" aria-label="Mes anterior">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <h3 id="calendarioTitulo" class="mb-0"></h3>
+            <button type="button" class="btn-calendario" id="mesSiguiente" aria-label="Mes siguiente">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="calendario-cuerpo" id="calendarioDisponibilidad"></div>
+          <div class="calendario-leyenda">
+            <span><span class="leyenda-celda disponible"></span> Disponible</span>
+            <span><span class="leyenda-celda ocupada"></span> Ocupada</span>
+          </div>
+        </div>
 
         <label for="comentario">Comentario:</label>
         <textarea id="comentario" rows="3" placeholder="Escribe algún comentario..."></textarea>
@@ -314,6 +334,9 @@
     </div>
   </div>
 
+  <!-- Calendario -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
   <!-- === SCRIPT PRINCIPAL === -->
   <script>
     // Modal
@@ -322,18 +345,176 @@
     const span = document.getElementsByClassName('cerrar')[0];
     const form = document.getElementById('formReservacion');
 
-    btn.onclick = () => modal.style.display = 'flex';
     span.onclick = () => modal.style.display = 'none';
     window.onclick = (event) => {
       if (event.target === modal) modal.style.display = 'none';
+    };
+
+    // ============================
+    // Calendarios y disponibilidad
+    // ============================
+
+    const llegadaInput = document.getElementById('llegada');
+    const salidaInput = document.getElementById('salida');
+    const calendarioTitulo = document.getElementById('calendarioTitulo');
+    const calendarioDisponibilidad = document.getElementById('calendarioDisponibilidad');
+    const botonMesAnterior = document.getElementById('mesAnterior');
+    const botonMesSiguiente = document.getElementById('mesSiguiente');
+
+    const obtenerReservaciones = () => JSON.parse(localStorage.getItem('reservaciones')) || [];
+
+    const normalizarCadenaFecha = (valor) => {
+      if (!valor) return null;
+      return valor.length > 10 ? valor.substring(0, 10) : valor;
+    };
+
+    const fechaAClave = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const obtenerRangosDeshabilitados = () => {
+      return obtenerReservaciones()
+        .filter(reserva => reserva.llegada && reserva.salida)
+        .map(reserva => ({
+          from: normalizarCadenaFecha(reserva.llegada),
+          to: normalizarCadenaFecha(reserva.salida)
+        }));
+    };
+
+    const obtenerDiasOcupados = () => {
+      const fechas = [];
+      const reservas = obtenerReservaciones();
+
+      reservas.forEach(reserva => {
+        if (!reserva.llegada || !reserva.salida) return;
+
+        const inicio = new Date(normalizarCadenaFecha(reserva.llegada) + 'T00:00:00');
+        const fin = new Date(normalizarCadenaFecha(reserva.salida) + 'T00:00:00');
+        let cursor = new Date(inicio);
+
+        while (cursor <= fin) {
+          fechas.push(fechaAClave(cursor));
+          cursor.setDate(cursor.getDate() + 1);
+        }
+      });
+
+      return fechas;
+    };
+
+    if (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.es) {
+      flatpickr.localize(flatpickr.l10ns.es);
+    }
+
+    const llegadaPicker = flatpickr(llegadaInput, {
+      dateFormat: 'Y-m-d',
+      minDate: 'today',
+      disable: obtenerRangosDeshabilitados(),
+      locale: {
+        firstDayOfWeek: 1
+      },
+      onChange(selectedDates) {
+        if (selectedDates.length) {
+          const fechaSeleccionada = selectedDates[0];
+          const minimoSalida = new Date(fechaSeleccionada.getTime());
+          minimoSalida.setDate(minimoSalida.getDate() + 1);
+          salidaPicker.set('minDate', minimoSalida);
+          salidaPicker.setDate(null);
+        }
+      }
+    });
+
+    const salidaPicker = flatpickr(salidaInput, {
+      dateFormat: 'Y-m-d',
+      minDate: (() => {
+        const manana = new Date();
+        manana.setDate(manana.getDate() + 1);
+        return manana;
+      })(),
+      disable: obtenerRangosDeshabilitados(),
+      locale: {
+        firstDayOfWeek: 1
+      }
+    });
+
+    let fechaCalendarioActual = new Date();
+
+    const renderizarCalendario = () => {
+      const year = fechaCalendarioActual.getFullYear();
+      const month = fechaCalendarioActual.getMonth();
+      const primerDiaMes = new Date(year, month, 1);
+      const ultimoDiaMes = new Date(year, month + 1, 0);
+      const diasOcupados = new Set(obtenerDiasOcupados());
+
+      const nombreMes = primerDiaMes.toLocaleDateString('es-ES', {
+        month: 'long',
+        year: 'numeric'
+      });
+      calendarioTitulo.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+
+      const diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+      let html = '<div class="fila encabezados">';
+      diasSemana.forEach(dia => {
+        html += `<span>${dia}</span>`;
+      });
+      html += '</div>';
+
+      const offset = (primerDiaMes.getDay() + 6) % 7; // Ajuste para iniciar en lunes
+      let diaActual = 1;
+
+      for (let fila = 0; fila < 6; fila++) {
+        html += '<div class="fila">';
+        for (let columna = 0; columna < 7; columna++) {
+          const index = fila * 7 + columna;
+          if (index < offset || diaActual > ultimoDiaMes.getDate()) {
+            html += '<span class="vacio"></span>';
+          } else {
+            const fechaIterada = new Date(year, month, diaActual);
+            const fechaClave = fechaAClave(fechaIterada);
+            const ocupada = diasOcupados.has(fechaClave);
+            html += `<span class="${ocupada ? 'ocupada' : 'disponible'}">${diaActual}</span>`;
+            diaActual++;
+          }
+        }
+        html += '</div>';
+        if (diaActual > ultimoDiaMes.getDate()) break;
+      }
+
+      calendarioDisponibilidad.innerHTML = html;
+    };
+
+    botonMesAnterior.addEventListener('click', () => {
+      fechaCalendarioActual.setMonth(fechaCalendarioActual.getMonth() - 1);
+      renderizarCalendario();
+    });
+
+    botonMesSiguiente.addEventListener('click', () => {
+      fechaCalendarioActual.setMonth(fechaCalendarioActual.getMonth() + 1);
+      renderizarCalendario();
+    });
+
+    const actualizarCalendarios = () => {
+      const rangos = obtenerRangosDeshabilitados();
+      llegadaPicker.set('disable', rangos);
+      salidaPicker.set('disable', rangos);
+      renderizarCalendario();
+    };
+
+    renderizarCalendario();
+
+    btn.onclick = () => {
+      modal.style.display = 'flex';
+      actualizarCalendarios();
     };
 
     // Guardar reservación
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const tipo = document.getElementById('tipo').value;
-      const llegada = document.getElementById('llegada').value;
-      const salida = document.getElementById('salida').value;
+      const llegada = llegadaInput.value;
+      const salida = salidaInput.value;
       const comentario = document.getElementById('comentario').value;
 
       const nuevaReserva = {
@@ -344,13 +525,16 @@
         fechaRegistro: new Date().toLocaleDateString()
       };
 
-      let reservaciones = JSON.parse(localStorage.getItem('reservaciones')) || [];
+      let reservaciones = obtenerReservaciones();
       reservaciones.push(nuevaReserva);
       localStorage.setItem('reservaciones', JSON.stringify(reservaciones));
 
       alert("✅ Reservación guardada correctamente.");
       modal.style.display = 'none';
       form.reset();
+      llegadaPicker.clear();
+      salidaPicker.clear();
+      actualizarCalendarios();
     });
 
     // Navegación entre secciones
