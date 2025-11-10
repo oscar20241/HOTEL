@@ -134,9 +134,9 @@
                                 </a>
                             </div>
                         @else
-                            @if(auth()->user()->esAdministrador() || auth()->user()->esRecepcionista())
+                            @if(auth()->user()->esAdministrador() || auth()->user()->esGerente() || auth()->user()->esRecepcionista())
                                 <div class="flex flex-wrap gap-3">
-                                    <a href="{{ route('gerente.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
                                         Ir a tu panel
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -152,7 +152,7 @@
                                         <div>
                                             <label class="block text-sm font-medium text-indigo-900 mb-1">Personas</label>
                                             <input type="number" name="numero_huespedes" id="numero_huespedes"
-                                                   min="1" max="{{ $habitacion->capacidad }}" value="1"
+                                                   min="1" max="{{ $habitacion->capacidad }}" value="{{ old('numero_huespedes', 1) }}"
                                                    class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                                                    {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
                                             <small class="text-indigo-900/70">Capacidad máx: {{ $habitacion->capacidad }}</small>
@@ -164,10 +164,24 @@
                                                    placeholder="Selecciona entrada y salida"
                                                    class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                                                    {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
-                                            <input type="hidden" name="fecha_entrada" id="fecha_entrada">
-                                            <input type="hidden" name="fecha_salida" id="fecha_salida">
+                                            <input type="hidden" name="fecha_entrada" id="fecha_entrada" value="{{ old('fecha_entrada') }}">
+                                            <input type="hidden" name="fecha_salida" id="fecha_salida" value="{{ old('fecha_salida') }}">
                                             @error('fecha_entrada') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                                             @error('fecha_salida') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-indigo-900/70">
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/70"></span>
+                                                    Disponible
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-amber-500/80"></span>
+                                                    Mantenimiento
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-rose-500/80"></span>
+                                                    Ocupada
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -201,6 +215,13 @@
                                             </svg>
                                         </button>
 
+                                        <a href="{{ route('huesped.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200 transition">
+                                            Ver mis reservaciones
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m6.75-2.25v12A2.25 2.25 0 0119.5 21H4.5A2.25 2.25 0 012.25 18V6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6z" />
+                                            </svg>
+                                        </a>
+
                                         <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
                                             Llamar a recepción
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
@@ -214,6 +235,9 @@
                                             Esta habitación está en mantenimiento y no se puede reservar por ahora.
                                         </p>
                                     @endif
+                                    @error('habitacion_id')
+                                        <div class="text-red-600 text-sm">{{ $message }}</div>
+                                    @enderror
                                 </form>
                             @endif
                         @endguest
@@ -269,6 +293,31 @@
 @push('styles')
     {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .flatpickr-day.is-disponible {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: #0f172a;
+        }
+
+        .flatpickr-day.is-disponible:hover,
+        .flatpickr-day.is-disponible:focus {
+            background-color: rgba(16, 185, 129, 0.28);
+        }
+
+        .flatpickr-day.is-ocupada,
+        .flatpickr-day.is-ocupada:hover,
+        .flatpickr-day.is-ocupada:focus {
+            background-color: #ef4444 !important;
+            color: #fff !important;
+        }
+
+        .flatpickr-day.is-mantenimiento,
+        .flatpickr-day.is-mantenimiento:hover,
+        .flatpickr-day.is-mantenimiento:focus {
+            background-color: #f59e0b !important;
+            color: #0f172a !important;
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -333,49 +382,98 @@
                 const fechaIn      = document.getElementById('fecha_entrada');
                 const fechaOut     = document.getElementById('fecha_salida');
 
-                // Asegura el límite de capacidad también en UI
                 if (inpPersonas) inpPersonas.setAttribute('max', capacidadMax);
 
-                const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
-                fetch(endpoint)
-                    .then(r => r.json())
-                    .then(data => {
-                        const disabled = (data.bloques || []).map(b => ({ from: b.from, to: b.to }));
-                        const fp = flatpickr("#rango-fechas", {
-                            mode: "range",
-                            dateFormat: "Y-m-d",
-                            minDate: "today",
+                const disponibilidadActual = { bloques: [] };
+                let fpInstance = null;
+
+                const updateResumen = (startDate, endDate) => {
+                    if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+                        nochesSpan.textContent = '0';
+                        precioSpan.textContent = '0.00';
+                        return;
+                    }
+
+                    const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+                    nochesSpan.textContent = diff;
+                    const total = diff > 0 ? diff * precioNoche : 0;
+                    precioSpan.textContent = total.toFixed(2);
+                };
+
+                const decorateDay = (dayElem) => {
+                    const date = dayElem.dateObj.toISOString().slice(0, 10);
+                    const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
+
+                    dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
+                    dayElem.style.borderRadius = '6px';
+
+                    const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
+                    dayElem.dataset.baseLabel = baseLabel;
+
+                    if (bloque) {
+                        dayElem.classList.add(`is-${bloque.estado}`);
+                        const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
+                        dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
+                    } else {
+                        dayElem.classList.add('is-disponible');
+                        dayElem.setAttribute('aria-label', baseLabel);
+                    }
+                };
+
+                const inicializarCalendario = (bloques) => {
+                    disponibilidadActual.bloques = bloques || [];
+                    const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
+                    const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
+
+                    if (!fpInstance) {
+                        fpInstance = flatpickr(rango, {
+                            mode: 'range',
+                            dateFormat: 'Y-m-d',
+                            minDate: 'today',
                             disable: disabled,
+                            defaultDate: defaultRange,
+                            onReady: (selectedDates, dateStr, instance) => {
+                                if (defaultRange && defaultRange.length === 2) {
+                                    updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
+                                }
+                                instance.calendarContainer.classList.add('rounded-xl');
+                            },
                             onChange: (dates) => {
                                 if (dates.length === 2) {
                                     const [start, end] = dates;
-                                    const entrada = start.toISOString().slice(0,10);
-                                    const salida  = end.toISOString().slice(0,10);
-                                    fechaIn.value  = entrada;
+                                    const entrada = start.toISOString().slice(0, 10);
+                                    const salida = end.toISOString().slice(0, 10);
+                                    fechaIn.value = entrada;
                                     fechaOut.value = salida;
-
-                                    const noches = Math.round((end - start) / (1000*60*60*24));
-                                    nochesSpan.textContent = noches;
-
-                                    const total = (noches > 0) ? (noches * precioNoche) : 0;
-                                    precioSpan.textContent = total.toFixed(2);
+                                    updateResumen(start, end);
+                                } else {
+                                    fechaIn.value = '';
+                                    fechaOut.value = '';
+                                    updateResumen(null, null);
                                 }
                             },
-                            onDayCreate: function(_, __, ___, dayElem) {
-                                const date = dayElem.dateObj.toISOString().slice(0,10);
-                                const bloque = (data.bloques || []).find(b => date >= b.from && date < b.to);
-                                if (bloque) {
-                                    dayElem.style.borderRadius = '6px';
-                                    dayElem.style.color = '#fff';
-                                    dayElem.style.opacity = 0.90;
-                                    dayElem.style.cursor = 'not-allowed';
-                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545'; // mantenimiento=amarillo, ocupada=rojo
-                                }
+                            onDayCreate: function (_, __, ___, dayElem) {
+                                decorateDay(dayElem);
                             }
                         });
+                    } else {
+                        fpInstance.set('disable', disabled);
+                        fpInstance.redraw();
+                    }
+
+                    if (!defaultRange) {
+                        updateResumen(null, null);
+                    }
+                };
+
+                const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
+                fetch(endpoint)
+                    .then((r) => r.json())
+                    .then((data) => {
+                        inicializarCalendario(data.bloques || []);
                     })
                     .catch(() => {
-                        // En caso de error, no romper la UI
+                        inicializarCalendario([]);
                     });
             }
         });
