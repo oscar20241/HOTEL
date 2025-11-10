@@ -40,6 +40,8 @@ Route::post('/registro', [RegistroController::class, 'store'])->name('registro.s
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/reservaciones', [ReservacionController::class, 'store'])->name('reservaciones.store');
+    Route::get('/reservaciones/{reservacion}/editar', [ReservacionController::class, 'edit'])->name('reservaciones.edit');
+    Route::put('/reservaciones/{reservacion}', [ReservacionController::class, 'update'])->name('reservaciones.update');
     Route::delete('/reservaciones/{reservacion}', [ReservacionController::class, 'destroy'])->name('reservaciones.destroy');
 
     Route::post('/reservaciones/{reservacion}/pago/paypal', [PagoController::class, 'storePaypal'])
