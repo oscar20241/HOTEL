@@ -19,6 +19,15 @@ Route::get('/habitaciones/{habitacion}/disponibilidad', [PublicHabitacionControl
 
 
 
+
+Route::post('/reservaciones/{reservacion}/pago/paypal', [PagoController::class, 'storePaypal'])
+    ->name('reservaciones.pago.paypal')
+    ->middleware('auth');
+
+
+
+
+
 // Página principal pública con listado de habitaciones
 Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
 
@@ -44,8 +53,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/reservaciones/{reservacion}', [ReservacionController::class, 'update'])->name('reservaciones.update');
     Route::delete('/reservaciones/{reservacion}', [ReservacionController::class, 'destroy'])->name('reservaciones.destroy');
 
-    Route::post('/reservaciones/{reservacion}/pago/paypal', [PagoController::class, 'storePaypal'])
-        ->name('reservaciones.pagar.paypal');
 
     Route::get('/mi-panel', [GuestPortalController::class, 'index'])->name('huesped.dashboard');
 

@@ -375,7 +375,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://www.paypal.com/sdk/js?client-id=test&currency=MXN"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id={{ config('services.paypal.client_id') }}&currency=MXN&intent=capture"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('paypal-modal');

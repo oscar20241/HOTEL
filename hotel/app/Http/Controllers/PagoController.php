@@ -5,11 +5,39 @@ namespace App\Http\Controllers;
 use App\Models\Reservacion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class PagoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    // --- Helpers PayPal ---
+    protected function paypalApiBase(): string
+    {
+        return config('services.paypal.mode') === 'live'
+            ? 'https://api.paypal.com'
+            : 'https://api.sandbox.paypal.com';
+    }
+
+    protected function paypalAccessToken(): string
+    {
+        $base = $this->paypalApiBase();
+
+        $res = Http::asForm()
+            ->withBasicAuth(config('services.paypal.client_id'), config('services.paypal.secret'))
+            ->post("$base/v1/oauth2/token", ['grant_type' => 'client_credentials']);
+
+        abort_if(!$res->ok(), 502, 'No se pudo obtener token de PayPal');
+        return $res->json('access_token');
+    }
+
     /**
-     * Store a simulated PayPal payment for the authenticated guest.
+     * POST /reservaciones/{reservacion}/pago/paypal
+     * Verifica/captura el pago en PayPal Sandbox y registra el pago en tu BD.
      */
     public function storePaypal(Request $request, Reservacion $reservacion): JsonResponse
     {
@@ -27,23 +55,65 @@ class PagoController extends Controller
 
         $validated = $request->validate([
             'paypal_order_id' => ['required', 'string', 'max:191'],
+            // Si quieres reforzar: 'monto' => ['required'] y comparar
         ]);
 
-        $pago = $reservacion->pagos()->create([
-            'monto' => $reservacion->precio_total,
-            'metodo_pago' => 'paypal',
-            'estado' => 'completado',
-            'referencia' => $validated['paypal_order_id'],
-            'fecha_pago' => now(),
-        ]);
+        $orderId = $validated['paypal_order_id'];
 
-        $reservacion->update([
-            'estado' => 'confirmada',
-        ]);
+        // 1) Obtener token y consultar la orden (o capturar aquí si no confías en el cliente)
+        $base  = $this->paypalApiBase();
+        $token = $this->paypalAccessToken();
+
+        // (A) Verificar estado si YA capturaste en el cliente con actions.order.capture():
+        $order = Http::withToken($token)->get("$base/v2/checkout/orders/{$orderId}")->json();
+
+        // (B) Alternativa: Capturar en servidor (si NO capturas en el cliente)
+        // $order = Http::withToken($token)->post("$base/v2/checkout/orders/{$orderId}/capture")->json();
+
+        if (($order['status'] ?? null) !== 'COMPLETED') {
+            return response()->json([
+                'message' => 'La orden de PayPal no está COMPLETED.',
+                'detalles' => $order,
+            ], 422);
+        }
+
+        // 2) Validar monto/moneda
+        $pu        = $order['purchase_units'][0] ?? [];
+        $amountVal = $pu['amount']['value'] ?? null;
+        $currency  = $pu['amount']['currency_code'] ?? null;
+
+        $esperado = number_format($reservacion->precio_total, 2, '.', '');
+        if ($amountVal !== $esperado || $currency !== 'MXN') {
+            return response()->json([
+                'message' => 'El monto o la moneda no coinciden con la reservación.',
+                'paypal_amount' => compact('amountVal', 'currency'),
+                'esperado' => ['value' => $esperado, 'currency' => 'MXN'],
+            ], 422);
+        }
+
+        // 3) Registrar pago y confirmar reservación (transacción por seguridad)
+        $pagoId = null;
+        DB::transaction(function () use ($reservacion, $orderId, $esperado, &$pagoId) {
+            $pago = $reservacion->pagos()->create([
+                'monto'        => $esperado,
+                'metodo_pago'  => 'paypal',
+                'estado'       => 'completado',
+                'referencia'   => $orderId,
+                'fecha_pago'   => now(),
+            ]);
+            $pagoId = $pago->id;
+
+            $reservacion->update([
+                'estado'           => 'confirmada',
+                // si tienes columnas:
+                // 'paypal_order_id'   => $orderId,
+                // 'fecha_confirmacion' => now(),
+            ]);
+        });
 
         return response()->json([
             'message' => 'Pago registrado correctamente.',
-            'pago_id' => $pago->id,
+            'pago_id' => $pagoId,
         ]);
     }
 }
