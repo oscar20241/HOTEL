@@ -18,7 +18,7 @@
                         Bienvenido de nuevo, {{ Auth::user()->name }}
                     </h1>
                     <p class="text-base sm:text-lg text-slate-200/90 max-w-2xl">
-                        Planea tu próxima escapada, revisa tus reservaciones y mantén tus datos actualizados desde esta nueva experiencia pensada para huéspedes. Todo lo que necesitas para disfrutar de Hotel Aurora está aquí.
+                        Planea tu próxima escapada, revisa tus reservaciones y mantén tus datos actualizados desde esta nueva experiencia pensada para huéspedes. Todo lo que necesitas para disfrutar de Hotel PASA EL EXTRA Inn está aquí.
                     </p>
                     <div class="flex flex-wrap gap-3">
                         <a href="#reservar" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 font-semibold shadow-lg shadow-black/30">
@@ -218,7 +218,7 @@
                 <div class="rounded-3xl overflow-hidden shadow-xl">
                     <div class="h-full bg-gradient-to-br from-indigo-900 via-slate-900 to-black">
                         <div class="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.45),transparent_55%)] p-8 flex flex-col justify-end text-white">
-                            <h3 class="text-2xl font-semibold">Experiencias Aurora</h3>
+                            <h3 class="text-2xl font-semibold">Experiencias PASA EL EXTRA Inn</h3>
                             <p class="mt-3 text-sm text-white/80 max-w-sm">Disfruta del spa nocturno, cenas de autor y nuestro bar celestial con vista a la ciudad. Personaliza tu estancia en el formulario y lo haremos realidad.</p>
                             <p class="mt-6 text-xs uppercase tracking-[0.3em] text-white/60">Servicio disponible 24/7</p>
                         </div>

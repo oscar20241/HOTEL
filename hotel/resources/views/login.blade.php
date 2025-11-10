@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar sesión · Hotel Aurora</title>
+    <title>Iniciar sesión · Hotel PASA EL EXTRA Inn</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-200">
@@ -25,15 +25,15 @@
                     Regresar al inicio
                 </a>
                 <h1 class="text-4xl font-['Playfair_Display'] text-white">Tu estadía comienza aquí</h1>
-                <p class="text-base text-white/70 max-w-md">Accede a tu cuenta para gestionar reservaciones, actualizar tus datos y descubrir experiencias diseñadas para ti en Hotel Aurora.</p>
+                <p class="text-base text-white/70 max-w-md">Accede a tu cuenta para gestionar reservaciones, actualizar tus datos y descubrir experiencias diseñadas para ti en Hotel PASA EL EXTRA Inn.</p>
             </div>
 
             <div class="flex-1 max-w-lg w-full">
                 <div class="bg-white/10 backdrop-blur border border-white/10 rounded-3xl shadow-2xl shadow-black/40 p-10">
                     <div class="flex items-center justify-center gap-3 mb-8">
-                        <img src="{{ asset('/img/logo.png') }}" alt="Hotel Aurora" class="h-14">
+                        <img src="{{ asset('/img/logo.png') }}" alt="Hotel PASA EL EXTRA Inn" class="h-14">
                         <div>
-                            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Hotel Aurora</p>
+                            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Hotel PASA EL EXTRA Inn</p>
                             <p class="text-lg font-semibold text-white">Área de huéspedes</p>
                         </div>
                     </div>
