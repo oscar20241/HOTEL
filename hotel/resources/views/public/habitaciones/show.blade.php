@@ -134,9 +134,9 @@
                                 </a>
                             </div>
                         @else
-                            @if(auth()->user()->esAdministrador() || auth()->user()->esRecepcionista())
+                            @if(auth()->user()->esAdministrador() || auth()->user()->esGerente() || auth()->user()->esRecepcionista())
                                 <div class="flex flex-wrap gap-3">
-                                    <a href="{{ route('gerente.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
                                         Ir a tu panel
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -168,6 +168,20 @@
                                             <input type="hidden" name="fecha_salida" id="fecha_salida">
                                             @error('fecha_entrada') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                                             @error('fecha_salida') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-indigo-900/70">
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/70"></span>
+                                                    Disponible
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-amber-500/80"></span>
+                                                    Mantenimiento
+                                                </span>
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="h-2.5 w-2.5 rounded-full bg-rose-500/80"></span>
+                                                    Ocupada
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -200,6 +214,13 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                             </svg>
                                         </button>
+
+                                        <a href="{{ route('huesped.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200 transition">
+                                            Ver mis reservaciones
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m6.75-2.25v12A2.25 2.25 0 0119.5 21H4.5A2.25 2.25 0 012.25 18V6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6z" />
+                                            </svg>
+                                        </a>
 
                                         <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
                                             Llamar a recepción
@@ -269,6 +290,17 @@
 @push('styles')
     {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .flatpickr-day.available-day {
+            background: rgba(16, 185, 129, 0.1);
+            color: #0f172a;
+        }
+
+        .flatpickr-day.available-day:hover,
+        .flatpickr-day.available-day:focus {
+            background: rgba(16, 185, 129, 0.25);
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -364,12 +396,17 @@
                             onDayCreate: function(_, __, ___, dayElem) {
                                 const date = dayElem.dateObj.toISOString().slice(0,10);
                                 const bloque = (data.bloques || []).find(b => date >= b.from && date < b.to);
+
+                                dayElem.style.borderRadius = '6px';
+
                                 if (bloque) {
-                                    dayElem.style.borderRadius = '6px';
                                     dayElem.style.color = '#fff';
                                     dayElem.style.opacity = 0.90;
                                     dayElem.style.cursor = 'not-allowed';
-                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545'; // mantenimiento=amarillo, ocupada=rojo
+                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545';
+                                    dayElem.classList.remove('available-day');
+                                } else {
+                                    dayElem.classList.add('available-day');
                                 }
                             }
                         });
