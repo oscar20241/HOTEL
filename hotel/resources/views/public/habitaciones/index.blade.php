@@ -10,7 +10,7 @@
         <div class="absolute inset-0 opacity-40" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'); background-size: cover; background-position: center;"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col lg:flex-row gap-10 items-center">
             <div class="lg:w-1/2 space-y-6">
-                <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a Hotel Aurora</p>
+                <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a Hotel PASA EL EXTRA Inn</p>
                 <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold leading-tight">Elegancia, confort y experiencias inolvidables</h1>
                 <p class="text-white/80 text-lg">Descubre nuestras habitaciones diseñadas para tu descanso. Vive el lujo en cada detalle y permite que nuestro equipo se encargue de crear recuerdos extraordinarios.</p>
                 <div class="flex flex-wrap items-center gap-4">

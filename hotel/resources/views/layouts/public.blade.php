@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Hotel Aurora') }}</title>
+    <title>{{ config('app.name', 'Hotel PASA EL EXTRA Inn') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600;playfair-display:600&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-9 3.75h10.5M9 21h6a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0015 3H9a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 009 21z" />
                         </svg>
                     </span>
-                    <span class="font-['Playfair_Display'] tracking-wide">Hotel Aurora</span>
+                    <span class="font-['Playfair_Display'] tracking-wide">Hotel PASA EL EXTRA Inn</span>
                 </a>
                 <div class="flex items-center gap-4">
                     @auth
@@ -79,14 +79,14 @@
     <footer class="bg-slate-900 text-slate-200 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid gap-8 md:grid-cols-3">
             <div>
-                <h3 class="text-lg font-semibold mb-3">Hotel Aurora</h3>
+                <h3 class="text-lg font-semibold mb-3">Hotel PASA EL EXTRA Inn</h3>
                 <p class="text-sm text-slate-400">Vive una experiencia inolvidable en el corazón de la ciudad. Habitaciones elegantes, servicio de primera y amenidades pensadas para tu descanso.</p>
             </div>
             <div>
                 <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Contacto</h4>
                 <ul class="space-y-1 text-sm text-slate-300">
                     <li>Teléfono: (55) 1234 5678</li>
-                    <li>Email: reservas@hotel-aurora.com</li>
+                    <li>Email: reservas@pasaelextrainn.com</li>
                     <li>Dirección: Av. Reforma 123, Ciudad de México</li>
                 </ul>
             </div>
@@ -112,7 +112,7 @@
             </div>
         </div>
         <div class="border-t border-white/10 py-4 text-center text-xs text-slate-500">
-            © {{ date('Y') }} Hotel Aurora. Todos los derechos reservados.
+            © {{ date('Y') }} Hotel PASA EL EXTRA Inn. Todos los derechos reservados.
         </div>
     </footer>
 
