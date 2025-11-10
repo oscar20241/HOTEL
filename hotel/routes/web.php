@@ -16,9 +16,8 @@ Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
 // Página de detalles de habitación pública
 Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
 
-Route::get('/registro', function () {
-    return view('Registro');
-})->name('registro');
+// Página de detalles de habitación pública
+Route::get('/habitaciones/{habitacion}', [PublicHabitacionController::class, 'show'])->name('habitaciones.show');
 
 // Rutas de autenticación (Breeze)
 require __DIR__.'/auth.php';
@@ -39,6 +38,9 @@ Route::get('/registro', [RegistroController::class, 'create'])->name('registro')
 Route::post('/registro', [RegistroController::class, 'store'])->name('registro.store');
 
 Route::middleware(['auth'])->group(function () {
+    Route::post('/reservaciones', [ReservacionController::class, 'store'])->name('reservaciones.store');
+    Route::delete('/reservaciones/{reservacion}', [ReservacionController::class, 'destroy'])->name('reservaciones.destroy');
+
     Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil');
     Route::put('/perfil/update', [PerfilController::class, 'update'])->name('perfil.update');
     Route::put('/perfil/change-password', [PerfilController::class, 'changePassword'])->name('perfil.change-password');
