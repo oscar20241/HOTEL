@@ -21,10 +21,14 @@
                 <div class="flex flex-wrap items-center gap-6 pt-4">
                     <div>
                         <p class="text-sm text-white/60">Tarifa actual</p>
-                        <p class="text-3xl font-semibold">${{ number_format($habitacion->precio_actual, 2) }} <span class="text-base font-normal">MXN / noche</span></p>
+                        <p class="text-3xl font-semibold">
+                            ${{ number_format($habitacion->precio_actual, 2) }}
+                            <span class="text-base font-normal">MXN / noche</span>
+                        </p>
                     </div>
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-sm uppercase tracking-[0.2em]">
-                        <span class="h-2.5 w-2.5 rounded-full {{ $habitacion->estado === 'disponible' ? 'bg-emerald-400' : 'bg-amber-400' }}"></span>
+                        <span class="h-2.5 w-2.5 rounded-full
+                            {{ $habitacion->estado === 'disponible' ? 'bg-emerald-400' : ($habitacion->estado === 'mantenimiento' ? 'bg-amber-400' : 'bg-slate-300') }}"></span>
                         {{ ucfirst($habitacion->estado) }}
                     </div>
                 </div>
@@ -34,7 +38,8 @@
 
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16">
         <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <div class="grid lg:grid-cols-2 gap-10 p-6 sm:p-10">
+            <div class="grid lg:grid-cols-2 gap-10 p-6 sm:px-10 sm:py-10">
+                {{-- Galería --}}
                 <div data-carousel class="relative">
                     <div class="relative aspect-[4/3] overflow-hidden rounded-3xl bg-slate-100">
                         @forelse ($imagenes as $index => $imagen)
@@ -47,20 +52,19 @@
                             </div>
                         @endforelse
                     </div>
+
                     @if ($imagenes->count() > 1)
                         <button type="button" data-carousel-prev class="absolute top-1/2 left-3 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg shadow-slate-900/10 text-slate-600 hover:bg-slate-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                             </svg>
                         </button>
                         <button type="button" data-carousel-next class="absolute top-1/2 right-3 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg shadow-slate-900/10 text-slate-600 hover:bg-slate-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5L15.75 12l-7.5 7.5" />
                             </svg>
                         </button>
-                    @endif
 
-                    @if ($imagenes->count() > 1)
                         <div class="mt-4 grid grid-cols-4 gap-3">
                             @foreach ($imagenes as $index => $imagen)
                                 <button type="button" data-carousel-thumb="{{ $index }}" class="group relative overflow-hidden rounded-2xl border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -71,10 +75,14 @@
                         </div>
                     @endif
                 </div>
+
+                {{-- Detalles + Reserva --}}
                 <div class="space-y-8">
                     <div class="space-y-4">
                         <h2 class="text-2xl font-semibold text-slate-900">Detalles de la habitación</h2>
-                        <p class="text-slate-600 leading-relaxed">Disfruta de un ambiente sofisticado y acogedor diseñado para ofrecer descanso absoluto. Nuestra habitación ofrece acabados premium, ropa de cama hipoalergénica y servicios exclusivos para cada huésped.</p>
+                        <p class="text-slate-600 leading-relaxed">
+                            Disfruta de un ambiente sofisticado y acogedor diseñado para ofrecer descanso absoluto. Nuestra habitación ofrece acabados premium, ropa de cama hipoalergénica y servicios exclusivos para cada huésped.
+                        </p>
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div class="rounded-2xl bg-slate-50 p-4">
                                 <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Capacidad</p>
@@ -95,26 +103,11 @@
                         </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-lg font-semibold text-slate-900 mb-3">Amenidades destacadas</h3>
-                        <div class="flex flex-wrap gap-3">
-                            @forelse (collect($habitacion->amenidades ?? []) as $amenidad)
-                                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                    </svg>
-                                    {{ $amenidad }}
-                                </span>
-                            @empty
-                                <p class="text-sm text-slate-500">Pronto añadiremos más información sobre las amenidades disponibles.</p>
-                            @endforelse
-                        </div>
-                    </div>
-
+                    {{-- Bloque de reserva / acciones --}}
                     <div class="rounded-3xl bg-indigo-50 border border-indigo-100 p-6 space-y-4">
                         <div class="flex flex-wrap items-center gap-3">
                             <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21M9 9.75l3 3 3-3m-3 3V3" />
                                 </svg>
                             </div>
@@ -123,27 +116,114 @@
                                 <p class="text-lg font-semibold text-indigo-900">Atención personalizada 24/7</p>
                             </div>
                         </div>
-                        <p class="text-sm text-indigo-900/80">Nuestro equipo de reservaciones está listo para ayudarte a planear tu visita y diseñar experiencias a la medida. Inicia sesión para confirmar tu reserva.</p>
-                        <div class="flex flex-wrap gap-3">
-                            <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
-                                Reservar ahora
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                                </svg>
-                            </a>
-                            <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
-                                Llamar a recepción
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                                </svg>
-                            </a>
-                        </div>
+
+                        @guest
+                            <p class="text-sm text-indigo-900/80">Inicia sesión para confirmar tu reserva.</p>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                    Iniciar sesión
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                    </svg>
+                                </a>
+                                <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
+                                    Llamar a recepción
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        @else
+                            @if(auth()->user()->esAdministrador() || auth()->user()->esRecepcionista())
+                                <div class="flex flex-wrap gap-3">
+                                    <a href="{{ route('gerente.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                        Ir a tu panel
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            @else
+                                {{-- Formulario de reservación para huésped --}}
+                                <form action="{{ route('reservaciones.store') }}" method="POST" id="form-reserva" class="space-y-4">
+                                    @csrf
+                                    <input type="hidden" name="habitacion_id" value="{{ $habitacion->id }}">
+                                    <div class="grid sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-indigo-900 mb-1">Personas</label>
+                                            <input type="number" name="numero_huespedes" id="numero_huespedes"
+                                                   min="1" max="{{ $habitacion->capacidad }}" value="1"
+                                                   class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                                   {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
+                                            <small class="text-indigo-900/70">Capacidad máx: {{ $habitacion->capacidad }}</small>
+                                            @error('numero_huespedes') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-indigo-900 mb-1">Fechas (entrada / salida)</label>
+                                            <input type="text" id="rango-fechas"
+                                                   placeholder="Selecciona entrada y salida"
+                                                   class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                                   {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
+                                            <input type="hidden" name="fecha_entrada" id="fecha_entrada">
+                                            <input type="hidden" name="fecha_salida" id="fecha_salida">
+                                            @error('fecha_entrada') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                            @error('fecha_salida') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="grid sm:grid-cols-3 gap-4">
+                                        <div class="rounded-2xl bg-white border border-indigo-100 p-4">
+                                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-500">Noches</p>
+                                            <p class="mt-1 text-xl font-semibold text-indigo-900"><span id="noches">0</span></p>
+                                        </div>
+                                        <div class="rounded-2xl bg-white border border-indigo-100 p-4">
+                                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-500">Tarifa por noche</p>
+                                            <p class="mt-1 text-xl font-semibold text-indigo-900">${{ number_format($habitacion->precio_actual, 2) }} MXN</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-white border border-indigo-100 p-4">
+                                            <p class="text-xs uppercase tracking-[0.2em] text-indigo-500">Estimado total</p>
+                                            <p class="mt-1 text-xl font-semibold text-indigo-900">$<span id="precio_estimado">0.00</span> MXN</p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-indigo-900 mb-1">Notas (opcional)</label>
+                                        <textarea name="notas" rows="3" class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="¿Alguna solicitud especial?">{{ old('notas') }}</textarea>
+                                        @error('notas') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
+                                            {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }}>
+                                            Confirmar reservación
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                            </svg>
+                                        </button>
+
+                                        <a href="tel:+525512345678" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 text-sm font-semibold border border-indigo-100 hover:border-indigo-200 transition">
+                                            Llamar a recepción
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                            </svg>
+                                        </a>
+                                    </div>
+
+                                    @if ($habitacion->estado === 'mantenimiento')
+                                        <p class="text-amber-700 bg-amber-100 border border-amber-200 rounded-xl px-3 py-2 text-sm inline-block">
+                                            Esta habitación está en mantenimiento y no se puede reservar por ahora.
+                                        </p>
+                                    @endif
+                                </form>
+                            @endif
+                        @endguest
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    {{-- Servicios --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="bg-slate-900 rounded-3xl overflow-hidden">
             <div class="grid lg:grid-cols-2">
@@ -153,7 +233,7 @@
                     <ul class="space-y-3 text-white/80 text-sm">
                         <li class="flex items-center gap-3">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
                             </span>
@@ -161,7 +241,7 @@
                         </li>
                         <li class="flex items-center gap-3">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                                 </svg>
                             </span>
@@ -169,7 +249,7 @@
                         </li>
                         <li class="flex items-center gap-3">
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.5c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v4.5h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                                 </svg>
@@ -186,17 +266,23 @@
     </section>
 @endsection
 
+@push('styles')
+    {{-- Flatpickr CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+@endpush
+
 @push('scripts')
+    {{-- Flatpickr JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Carousel
             document.querySelectorAll('[data-carousel]').forEach((carousel) => {
                 const slides = carousel.querySelectorAll('[data-carousel-slide]');
-                if (!slides.length) {
-                    return;
-                }
+                if (!slides.length) return;
 
                 let current = 0;
-
                 const updateSlides = () => {
                     slides.forEach((slide, index) => {
                         if (index === current) {
@@ -224,29 +310,74 @@
                         }
                     });
                 };
-
-                const nextSlide = () => {
-                    current = (current + 1) % slides.length;
-                    updateSlides();
-                };
-
-                const prevSlide = () => {
-                    current = (current - 1 + slides.length) % slides.length;
-                    updateSlides();
-                };
-
-                carousel.querySelector('[data-carousel-next]')?.addEventListener('click', nextSlide);
-                carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', prevSlide);
-
-                carousel.querySelectorAll('[data-carousel-thumb]').forEach((thumb, index) => {
-                    thumb.addEventListener('click', () => {
-                        current = index;
-                        updateSlides();
-                    });
+                carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
+                    current = (current + 1) % slides.length; updateSlides();
                 });
-
+                carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
+                    current = (current - 1 + slides.length) % slides.length; updateSlides();
+                });
+                carousel.querySelectorAll('[data-carousel-thumb]').forEach((thumb, index) => {
+                    thumb.addEventListener('click', () => { current = index; updateSlides(); });
+                });
                 updateSlides();
             });
+
+            // Reserva (solo si existe el input rango-fechas, es decir, si se muestra el formulario)
+            const rango = document.getElementById('rango-fechas');
+            if (rango) {
+                const capacidadMax = {{ (int) $habitacion->capacidad }};
+                const precioNoche  = {{ (float) $habitacion->precio_actual }};
+                const inpPersonas  = document.getElementById('numero_huespedes');
+                const nochesSpan   = document.getElementById('noches');
+                const precioSpan   = document.getElementById('precio_estimado');
+                const fechaIn      = document.getElementById('fecha_entrada');
+                const fechaOut     = document.getElementById('fecha_salida');
+
+                // Asegura el límite de capacidad también en UI
+                if (inpPersonas) inpPersonas.setAttribute('max', capacidadMax);
+
+                const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
+                fetch(endpoint)
+                    .then(r => r.json())
+                    .then(data => {
+                        const disabled = (data.bloques || []).map(b => ({ from: b.from, to: b.to }));
+                        const fp = flatpickr("#rango-fechas", {
+                            mode: "range",
+                            dateFormat: "Y-m-d",
+                            minDate: "today",
+                            disable: disabled,
+                            onChange: (dates) => {
+                                if (dates.length === 2) {
+                                    const [start, end] = dates;
+                                    const entrada = start.toISOString().slice(0,10);
+                                    const salida  = end.toISOString().slice(0,10);
+                                    fechaIn.value  = entrada;
+                                    fechaOut.value = salida;
+
+                                    const noches = Math.round((end - start) / (1000*60*60*24));
+                                    nochesSpan.textContent = noches;
+
+                                    const total = (noches > 0) ? (noches * precioNoche) : 0;
+                                    precioSpan.textContent = total.toFixed(2);
+                                }
+                            },
+                            onDayCreate: function(_, __, ___, dayElem) {
+                                const date = dayElem.dateObj.toISOString().slice(0,10);
+                                const bloque = (data.bloques || []).find(b => date >= b.from && date < b.to);
+                                if (bloque) {
+                                    dayElem.style.borderRadius = '6px';
+                                    dayElem.style.color = '#fff';
+                                    dayElem.style.opacity = 0.90;
+                                    dayElem.style.cursor = 'not-allowed';
+                                    dayElem.style.background = (bloque.type === 'mantenimiento') ? '#d39e00' : '#dc3545'; // mantenimiento=amarillo, ocupada=rojo
+                                }
+                            }
+                        });
+                    })
+                    .catch(() => {
+                        // En caso de error, no romper la UI
+                    });
+            }
         });
     </script>
 @endpush

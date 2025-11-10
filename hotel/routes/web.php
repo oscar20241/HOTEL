@@ -10,6 +10,12 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\PublicHabitacionController;
 use Illuminate\Support\Facades\Auth;
 
+// routes/web.php
+Route::get('/habitaciones/{habitacion}/disponibilidad', [PublicHabitacionController::class, 'disponibilidad'])
+    ->name('habitaciones.disponibilidad');
+
+
+
 // Página principal pública con listado de habitaciones
 Route::get('/', [PublicHabitacionController::class, 'index'])->name('home');
 
