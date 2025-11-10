@@ -63,7 +63,7 @@ class Reservacion extends Model
 
     public function puedeModificarse()
     {
-        return in_array($this->estado, ['pendiente', 'confirmada']);
+        return in_array($this->estado, ['pendiente', 'confirmada', 'activa']);
     }
 
     public function puedeCancelarse()
