@@ -11,7 +11,7 @@ class GuestPortalController extends Controller
     /**
      * Display the guest dashboard with upcoming stays and reservations.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -27,8 +27,10 @@ class GuestPortalController extends Controller
             return redirect()->route('home');
         }
 
-        $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal'])
-            ->orderBy('numero')
+        $tiposHabitacion = TipoHabitacion::with(['habitaciones' => function ($query) {
+                $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
+            }, 'tarifasDinamicas'])
+            ->orderBy('precio_base')
             ->get();
 
         $tiposHabitacion = TipoHabitacion::with(['habitaciones' => function ($query) {
@@ -57,6 +59,7 @@ class GuestPortalController extends Controller
             'tiposHabitacion' => $tiposHabitacion,
             'reservaciones' => $reservaciones,
             'proximaReservacion' => $proximaReservacion,
+            'tipoPreferidoId' => $tipoPreferidoId,
         ]);
     }
 }

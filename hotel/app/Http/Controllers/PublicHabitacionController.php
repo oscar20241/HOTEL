@@ -22,11 +22,18 @@ class PublicHabitacionController extends Controller
             }
         }
 
-        $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal', 'imagenes'])
-            ->orderBy('numero')
+        $tiposHabitacion = TipoHabitacion::with([
+                'habitaciones' => function ($query) {
+                    $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
+                },
+                'tarifasDinamicas',
+            ])
+            ->orderBy('precio_base')
             ->get();
 
-        return view('public.habitaciones.index', compact('habitaciones'));
+        return view('public.habitaciones.index', [
+            'tiposHabitacion' => $tiposHabitacion,
+        ]);
     }
 
     /**
