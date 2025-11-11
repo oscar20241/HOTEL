@@ -9,8 +9,8 @@
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
 
     $habitacionesTipo = collect($tipo?->habitaciones ?? [$habitacion]);
-    $operativasTipo = $habitacionesTipo->filter(fn ($habitacionTipo) => $habitacionTipo->estaOperativa());
-    $disponiblesTipo = $habitacionesTipo->filter(fn ($habitacionTipo) => $habitacionTipo->estadoEs('disponible'));
+    $operativasTipo = $habitacionesTipo->filter(fn ($habitacionTipo) => $habitacionTipo->estado !== 'mantenimiento');
+    $disponiblesTipo = $habitacionesTipo->where('estado', 'disponible');
     $capacidadMaxima = $tipo?->capacidad ?? $habitacion->capacidad;
     $precioReferencia = $tipo?->precio_actual ?? $habitacion->precio_actual;
 @endphp
