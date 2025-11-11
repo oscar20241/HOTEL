@@ -116,12 +116,7 @@
                     <h2 class="text-2xl font-semibold text-slate-800">Generar una nueva reservación</h2>
                     <p class="mt-2 text-sm text-slate-500">Selecciona fechas y la habitación ideal para tu estancia. Nuestro equipo confirmará la disponibilidad.</p>
                     @php
-                        $tipoSeleccionadoId = old('tipo_habitacion_id', $tipoPreferidoId ?? null);
-                        if (!$tipoSeleccionadoId && $tiposHabitacion->isNotEmpty()) {
-                            $tipoSeleccionadoId = $tiposHabitacion->first()->id;
-                        }
-
-                        $tipoSeleccionado = $tiposHabitacion->firstWhere('id', $tipoSeleccionadoId) ?? $tiposHabitacion->first();
+                        $tipoSeleccionado = $tiposHabitacion->firstWhere('id', old('tipo_habitacion_id')) ?? $tiposHabitacion->first();
                         $capacidadInicial = $tipoSeleccionado?->capacidad;
                         $tarifaInicial = $tipoSeleccionado ? number_format($tipoSeleccionado->precio_actual, 2, '.', '') : '0.00';
                         $nochesIniciales = 0;
@@ -138,6 +133,8 @@
                                 $estimadoInicial = 0.00;
                             }
                         }
+
+                        $placeholderImagen = 'https://images.unsplash.com/photo-1551888419-7ab9470cb3a7?auto=format&fit=crop&w=900&q=80';
                     @endphp
                     <form method="POST" action="{{ route('reservaciones.store') }}" class="mt-6 space-y-6" id="form-nueva-reserva">
                         @csrf
@@ -146,34 +143,59 @@
                                 Aún no hay categorías de habitaciones disponibles para reservar. Por favor, contacta al hotel para más información.
                             </div>
                         @else
-                            <div>
-                                <label for="tipo_habitacion_id" class="block text-sm font-semibold text-slate-600">Tipo de habitación</label>
-                                <select id="tipo_habitacion_id" name="tipo_habitacion_id" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                            <div class="space-y-3">
+                                <span class="block text-sm font-semibold text-slate-600">Tipo de habitación</span>
+                                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" id="tipos-habitacion-grid">
                                     @foreach ($tiposHabitacion as $tipo)
                                         @php
+                                            $habitacionConImagen = $tipo->habitaciones->firstWhere('imagenPrincipal')
+                                                ?? $tipo->habitaciones->first(function ($habitacion) {
+                                                    return $habitacion->imagenes->isNotEmpty();
+                                                })
+                                                ?? $tipo->habitaciones->first();
+
+                                            if ($habitacionConImagen?->imagenPrincipal) {
+                                                $imagenUrl = Storage::url($habitacionConImagen->imagenPrincipal->ruta_imagen);
+                                            } elseif ($habitacionConImagen?->imagenes->first()) {
+                                                $imagenUrl = Storage::url($habitacionConImagen->imagenes->first()->ruta_imagen);
+                                            } else {
+                                                $imagenUrl = $placeholderImagen;
+                                            }
+
                                             $precioTipo = number_format($tipo->precio_actual, 2, '.', '');
-                                            $selected = old('tipo_habitacion_id', $tipoSeleccionado?->id) == $tipo->id;
+                                            $checked = old('tipo_habitacion_id', $tipoSeleccionado?->id) == $tipo->id;
                                         @endphp
-                                        <option value="{{ $tipo->id }}"
-                                            data-capacidad="{{ $tipo->capacidad }}"
-                                            data-precio="{{ $precioTipo }}"
-                                            data-descripcion="{{ $tipo->descripcion ? e(Str::limit($tipo->descripcion, 180)) : '' }}"
-                                            data-availability="{{ route('tipos-habitacion.disponibilidad', $tipo) }}"
-                                            {{ $selected ? 'selected' : '' }}>
-                                            {{ $tipo->nombre }} · hasta {{ $tipo->capacidad }} huéspedes — ${{ number_format($tipo->precio_actual, 2) }} MXN / noche
-                                        </option>
+                                        <label class="group relative block cursor-pointer" data-tipo-card>
+                                            <input type="radio" name="tipo_habitacion_id" value="{{ $tipo->id }}"
+                                                class="sr-only peer"
+                                                data-capacidad="{{ $tipo->capacidad }}"
+                                                data-precio="{{ $precioTipo }}"
+                                                data-availability="{{ route('tipos-habitacion.disponibilidad', $tipo) }}"
+                                                {{ $checked ? 'checked' : '' }}>
+                                            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-400">
+                                                <div class="h-40 w-full overflow-hidden">
+                                                    <img src="{{ $imagenUrl }}" alt="{{ $tipo->nombre }}"
+                                                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                                </div>
+                                                <div class="p-5 space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <h3 class="text-lg font-semibold text-slate-800">{{ $tipo->nombre }}</h3>
+                                                        <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
+                                                            Hasta {{ $tipo->capacidad }} huéspedes
+                                                        </span>
+                                                    </div>
+                                                    @if ($tipo->descripcion)
+                                                        <p class="text-sm text-slate-500 leading-relaxed">{{ Str::limit($tipo->descripcion, 110) }}</p>
+                                                    @endif
+                                                    <p class="text-sm font-semibold text-indigo-600">Desde ${{ number_format($tipo->precio_actual, 2) }} MXN / noche</p>
+                                                </div>
+                                            </div>
+                                        </label>
                                     @endforeach
-                                </select>
+                                </div>
                                 @error('tipo_habitacion_id')
-                                    <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                                    <div class="text-sm text-rose-600">{{ $message }}</div>
                                 @enderror
-                                <p class="mt-2 text-xs text-slate-500" id="tipo-descripcion">
-                                    @if ($tipoSeleccionado?->descripcion)
-                                        {{ Str::limit($tipoSeleccionado->descripcion, 180) }}
-                                    @else
-                                        Selecciona la categoría que mejor se adapte a tu estancia. Asignaremos la habitación disponible por ti.
-                                    @endif
-                                </p>
                             </div>
                         @endif
                         <div class="grid lg:grid-cols-2 gap-4">
@@ -560,7 +582,7 @@
     @endonce
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const tipoSelect = document.getElementById('tipo_habitacion_id');
+            const tipoRadios = document.querySelectorAll('input[name="tipo_habitacion_id"]');
             const rangoFechas = document.getElementById('rango-fechas');
             const inpPersonas = document.getElementById('numero_huespedes');
             const textoCapacidad = document.getElementById('texto-capacidad');
@@ -571,7 +593,7 @@
             const fechaSalidaInput = document.getElementById('fecha_salida');
             const descripcionTipo = document.getElementById('tipo-descripcion');
 
-            if (!tipoSelect || !rangoFechas || !window.flatpickr) {
+            if (!tipoRadios.length || !rangoFechas || !window.flatpickr) {
                 return;
             }
 
@@ -581,7 +603,7 @@
 
             const disponibilidadActual = { bloques: [] };
             let fpInstance = null;
-            const getSelectedTipo = () => tipoSelect?.selectedOptions?.[0] || null;
+            const getSelectedTipo = () => document.querySelector('input[name="tipo_habitacion_id"]:checked');
             let nightlyRate = parseFloat(getSelectedTipo()?.dataset.precio || tarifaNocheSpan?.textContent || '0');
 
             const clampHuespedes = () => {
@@ -722,10 +744,12 @@
             inicializarCalendario([], defaultRange);
             cargarDisponibilidad(opcionInicial, defaultRange);
 
-            tipoSelect.addEventListener('change', () => {
-                const option = getSelectedTipo();
-                actualizarTipo(option);
-                cargarDisponibilidad(option);
+            tipoRadios.forEach((radio) => {
+                radio.addEventListener('change', (event) => {
+                    const option = event.target;
+                    actualizarTipo(option);
+                    cargarDisponibilidad(option);
+                });
             });
 
             inpPersonas?.addEventListener('input', clampHuespedes);
