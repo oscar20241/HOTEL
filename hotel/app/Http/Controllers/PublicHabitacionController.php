@@ -45,7 +45,12 @@ class PublicHabitacionController extends Controller
             return redirect()->route('gerente.dashboard');
         }
 
-        $habitacion->load(['tipoHabitacion', 'imagenes']);
+        $habitacion->load([
+            'tipoHabitacion.habitaciones' => function ($query) {
+                $query->select('id', 'tipo_habitacion_id', 'estado', 'capacidad', 'numero');
+            },
+            'imagenes',
+        ]);
 
         return view('public.habitaciones.show', [
             'habitacion' => $habitacion,
