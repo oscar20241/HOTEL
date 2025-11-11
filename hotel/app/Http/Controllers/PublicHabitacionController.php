@@ -64,7 +64,7 @@ class PublicHabitacionController extends Controller
     {
         $bloques = [];
 
-        if ($habitacion->estado === 'mantenimiento') {
+        if ($habitacion->estaEnMantenimiento()) {
             $bloques[] = [
                 'from' => now()->toDateString(),
                 'to' => now()->addDays(180)->toDateString(),
@@ -116,7 +116,7 @@ class PublicHabitacionController extends Controller
         }]);
 
         $habitaciones = $tipoHabitacion->habitaciones;
-        $operativas = $habitaciones->where('estado', '!=', 'mantenimiento');
+        $operativas = $habitaciones->filter->estaOperativa();
 
         $bloques = [];
         $estadoActual = null;

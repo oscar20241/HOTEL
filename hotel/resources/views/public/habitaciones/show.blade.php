@@ -273,7 +273,7 @@
                                         </a>
                                     </div>
 
-                                    @if ($habitacion->estado === 'mantenimiento')
+                                    @if ($habitacion->estaEnMantenimiento())
                                         <p class="text-amber-700 bg-amber-100 border border-amber-200 rounded-xl px-3 py-2 text-sm inline-block">
                                             Esta habitación está en mantenimiento y no se puede reservar por ahora.
                                         </p>

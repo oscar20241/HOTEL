@@ -75,8 +75,8 @@
                         $imagenUrl = 'https://images.unsplash.com/photo-1551888419-7ab9470cb3a7?auto=format&fit=crop&w=900&q=80';
                     }
 
-                    $operativas = $tipo->habitaciones->filter(fn($habitacion) => $habitacion->estado !== 'mantenimiento');
-                    $disponibles = $operativas->filter(fn($habitacion) => $habitacion->estado === 'disponible')->count();
+                    $operativas = $tipo->habitaciones->filter(fn($habitacion) => $habitacion->estaOperativa());
+                    $disponibles = $operativas->filter(fn($habitacion) => $habitacion->estadoEs('disponible'))->count();
                     $totalOperativas = $operativas->count();
 
                     if ($operativas->isEmpty()) {
