@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Http\Request;
 
 use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
@@ -32,12 +33,13 @@ class GuestPortalController extends Controller
             }, 'tarifasDinamicas'])
             ->orderBy('precio_base')
             ->get();
-
-        $tiposHabitacion = TipoHabitacion::with(['habitaciones' => function ($query) {
-                $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
-            }, 'tarifasDinamicas'])
-            ->orderBy('precio_base')
+            
+            $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal', 'imagenes'])
+            ->orderBy('numero')
             ->get();
+
+        $tipoPreferidoId = null;
+
 
         $reservaciones = $user->reservaciones()
             ->with([
