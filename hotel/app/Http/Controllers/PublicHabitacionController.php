@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
+use App\Models\TipoHabitacion;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PublicHabitacionController extends Controller
@@ -84,6 +86,92 @@ class PublicHabitacionController extends Controller
 
         return response()->json([
             'capacidad' => (int) $habitacion->capacidad,
+            'bloques' => $bloques,
+        ]);
+    }
+
+    public function disponibilidadPorTipo(Request $request, TipoHabitacion $tipoHabitacion)
+    {
+        $inicio = Carbon::today();
+        $fin = (clone $inicio)->addDays(180);
+
+        $tipoHabitacion->load(['habitaciones' => function ($query) use ($fin, $inicio) {
+            $query->with(['reservaciones' => function ($reservaQuery) use ($fin, $inicio) {
+                $reservaQuery->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
+                    ->where('fecha_entrada', '<', $fin->copy()->addDay())
+                    ->where('fecha_salida', '>', $inicio);
+            }]);
+        }]);
+
+        $habitaciones = $tipoHabitacion->habitaciones;
+        $operativas = $habitaciones->where('estado', '!=', 'mantenimiento');
+
+        $bloques = [];
+        $estadoActual = null;
+        $inicioBloque = null;
+
+        $fecha = $inicio->copy();
+        while ($fecha->lte($fin)) {
+            $estadoDia = 'disponible';
+
+            if ($operativas->isEmpty()) {
+                $estadoDia = 'mantenimiento';
+            } else {
+                $hayDisponible = false;
+
+                foreach ($operativas as $habitacion) {
+                    $ocupada = $habitacion->reservaciones
+                        ->contains(fn ($reserva) => $fecha->gte($reserva->fecha_entrada) && $fecha->lt($reserva->fecha_salida));
+
+                    if (!$ocupada) {
+                        $hayDisponible = true;
+                        break;
+                    }
+                }
+
+                if (!$hayDisponible) {
+                    $estadoDia = 'ocupada';
+                }
+            }
+
+            if ($estadoDia === 'disponible') {
+                if ($estadoActual !== null) {
+                    $bloques[] = [
+                        'from' => $inicioBloque->toDateString(),
+                        'to' => $fecha->copy()->subDay()->toDateString(),
+                        'estado' => $estadoActual,
+                    ];
+                    $estadoActual = null;
+                    $inicioBloque = null;
+                }
+            } else {
+                if ($estadoActual !== $estadoDia) {
+                    if ($estadoActual !== null) {
+                        $bloques[] = [
+                            'from' => $inicioBloque->toDateString(),
+                            'to' => $fecha->copy()->subDay()->toDateString(),
+                            'estado' => $estadoActual,
+                        ];
+                    }
+
+                    $estadoActual = $estadoDia;
+                    $inicioBloque = $fecha->copy();
+                }
+            }
+
+            $fecha->addDay();
+        }
+
+        if ($estadoActual !== null) {
+            $bloques[] = [
+                'from' => $inicioBloque->toDateString(),
+                'to' => $fin->toDateString(),
+                'estado' => $estadoActual,
+            ];
+        }
+
+        return response()->json([
+            'capacidad' => (int) $tipoHabitacion->capacidad,
             'bloques' => $bloques,
         ]);
     }

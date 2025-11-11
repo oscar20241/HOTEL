@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
+use App\Models\TipoHabitacion;
 use Illuminate\Support\Facades\Auth;
 
 class GuestPortalController extends Controller
@@ -30,6 +31,12 @@ class GuestPortalController extends Controller
             ->orderBy('numero')
             ->get();
 
+        $tiposHabitacion = TipoHabitacion::with(['habitaciones' => function ($query) {
+                $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
+            }, 'tarifasDinamicas'])
+            ->orderBy('precio_base')
+            ->get();
+
         $reservaciones = $user->reservaciones()
             ->with([
                 'habitacion.tipoHabitacion',
@@ -47,6 +54,7 @@ class GuestPortalController extends Controller
 
         return view('public.huesped.dashboard', [
             'habitaciones' => $habitaciones,
+            'tiposHabitacion' => $tiposHabitacion,
             'reservaciones' => $reservaciones,
             'proximaReservacion' => $proximaReservacion,
         ]);
