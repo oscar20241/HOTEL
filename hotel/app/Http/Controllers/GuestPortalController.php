@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Http\Request;
 use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +38,8 @@ class GuestPortalController extends Controller
             }, 'tarifasDinamicas'])
             ->orderBy('precio_base')
             ->get();
+
+        $tipoPreferidoId = $request->query('tipo');
 
         $reservaciones = $user->reservaciones()
             ->with([

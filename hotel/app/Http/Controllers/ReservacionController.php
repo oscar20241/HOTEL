@@ -7,7 +7,7 @@ use App\Models\Reservacion;
 use App\Models\TipoHabitacion;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\View\View;
 
 class ReservacionController extends Controller
@@ -15,7 +15,7 @@ class ReservacionController extends Controller
     /**
      * Store a newly created reservation for the authenticated guest.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(HttpRequest $request): RedirectResponse
     {
         $validated = $request->validate([
             'tipo_habitacion_id' => ['nullable', 'exists:tipos_habitacion,id', 'required_without:habitacion_id'],
@@ -113,7 +113,7 @@ class ReservacionController extends Controller
     /**
      * Show the form for editing an existing reservation.
      */
-    public function edit(Request $request, Reservacion $reservacion): View|RedirectResponse
+    public function edit(HttpRequest $request, Reservacion $reservacion): View|RedirectResponse
     {
         if ($reservacion->user_id !== $request->user()->id) {
             abort(403);
@@ -140,7 +140,7 @@ class ReservacionController extends Controller
     /**
      * Update the specified reservation with new details.
      */
-    public function update(Request $request, Reservacion $reservacion): RedirectResponse
+    public function update(HttpRequest $request, Reservacion $reservacion): RedirectResponse
     {
         if ($reservacion->user_id !== $request->user()->id) {
             abort(403);
@@ -225,7 +225,7 @@ class ReservacionController extends Controller
     /**
      * Cancel a reservation that belongs to the authenticated guest.
      */
-    public function destroy(Request $request, Reservacion $reservacion): RedirectResponse
+    public function destroy(HttpRequest $request, Reservacion $reservacion): RedirectResponse
     {
         if ($reservacion->user_id !== $request->user()->id) {
             abort(403);
