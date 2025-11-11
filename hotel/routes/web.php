@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/habitaciones/{habitacion}/disponibilidad', [PublicHabitacionController::class, 'disponibilidad'])
     ->name('habitaciones.disponibilidad');
 
+Route::get('/tipos-habitacion/{tipoHabitacion}/disponibilidad', [PublicHabitacionController::class, 'disponibilidadPorTipo'])
+    ->name('tipos-habitacion.disponibilidad');
+
 
 
 
