@@ -2,9 +2,10 @@
 // app/Models/Habitacion.php
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class Habitacion extends Model
 {
@@ -45,10 +46,30 @@ class Habitacion extends Model
         return $this->hasMany(Reservacion::class);
     }
 
+    public function estadoNormalizado(): string
+    {
+        return Str::lower($this->estado ?? '');
+    }
+
+    public function estadoEs(string $estado): bool
+    {
+        return $this->estadoNormalizado() === Str::lower($estado);
+    }
+
+    public function estaEnMantenimiento(): bool
+    {
+        return $this->estadoEs('mantenimiento');
+    }
+
+    public function estaOperativa(): bool
+    {
+        return !$this->estaEnMantenimiento();
+    }
+
     public function estaDisponible($fechaEntrada, $fechaSalida, ?int $reservacionIgnorarId = null)
     {
         // No disponible si está en mantenimiento
-        if ($this->estado === 'mantenimiento') {
+        if ($this->estaEnMantenimiento()) {
             return false;
         }
 

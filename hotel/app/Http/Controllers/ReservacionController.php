@@ -39,7 +39,7 @@ class ReservacionController extends Controller
         if (!empty($validated['habitacion_id'])) {
             $habitacion = Habitacion::with('tipoHabitacion')->findOrFail($validated['habitacion_id']);
 
-            if ($habitacion->estado === 'mantenimiento') {
+            if ($habitacion->estaEnMantenimiento()) {
                 return back()->withInput()
                     ->withErrors(['habitacion_id' => 'La habitación está en mantenimiento.']);
             }
@@ -64,7 +64,7 @@ class ReservacionController extends Controller
             }
 
             $candidatas = $tipo->habitaciones
-                ->filter(fn ($habitacion) => $habitacion->estado !== 'mantenimiento' && $habitacion->capacidad >= $validated['numero_huespedes']);
+                ->filter(fn ($habitacion) => $habitacion->estaOperativa() && $habitacion->capacidad >= $validated['numero_huespedes']);
 
             if ($candidatas->isEmpty()) {
                 return back()->withInput()
@@ -161,7 +161,7 @@ class ReservacionController extends Controller
 
         $habitacion = Habitacion::with('tipoHabitacion')->findOrFail($validated['habitacion_id']);
 
-        if ($habitacion->estado === 'mantenimiento') {
+        if ($habitacion->estaEnMantenimiento()) {
             return back()->withInput()
                 ->withErrors(['habitacion_id' => 'La habitación está en mantenimiento.']);
         }

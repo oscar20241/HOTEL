@@ -45,7 +45,12 @@ class PublicHabitacionController extends Controller
             return redirect()->route('gerente.dashboard');
         }
 
-        $habitacion->load(['tipoHabitacion', 'imagenes']);
+        $habitacion->load([
+            'tipoHabitacion.habitaciones' => function ($query) {
+                $query->select('id', 'tipo_habitacion_id', 'estado', 'capacidad', 'numero');
+            },
+            'imagenes',
+        ]);
 
         return view('public.habitaciones.show', [
             'habitacion' => $habitacion,
@@ -59,7 +64,7 @@ class PublicHabitacionController extends Controller
     {
         $bloques = [];
 
-        if ($habitacion->estado === 'mantenimiento') {
+        if ($habitacion->estaEnMantenimiento()) {
             $bloques[] = [
                 'from' => now()->toDateString(),
                 'to' => now()->addDays(180)->toDateString(),
@@ -111,7 +116,7 @@ class PublicHabitacionController extends Controller
         }]);
 
         $habitaciones = $tipoHabitacion->habitaciones;
-        $operativas = $habitaciones->where('estado', '!=', 'mantenimiento');
+        $operativas = $habitaciones->filter->estaOperativa();
 
         $bloques = [];
         $estadoActual = null;
