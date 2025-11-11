@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
 use Carbon\Carbon;
-use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Http\Request;
 
 class PublicHabitacionController extends Controller
 {
@@ -97,7 +97,7 @@ class PublicHabitacionController extends Controller
         ]);
     }
 
-    public function disponibilidadPorTipo(HttpRequest $request, TipoHabitacion $tipoHabitacion)
+    public function disponibilidadPorTipo(Request $request, TipoHabitacion $tipoHabitacion)
     {
         $inicio = Carbon::today();
         $fin = (clone $inicio)->addDays(180);
