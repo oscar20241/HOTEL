@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
 use App\Models\Reservacion;
+use App\Models\TipoHabitacion;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,41 +18,68 @@ class ReservacionController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'habitacion_id'     => ['required', 'exists:habitaciones,id'],
+            'tipo_habitacion_id' => ['nullable', 'exists:tipos_habitacion,id', 'required_without:habitacion_id'],
+            'habitacion_id'     => ['nullable', 'exists:habitaciones,id', 'required_without:tipo_habitacion_id'],
             'fecha_entrada'     => ['required', 'date', 'after_or_equal:today'],
             'fecha_salida'      => ['required', 'date', 'after:fecha_entrada'],
             'numero_huespedes'  => ['required', 'integer', 'min:1'],
             'notas'             => ['nullable', 'string', 'max:500'],
         ]);
 
-        $habitacion = Habitacion::with('tipoHabitacion')->findOrFail($validated['habitacion_id']);
-
-        // ❌ Mantenimiento
-        if ($habitacion->estado === 'mantenimiento') {
-            return back()->withInput()
-                ->withErrors(['habitacion_id' => 'La habitación está en mantenimiento.']);
-        }
-
-        // ✅ Capacidad
-        if ($validated['numero_huespedes'] > $habitacion->capacidad) {
-            return back()->withInput()
-                ->withErrors(['numero_huespedes' => "Máximo {$habitacion->capacidad} personas para esta habitación."]); 
-        }
-
         // Normaliza fechas
         $fechaEntrada = Carbon::parse($validated['fecha_entrada'])->startOfDay();
         $fechaSalida  = Carbon::parse($validated['fecha_salida'])->startOfDay();
-
-        // ✅ Disponibilidad (sin traslapes)
-        if (!$habitacion->estaDisponible($fechaEntrada, $fechaSalida)) {
-            return back()->withInput()
-                ->withErrors(['habitacion_id' => 'Lo sentimos, la habitación ya está reservada para esas fechas.']);
-        }
 
         $noches = $fechaEntrada->diffInDays($fechaSalida);
         if ($noches < 1) {
             return back()->withInput()
                 ->withErrors(['fecha_salida' => 'Debes reservar al menos una noche.']);
+        }
+
+        if (!empty($validated['habitacion_id'])) {
+            $habitacion = Habitacion::with('tipoHabitacion')->findOrFail($validated['habitacion_id']);
+
+            if ($habitacion->estado === 'mantenimiento') {
+                return back()->withInput()
+                    ->withErrors(['habitacion_id' => 'La habitación está en mantenimiento.']);
+            }
+
+            if ($validated['numero_huespedes'] > $habitacion->capacidad) {
+                return back()->withInput()
+                    ->withErrors(['numero_huespedes' => "Máximo {$habitacion->capacidad} personas para esta habitación."]);
+            }
+
+            if (!$habitacion->estaDisponible($fechaEntrada, $fechaSalida)) {
+                return back()->withInput()
+                    ->withErrors(['habitacion_id' => 'Lo sentimos, la habitación ya está reservada para esas fechas.']);
+            }
+        } else {
+            $tipo = TipoHabitacion::with(['habitaciones' => function ($query) {
+                $query->with('tipoHabitacion');
+            }])->findOrFail($validated['tipo_habitacion_id']);
+
+            if ($validated['numero_huespedes'] > $tipo->capacidad) {
+                return back()->withInput()
+                    ->withErrors(['numero_huespedes' => "Máximo {$tipo->capacidad} personas para esta categoría."]);
+            }
+
+            $candidatas = $tipo->habitaciones
+                ->filter(fn ($habitacion) => $habitacion->estado !== 'mantenimiento' && $habitacion->capacidad >= $validated['numero_huespedes']);
+
+            if ($candidatas->isEmpty()) {
+                return back()->withInput()
+                    ->withErrors(['tipo_habitacion_id' => 'No hay habitaciones disponibles para esta categoría en este momento.']);
+            }
+
+            $disponibles = $candidatas->filter(fn ($habitacion) => $habitacion->estaDisponible($fechaEntrada, $fechaSalida));
+
+            if ($disponibles->isEmpty()) {
+                return back()->withInput()
+                    ->withErrors(['tipo_habitacion_id' => "No hay habitaciones disponibles de tipo {$tipo->nombre} para las fechas seleccionadas."]);
+            }
+
+            $habitacion = $disponibles->random();
+            $habitacion->loadMissing('tipoHabitacion');
         }
 
         $precioTotal = $noches * $habitacion->precio_actual;
@@ -67,8 +95,18 @@ class ReservacionController extends Controller
             'notas'            => $validated['notas'] ?? null,
         ]);
 
+        $mensaje = "¡Reservación registrada por {$noches} noche(s) para {$validated['numero_huespedes']} huésped(es)!";
+
+        if (empty($validated['habitacion_id']) && isset($habitacion)) {
+            $mensaje .= ' Se asignó la habitación ' . $habitacion->numero;
+            if ($habitacion->tipoHabitacion?->nombre) {
+                $mensaje .= ' (' . $habitacion->tipoHabitacion->nombre . ')';
+            }
+            $mensaje .= '.';
+        }
+
         return redirect()->route('huesped.dashboard')
-            ->with('success', "¡Reservación registrada por {$noches} noche(s) para {$validated['numero_huespedes']} huésped(es)!");
+            ->with('success', $mensaje);
     }
 
 

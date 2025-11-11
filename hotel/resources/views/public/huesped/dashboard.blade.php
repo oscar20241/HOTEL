@@ -4,6 +4,7 @@
     use Carbon\Carbon;
     use Illuminate\Support\Facades\Auth;
     use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Str;
 @endphp
 
 @section('content')
@@ -115,18 +116,23 @@
                     <h2 class="text-2xl font-semibold text-slate-800">Generar una nueva reservación</h2>
                     <p class="mt-2 text-sm text-slate-500">Selecciona fechas y la habitación ideal para tu estancia. Nuestro equipo confirmará la disponibilidad.</p>
                     @php
-                        $habitacionSeleccionada = $habitaciones->firstWhere('id', old('habitacion_id')) ?? $habitaciones->first();
-                        $capacidadInicial = $habitacionSeleccionada?->capacidad;
-                        $tarifaInicial = $habitacionSeleccionada ? number_format($habitacionSeleccionada->precio_actual, 2, '.', '') : '0.00';
+                        $tipoSeleccionadoId = old('tipo_habitacion_id', $tipoPreferidoId ?? null);
+                        if (!$tipoSeleccionadoId && $tiposHabitacion->isNotEmpty()) {
+                            $tipoSeleccionadoId = $tiposHabitacion->first()->id;
+                        }
+
+                        $tipoSeleccionado = $tiposHabitacion->firstWhere('id', $tipoSeleccionadoId) ?? $tiposHabitacion->first();
+                        $capacidadInicial = $tipoSeleccionado?->capacidad;
+                        $tarifaInicial = $tipoSeleccionado ? number_format($tipoSeleccionado->precio_actual, 2, '.', '') : '0.00';
                         $nochesIniciales = 0;
                         $estimadoInicial = 0.00;
 
-                        if (old('fecha_entrada') && old('fecha_salida') && $habitacionSeleccionada) {
+                        if (old('fecha_entrada') && old('fecha_salida') && $tipoSeleccionado) {
                             try {
                                 $entradaAnterior = Carbon::parse(old('fecha_entrada'));
                                 $salidaAnterior = Carbon::parse(old('fecha_salida'));
                                 $nochesIniciales = max(0, $entradaAnterior->diffInDays($salidaAnterior));
-                                $estimadoInicial = $nochesIniciales * (float) $habitacionSeleccionada->precio_actual;
+                                $estimadoInicial = $nochesIniciales * (float) $tipoSeleccionado->precio_actual;
                             } catch (\Throwable $e) {
                                 $nochesIniciales = 0;
                                 $estimadoInicial = 0.00;
@@ -135,24 +141,41 @@
                     @endphp
                     <form method="POST" action="{{ route('reservaciones.store') }}" class="mt-6 space-y-6" id="form-nueva-reserva">
                         @csrf
-                        <div>
-                            <label for="habitacion_id" class="block text-sm font-semibold text-slate-600">Habitación</label>
-                            <select id="habitacion_id" name="habitacion_id" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
-                                <option value="" disabled>Selecciona una habitación</option>
-                                @foreach ($habitaciones as $habitacion)
-                                    <option value="{{ $habitacion->id }}"
-                                        data-capacidad="{{ $habitacion->capacidad }}"
-                                        data-precio="{{ number_format($habitacion->precio_actual, 2, '.', '') }}"
-                                        data-availability="{{ route('habitaciones.disponibilidad', $habitacion) }}"
-                                        @selected(old('habitacion_id', $habitacionSeleccionada?->id) == $habitacion->id)>
-                                        {{ $habitacion->numero }} · {{ $habitacion->tipoHabitacion->nombre }} · Capacidad {{ $habitacion->capacidad }} huéspedes
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('habitacion_id')
-                                <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @if ($tiposHabitacion->isEmpty())
+                            <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-slate-500">
+                                Aún no hay categorías de habitaciones disponibles para reservar. Por favor, contacta al hotel para más información.
+                            </div>
+                        @else
+                            <div>
+                                <label for="tipo_habitacion_id" class="block text-sm font-semibold text-slate-600">Tipo de habitación</label>
+                                <select id="tipo_habitacion_id" name="tipo_habitacion_id" class="mt-1 w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-slate-700" required>
+                                    @foreach ($tiposHabitacion as $tipo)
+                                        @php
+                                            $precioTipo = number_format($tipo->precio_actual, 2, '.', '');
+                                            $selected = old('tipo_habitacion_id', $tipoSeleccionado?->id) == $tipo->id;
+                                        @endphp
+                                        <option value="{{ $tipo->id }}"
+                                            data-capacidad="{{ $tipo->capacidad }}"
+                                            data-precio="{{ $precioTipo }}"
+                                            data-descripcion="{{ $tipo->descripcion ? e(Str::limit($tipo->descripcion, 180)) : '' }}"
+                                            data-availability="{{ route('tipos-habitacion.disponibilidad', $tipo) }}"
+                                            {{ $selected ? 'selected' : '' }}>
+                                            {{ $tipo->nombre }} · hasta {{ $tipo->capacidad }} huéspedes — ${{ number_format($tipo->precio_actual, 2) }} MXN / noche
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('tipo_habitacion_id')
+                                    <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+                                @enderror
+                                <p class="mt-2 text-xs text-slate-500" id="tipo-descripcion">
+                                    @if ($tipoSeleccionado?->descripcion)
+                                        {{ Str::limit($tipoSeleccionado->descripcion, 180) }}
+                                    @else
+                                        Selecciona la categoría que mejor se adapte a tu estancia. Asignaremos la habitación disponible por ti.
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
                         <div class="grid lg:grid-cols-2 gap-4">
                             <div class="space-y-4">
                                 <div>
@@ -369,42 +392,103 @@
             </div>
 
             <div class="mt-10 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-                @foreach ($habitaciones->take(6) as $habitacion)
+                @foreach ($tiposHabitacion->take(6) as $tipo)
+                    @php
+                        $habitacionReferencia = $tipo->habitaciones->firstWhere('imagenPrincipal')
+                            ?? $tipo->habitaciones->first(fn($habitacion) => $habitacion->imagenes->isNotEmpty())
+                            ?? $tipo->habitaciones->first();
+
+                        if ($habitacionReferencia?->imagenPrincipal) {
+                            $imagenUrl = Storage::url($habitacionReferencia->imagenPrincipal->ruta_imagen);
+                        } elseif ($habitacionReferencia?->imagenes->first()) {
+                            $imagenUrl = Storage::url($habitacionReferencia->imagenes->first()->ruta_imagen);
+                        } else {
+                            $imagenUrl = 'https://images.unsplash.com/photo-1551888419-7ab9470cb3a7?auto=format&fit=crop&w=900&q=80';
+                        }
+
+                        $operativas = $tipo->habitaciones->filter(fn($habitacion) => $habitacion->estado !== 'mantenimiento');
+                        $disponibles = $operativas->filter(fn($habitacion) => $habitacion->estado === 'disponible')->count();
+
+                        if ($operativas->isEmpty()) {
+                            $estadoBadge = ['texto' => 'En mantenimiento', 'clase' => 'bg-amber-500/90 text-white'];
+                        } elseif ($disponibles > 0) {
+                            $estadoBadge = ['texto' => 'Disponibles', 'clase' => 'bg-emerald-500/90 text-white'];
+                        } else {
+                            $estadoBadge = ['texto' => 'Sin disponibilidad', 'clase' => 'bg-rose-500/90 text-white'];
+                        }
+
+                        $amenidades = collect($habitacionReferencia->amenidades ?? [])->unique()->take(3);
+                        $amenidadesRestantes = max(0, collect($habitacionReferencia->amenidades ?? [])->unique()->count() - $amenidades->count());
+
+                        $destinoReserva = auth()->check() && auth()->user()->esHuesped()
+                            ? route('huesped.dashboard', ['tipo' => $tipo->id]) . '#reservar'
+                            : (auth()->check() ? route('huesped.dashboard') : route('login'));
+                    @endphp
                     <article class="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur shadow-xl shadow-black/40">
                         <div class="aspect-[4/3] overflow-hidden">
-                            @if ($habitacion->imagenPrincipal)
-                                <img src="{{ Storage::url($habitacion->imagenPrincipal->ruta_imagen) }}" alt="Habitación {{ $habitacion->numero }}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
-                            @else
-                                <div class="h-full w-full bg-gradient-to-br from-indigo-400/60 to-purple-500/60"></div>
-                            @endif
+                            <img src="{{ $imagenUrl }}" alt="{{ $tipo->nombre }}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
                         </div>
                         <div class="p-6 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xl font-semibold">Habitación {{ $habitacion->numero }}</h3>
-                                <span class="inline-flex items-center gap-1 text-sm text-indigo-200">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-                                    </svg>
-                                    {{ $habitacion->capacidad }} huéspedes
-                                </span>
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-sm uppercase tracking-[0.2em] text-indigo-200 font-medium">{{ $tipo->nombre }}</p>
+                                    <h3 class="text-xl font-semibold text-white">Hasta {{ $tipo->capacidad }} huéspedes</h3>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-indigo-100/70">Tarifa desde</p>
+                                    <p class="text-2xl font-semibold text-white">${{ number_format($tipo->precio_actual, 2) }}</p>
+                                    <p class="text-xs text-indigo-100/70">por noche</p>
+                                </div>
                             </div>
-                            <p class="text-sm text-white/70">{{ $habitacion->tipoHabitacion->nombre }}</p>
-                            <p class="text-2xl font-semibold text-white">${{ number_format($habitacion->precio_actual, 2) }} <span class="text-sm text-white/60">/ noche</span></p>
-                            <div class="flex items-center justify-between">
-                                <a href="{{ route('habitaciones.show', $habitacion) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-200 group-hover:text-white transition">
-                                    Ver detalles
+                            @if ($tipo->descripcion)
+                                <p class="text-sm text-indigo-100/80">{{ Str::limit($tipo->descripcion, 140) }}</p>
+                            @endif
+                            <div class="flex flex-wrap gap-2 text-[11px] text-indigo-100/80">
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 border border-white/10">
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $estadoBadge['clase'] }}"></span>
+                                    {{ $estadoBadge['texto'] }}
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 border border-white/10">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5M21 12H3" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3.75h4.5M3 6h18v12H3z" />
                                     </svg>
-                                </a>
-                                <a href="#reservar" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-sm font-semibold text-white hover:bg-white/20 transition">
-                                    Reservar
+                                    {{ $tipo->habitaciones->count() }} habitaciones
+                                </span>
+                                @foreach ($amenidades as $amenidad)
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 border border-white/10">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75v10.5m5.25-5.25H6.75" />
+                                        </svg>
+                                        {{ $amenidad }}
+                                    </span>
+                                @endforeach
+                                @if ($amenidadesRestantes > 0)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/10">+{{ $amenidadesRestantes }} amenidades</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center justify-between gap-3 pt-2">
+                                @if ($habitacionReferencia)
+                                    <a href="{{ route('habitaciones.show', $habitacionReferencia) }}" class="inline-flex items-center gap-2 text-xs font-semibold text-indigo-200 hover:text-white transition">
+                                        Ver detalles
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                        </svg>
+                                    </a>
+                                @else
+                                    <span class="text-xs text-indigo-100/70">Muy pronto nuevas habitaciones</span>
+                                @endif
+                                <a href="{{ $destinoReserva }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition">
+                                    Reservar por categoría
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                    </svg>
                                 </a>
                             </div>
                         </div>
                     </article>
                 @endforeach
             </div>
+
         </div>
     </section>
 
@@ -476,7 +560,7 @@
     @endonce
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const selectHabitacion = document.getElementById('habitacion_id');
+            const tipoSelect = document.getElementById('tipo_habitacion_id');
             const rangoFechas = document.getElementById('rango-fechas');
             const inpPersonas = document.getElementById('numero_huespedes');
             const textoCapacidad = document.getElementById('texto-capacidad');
@@ -485,8 +569,9 @@
             const totalSpan = document.getElementById('precio_estimado');
             const fechaEntradaInput = document.getElementById('fecha_entrada');
             const fechaSalidaInput = document.getElementById('fecha_salida');
+            const descripcionTipo = document.getElementById('tipo-descripcion');
 
-            if (!selectHabitacion || !rangoFechas || !window.flatpickr) {
+            if (!tipoSelect || !rangoFechas || !window.flatpickr) {
                 return;
             }
 
@@ -496,7 +581,8 @@
 
             const disponibilidadActual = { bloques: [] };
             let fpInstance = null;
-            let nightlyRate = parseFloat(selectHabitacion.selectedOptions[0]?.dataset.precio || tarifaNocheSpan?.textContent || '0');
+            const getSelectedTipo = () => tipoSelect?.selectedOptions?.[0] || null;
+            let nightlyRate = parseFloat(getSelectedTipo()?.dataset.precio || tarifaNocheSpan?.textContent || '0');
 
             const clampHuespedes = () => {
                 if (!inpPersonas) {
@@ -600,7 +686,7 @@
                     });
             };
 
-            const actualizarHabitacion = (option) => {
+            const actualizarTipo = (option) => {
                 if (!option) {
                     return;
                 }
@@ -618,20 +704,27 @@
                     }
                     clampHuespedes();
                 }
+
+                if (descripcionTipo) {
+                    const texto = option.dataset.descripcion;
+                    descripcionTipo.textContent = texto && texto.length
+                        ? texto
+                        : 'Selecciona la categoría que mejor se adapte a tu estancia. Asignaremos la habitación disponible por ti.';
+                }
             };
 
             const defaultRange = (fechaEntradaInput.value && fechaSalidaInput.value)
                 ? [fechaEntradaInput.value, fechaSalidaInput.value]
                 : null;
 
-            const opcionInicial = selectHabitacion.selectedOptions[0];
-            actualizarHabitacion(opcionInicial);
+            const opcionInicial = getSelectedTipo();
+            actualizarTipo(opcionInicial);
             inicializarCalendario([], defaultRange);
             cargarDisponibilidad(opcionInicial, defaultRange);
 
-            selectHabitacion.addEventListener('change', () => {
-                const option = selectHabitacion.selectedOptions[0];
-                actualizarHabitacion(option);
+            tipoSelect.addEventListener('change', () => {
+                const option = getSelectedTipo();
+                actualizarTipo(option);
                 cargarDisponibilidad(option);
             });
 
