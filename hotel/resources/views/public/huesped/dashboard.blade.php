@@ -579,9 +579,24 @@
 @push('scripts')
     @once('flatpickr-lib')
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
     @endonce
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.flatpickr) {
+      const es = window.flatpickr.l10ns?.es || {};
+      // Forzamos separador “ a ”
+      window.flatpickr.localize({
+        ...es,
+        rangeSeparator: ' a ',
+        firstDayOfWeek: 1, // opcional: lunes como primer día
+      });
+    }
+
+
+
             const tipoRadios = document.querySelectorAll('input[name="tipo_habitacion_id"]');
             const rangoFechas = document.getElementById('rango-fechas');
             const inpPersonas = document.getElementById('numero_huespedes');
