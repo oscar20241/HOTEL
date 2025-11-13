@@ -14,7 +14,7 @@
                     <span class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/10 text-xs font-semibold uppercase tracking-[0.3em]">
                         {{ now()->translatedFormat('d \d\e F \d\e Y') }}
                     </span>
-                    <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] leading-tight">
+                    <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">
                         Bienvenido de nuevo, {{ Auth::user()->name }}
                     </h1>
                     <p class="text-base sm:text-lg text-slate-200/90 max-w-2xl">
@@ -232,7 +232,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                    <h2 class="text-3xl font-['Playfair_Display'] text-slate-900">Mis reservaciones</h2>
+                    <h2 class="text-3xl font-semibold text-slate-900">Mis reservaciones</h2>
                     <p class="text-sm text-slate-500 mt-1">Consulta el historial y estado de tus estancias con nosotros.</p>
                 </div>
                 <a href="#reservar" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200 transition">
@@ -357,7 +357,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-wrap items-end justify-between gap-6">
                 <div>
-                    <h2 class="text-3xl font-['Playfair_Display']">Descubre más habitaciones</h2>
+                    <h2 class="text-3xl font-semibold">Descubre más habitaciones</h2>
                     <p class="text-sm text-white/70 mt-2">Personaliza tu estancia con nuestras categorías disponibles actualmente.</p>
                 </div>
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-200 hover:text-white transition">

@@ -10,8 +10,9 @@
         <div class="absolute inset-0 opacity-40" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'); background-size: cover; background-position: center;"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col lg:flex-row gap-10 items-center">
             <div class="lg:w-1/2 space-y-6">
+                <img src="" alt="">
                 <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a Hotel PASA EL EXTRA Inn</p>
-                <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold leading-tight">Elegancia, confort y experiencias inolvidables</h1>
+                <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">Elegancia, confort y experiencias inolvidables</h1>
                 <p class="text-white/80 text-lg">Descubre nuestras habitaciones diseñadas para tu descanso. Vive el lujo en cada detalle y permite que nuestro equipo se encargue de crear recuerdos extraordinarios.</p>
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="#habitaciones" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-indigo-700 font-semibold shadow-lg shadow-indigo-900/30 hover:bg-slate-100 transition">
@@ -28,9 +29,9 @@
                     </a>
                 </div>
             </div>
-            <div class="lg:w-1/2 grid grid-cols-2 gap-4">
+            <div class="lg:w-1/2 grid grid-cols-2 gap-5">
                 <div class="row-span-2 rounded-3xl overflow-hidden shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1590490359854-dfba19688d73?auto=format&fit=crop&w=800&q=80" alt="Suite principal" class="h-full w-full object-cover">
+                    <img src="https://plus.unsplash.com/premium_photo-1661879252375-7c1db1932572?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Suite principal" class="h-full w-full object-cover">
                 </div>
                 <div class="rounded-3xl overflow-hidden shadow-2xl">
                     <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80" alt="Lobby" class="h-full w-full object-cover">
@@ -45,7 +46,7 @@
     <section id="habitaciones" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <div>
-                <h2 class="text-3xl font-['Playfair_Display'] font-semibold text-slate-900">Nuestras habitaciones</h2>
+                <h2 class="text-3xl font-semibold text-slate-900">Nuestras habitaciones</h2>
                 <p class="mt-3 text-slate-500">Elige el espacio perfecto para tu estancia, cada habitación cuenta con amenidades únicas y un ambiente sofisticado.</p>
             </div>
             <div class="flex items-center gap-3 text-sm text-slate-500">

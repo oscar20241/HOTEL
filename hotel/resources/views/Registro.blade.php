@@ -24,7 +24,7 @@
                     </span>
                     ¿Ya tienes cuenta?
                 </a>
-                <h1 class="text-4xl font-['Playfair_Display'] text-white">Regístrate y vive la experiencia PASA EL EXTRA Inn</h1>
+                <h1 class="text-4xl font-bold text-white">Regístrate y vive la experiencia PASA EL EXTRA Inn</h1>
                 <p class="text-base text-white/70 max-w-md">Completa tus datos para reservar de manera más ágil, recibir recomendaciones personalizadas y acceder a beneficios exclusivos para huéspedes frecuentes.</p>
                 <div class="flex flex-wrap gap-4 text-sm text-white/70">
                     <div class="flex items-center gap-2">

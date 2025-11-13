@@ -15,7 +15,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div class="max-w-3xl space-y-4">
                 <p class="uppercase text-sm tracking-[0.3em] text-white/70">{{ $habitacion->tipoHabitacion->nombre ?? 'Habitación' }}</p>
-                <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold">Habitación {{ $habitacion->numero }}</h1>
+                <h1 class="text-4xl sm:text-5xl font-bold font-semibold">Habitación {{ $habitacion->numero }}</h1>
                 @if ($habitacion->caracteristicas)
                     <p class="text-white/80 text-lg">{{ $habitacion->caracteristicas }}</p>
                 @endif
@@ -253,7 +253,7 @@
         <div class="bg-slate-900 rounded-3xl overflow-hidden">
             <div class="grid lg:grid-cols-2">
                 <div class="p-8 sm:p-12 space-y-4 text-white">
-                    <h2 class="text-3xl font-['Playfair_Display'] font-semibold">Servicios pensados para ti</h2>
+                    <h2 class="text-3xl  font-semibold">Servicios pensados para ti</h2>
                     <p class="text-white/70">Acceso al spa, gimnasio 24 horas, servicio a la habitación gourmet y concierge personalizado. Complementa tu estancia con experiencias únicas en la ciudad.</p>
                     <ul class="space-y-3 text-white/80 text-sm">
                         <li class="flex items-center gap-3">
