@@ -12,8 +12,8 @@
             <div class="lg:w-1/2 space-y-6">
                 <img src="" alt="">
                 <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a Hotel PASA EL EXTRA Inn</p>
-                <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">Elegancia, confort y experiencias inolvidables</h1>
-                <p class="text-white/80 text-lg">Descubre nuestras habitaciones diseñadas para tu descanso. Vive el lujo en cada detalle y permite que nuestro equipo se encargue de crear recuerdos extraordinarios.</p>
+                <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">ELEGANCIA, CONFORT Y EXPERIENCIAS INOLVIDABLES</h1>
+                <p class="text-white/80 text-lg">Descubre nuestras habitaciones diseñadas especialmente para brindarte el descanso que mereces. Sumérgete en un ambiente de confort y tranquilidad, donde cada detalle ha sido cuidadosamente pensado para ofrecerte una experiencia única.</p>
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="#habitaciones" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-indigo-700 font-semibold shadow-lg shadow-indigo-900/30 hover:bg-slate-100 transition">
                         Explorar habitaciones

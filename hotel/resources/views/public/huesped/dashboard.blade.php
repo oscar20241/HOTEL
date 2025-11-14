@@ -18,7 +18,7 @@
                         Bienvenido de nuevo, {{ Auth::user()->name }}
                     </h1>
                     <p class="text-base sm:text-lg text-slate-200/90 max-w-2xl">
-                        Planea tu próxima escapada, revisa tus reservaciones y mantén tus datos actualizados desde esta nueva experiencia pensada para huéspedes. Todo lo que necesitas para disfrutar de Hotel PASA EL EXTRA Inn está aquí.
+                        Planea tu próxima escapada, revisa tus reservaciones y mantén tus datos actualizados desde esta nueva experiencia pensada para huéspedes. Todo lo que necesitas para disfrutar de HOTEL PASA EL EXTRA INN está aquí.
                     </p>
                     <div class="flex flex-wrap gap-3">
                         <a href="#reservar" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-indigo-600 font-semibold shadow-lg shadow-black/30">
