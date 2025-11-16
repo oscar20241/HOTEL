@@ -1,20 +1,22 @@
-/* === 🏨 RESERVAS SECTION === */
+/* ===RESERVAS SECTION === */
 .reservas-container {
-  background-color: #111217;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(14px);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #d4af37;
+  border: 1px solid rgba(140, 90, 255, 0.35);
   margin-top: 20px;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 18px rgba(140, 90, 255, 0.15);
 }
 
 .reservas-input {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #444;
-  background-color: #1a1c22;
-  color: #fff;
+  border: 1px solid rgba(140, 90, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  color: #3a0ca3;
   font-size: 16px;
   outline: none;
   margin-bottom: 20px;
@@ -22,8 +24,8 @@
 }
 
 .reservas-input:focus {
-  border-color: #d4af37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  border-color: #5a2dff;
+  box-shadow: 0 0 10px rgba(90, 45, 255, 0.35);
 }
 
 /* Tabla de reservaciones */
@@ -32,23 +34,25 @@
   border-collapse: collapse;
   text-align: left;
   font-size: 15px;
-  color: #fff;
+  color: #3a0ca3;
 }
 
 .tabla-reservas th {
-  background-color: #d4af37;
-  color: #111217;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  color: #3a0ca3;
   padding: 10px;
-  border-bottom: 2px solid #b9972e;
+  border-bottom: 2px solid rgba(90, 45, 255, 0.4);
+  font-weight: bold;
 }
 
 .tabla-reservas td {
   padding: 10px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid rgba(90, 45, 255, 0.2);
 }
 
 .tabla-reservas tr:hover {
-  background-color: rgba(212, 175, 55, 0.05);
+  background: rgba(140, 90, 255, 0.12);
 }
 
 /* Estados de reservación */
@@ -67,23 +71,25 @@
   font-weight: bold;
 }
 
-/* === 🛏️ HABITACIONES SECTION === */
+/* ===HABITACIONES SECTION === */
 .habitaciones-container {
-  background-color: #111217;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(14px);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #d4af37;
+  border: 1px solid rgba(140, 90, 255, 0.35);
   margin-top: 20px;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 18px rgba(140, 90, 255, 0.15);
 }
 
 .habitaciones-input {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #444;
-  background-color: #1a1c22;
-  color: #fff;
+  border: 1px solid rgba(140, 90, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  color: #3a0ca3;
   font-size: 16px;
   outline: none;
   margin-bottom: 20px;
@@ -91,8 +97,8 @@
 }
 
 .habitaciones-input:focus {
-  border-color: #d4af37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  border-color: #5a2dff;
+  box-shadow: 0 0 10px rgba(90, 45, 255, 0.35);
 }
 
 /* Tabla de habitaciones */
@@ -101,23 +107,25 @@
   border-collapse: collapse;
   text-align: left;
   font-size: 15px;
-  color: #fff;
+  color: #3a0ca3;
 }
 
 .tabla-habitaciones th {
-  background-color: #d4af37;
-  color: #111217;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  color: #3a0ca3;
   padding: 10px;
-  border-bottom: 2px solid #b9972e;
+  border-bottom: 2px solid rgba(90, 45, 255, 0.4);
+  font-weight: bold;
 }
 
 .tabla-habitaciones td {
   padding: 10px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid rgba(90, 45, 255, 0.2);
 }
 
 .tabla-habitaciones tr:hover {
-  background-color: rgba(212, 175, 55, 0.05);
+  background: rgba(140, 90, 255, 0.12);
 }
 
 /* Estados */
@@ -131,14 +139,15 @@
   font-weight: bold;
 }
 
-/* === 📊 REPORTES SECTION === */
+/* === REPORTES SECTION === */
 .reportes-container {
-  background-color: #111217;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(14px);
   padding: 25px;
   border-radius: 12px;
-  border: 1px solid #d4af37;
+  border: 1px solid rgba(140, 90, 255, 0.35);
   margin-top: 20px;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 18px rgba(140, 90, 255, 0.15);
 }
 
 /* Tarjetas de resumen */
@@ -150,21 +159,22 @@
 }
 
 .reporte-card {
-  background-color: #1a1c22;
-  border: 1px solid #d4af37;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(140, 90, 255, 0.35);
   border-radius: 12px;
   text-align: center;
   padding: 20px;
   transition: transform 0.3s, box-shadow 0.3s;
+  backdrop-filter: blur(10px);
 }
 
 .reporte-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 0 15px rgba(90, 45, 255, 0.25);
 }
 
 .reporte-card h3 {
-  color: #d4af37;
+  color: #5a2dff;
   margin-bottom: 10px;
   font-size: 0.9rem;
   text-transform: uppercase;
@@ -174,52 +184,58 @@
 .reporte-card p {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #fff;
+  color: #3a0ca3;
   margin-bottom: 0;
 }
 
-/* Gráficas */
+/* Gráficas alineadas y centradas */
 .graficas-reportes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 30px;
+  justify-items: center;  /* Centra gráficas horizontalmente */
+  align-items: start;     /* Alinea al inicio vertical */
 }
 
 .graficas-reportes canvas {
-  background-color: #1a1c22;
+  width: 100% !important;
+  max-width: 100%;
+  height: 300px !important;
+  background: rgba(0, 0, 0, 0.407);
   border-radius: 10px;
   padding: 15px;
-  border: 1px solid #333;
-  max-height: 300px;
+  border: 1px solid rgba(140, 90, 255, 0.35);
+  backdrop-filter: blur(8px);
 }
 
 /* === PESTAÑAS PERSONALIZADAS === */
 .usuarios-tabs {
   display: flex;
-  border-bottom: 2px solid #d4af37;
+  border-bottom: 2px solid rgba(90, 45, 255, 0.5);
   margin-bottom: 1rem;
 }
 
 .tab-button {
-  background: #111217;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: #fff;
+  color: #3a0ca3;
   padding: 12px 20px;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 8px 8px 0 0;
   margin-right: 5px;
   font-weight: 500;
+  backdrop-filter: blur(6px);
 }
 
 .tab-button:hover {
-  background: #1a1c22;
-  color: #d4af37;
+  background: rgba(255, 255, 255, 0.35);
+  color: #5a2dff;
 }
 
 .tab-button.active {
-  background: #d4af37;
-  color: #111217;
+  background: #5a2dff;
+  color: #fff;
   font-weight: bold;
 }
 
@@ -231,14 +247,14 @@
   display: block;
 }
 
-/* === BADGES Y ESTADOS === */
+/* Badges */
 .badge.bg-warning {
-  background-color: #d4af37 !important;
+  background-color: #f1c40f !important;
   color: #111217 !important;
 }
 
 .badge.bg-success {
-  background-color: #28a745 !important;
+  background-color: #2ecc71 !important;
 }
 
 .badge.bg-info {
@@ -246,20 +262,20 @@
 }
 
 .badge.bg-primary {
-  background-color: #007bff !important;
+  background-color: #5a2dff !important;
 }
 
 .badge.bg-secondary {
   background-color: #6c757d !important;
 }
 
-/* Estilos para la tabla de gerentes */
+/* Tabla activa */
 .table-active {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%) !important;
-  border-left: 3px solid #d4af37;
+  background: rgba(90, 45, 255, 0.08) !important;
+  border-left: 3px solid #5a2dff;
 }
 
-/* === RESPONSIVE DESIGN === */
+/* === RESPONSIVE === */
 @media (max-width: 768px) {
   .reportes-resumen {
     grid-template-columns: 1fr;
@@ -288,29 +304,12 @@
   }
 }
 
-/* === MEJORAS DE ACCESIBILIDAD === */
-.tab-button:focus {
-  outline: 2px solid #d4af37;
-  outline-offset: 2px;
-}
-
-.reservas-input:focus,
-.habitaciones-input:focus {
-  outline: none;
-}
-
-/* === ANIMACIONES SUAVES === */
+/* === ANIMACIÓN === */
 .tab-content {
   animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
