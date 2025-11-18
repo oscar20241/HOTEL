@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\TipoHabitacion;
 
 use App\Models\Habitacion;
 use Carbon\Carbon;
