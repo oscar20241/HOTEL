@@ -15,36 +15,160 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Reservacion;
+use Illuminate\Support\Facades\DB;
 
 class AdminUserController extends Controller
 {
     // Mostrar dashboard del gerente CON HABITACIONES
-public function index()
+// Mostrar dashboard del gerente CON HABITACIONES
+// Mostrar dashboard del gerente CON HABITACIONES
+public function index(Request $request)
 {
+    // ============================
+    //   USUARIOS / HABITACIONES
+    // ============================
+
+    // Huespedes (usuarios sin registro de empleado)
     $huespedes = User::whereDoesntHave('empleado')->get();
     
-    // Separar correctamente los empleados por puesto
+    // Empleados (usuarios con empleado)
     $empleados = User::whereHas('empleado')
         ->with('empleado')
         ->get();
     
-    // Obtener habitaciones para el dashboard con sus imágenes
-    $habitaciones = Habitacion::with(['tipoHabitacion.tarifasDinamicas' => function ($query) {
-            $query->orderBy('fecha_inicio');
-        }, 'imagenes'])
+    // Habitaciones con tipo + tarifas + imágenes
+    $habitaciones = Habitacion::with([
+            'tipoHabitacion.tarifasDinamicas' => function ($query) {
+                $query->orderBy('fecha_inicio');
+            },
+            'imagenes'
+        ])
         ->orderBy('numero')
         ->get();
 
-    $tiposHabitacion = TipoHabitacion::with(['tarifasDinamicas' => function ($query) {
-            $query->orderBy('fecha_inicio');
-        }])->orderBy('nombre')->get();
+    // Tipos de habitación con sus tarifas
+    $tiposHabitacion = TipoHabitacion::with([
+            'tarifasDinamicas' => function ($query) {
+                $query->orderBy('fecha_inicio');
+            }
+        ])
+        ->orderBy('nombre')
+        ->get();
 
+    // Todas las tarifas dinámicas
     $tarifasDinamicas = TarifaDinamica::with('tipoHabitacion')
         ->orderBy('fecha_inicio')
         ->get();
 
-    return view('Gerente', compact('huespedes', 'empleados', 'habitaciones', 'tiposHabitacion', 'tarifasDinamicas'));
+    // ============================
+    //   KPIs y REPORTES
+    // ============================
+
+    $hoy = Carbon::today();
+
+    // 🔹 Filtros que vendrán por GET desde el dashboard
+    //    modo: anio | mes | 30 | personalizado
+    $modo   = $request->input('modo', 'anio');
+    $desdeF = $request->input('desde');
+    $hastaF = $request->input('hasta');
+
+    // 🔹 Calcular rango de fechas según el filtro elegido
+    switch ($modo) {
+        case 'mes': // mes actual
+            $inicioRango = $hoy->copy()->startOfMonth();
+            $finRango    = $hoy->copy()->endOfMonth();
+            break;
+
+        case '30': // últimos 30 días
+            $inicioRango = $hoy->copy()->subDays(30)->startOfDay();
+            $finRango    = $hoy->copy()->endOfDay();
+            break;
+
+        case 'personalizado': // usa los inputs desde / hasta
+            $inicioRango = $desdeF
+                ? Carbon::parse($desdeF)->startOfDay()
+                : $hoy->copy()->startOfYear();
+
+            $finRango = $hastaF
+                ? Carbon::parse($hastaF)->endOfDay()
+                : $hoy->copy()->endOfYear();
+            break;
+
+        case 'anio':
+        default: // año completo por defecto
+            $inicioRango = $hoy->copy()->startOfYear();
+            $finRango    = $hoy->copy()->endOfYear();
+            $modo        = 'anio';
+            break;
+    }
+
+    // Reservas del día (para tu tarjeta en "Inicio")
+    $reservasHoy = Reservacion::whereDate('fecha_entrada', $hoy)
+        ->orWhereDate('fecha_salida', $hoy)
+        ->count();
+
+    // Ocupación actual (en base al estado de la habitación - no depende del rango)
+    $totalHabitaciones = $habitaciones->count();
+    $ocupadas          = $habitaciones->where('estado', 'ocupada')->count();
+    $ocupacionActual   = $totalHabitaciones > 0
+        ? round(($ocupadas / $totalHabitaciones) * 100)
+        : 0;
+
+    // Ingresos en el rango seleccionado
+    $ingresosRango = Reservacion::whereIn('estado', ['activa', 'confirmada', 'completada'])
+        ->whereBetween('fecha_entrada', [$inicioRango, $finRango])
+        ->sum('precio_total');
+
+    // Reservas activas dentro del rango (solapadas con él)
+    $reservasActivas = Reservacion::whereIn('estado', ['activa', 'confirmada'])
+        ->where(function ($q) use ($inicioRango, $finRango) {
+            $q->whereBetween('fecha_entrada', [$inicioRango, $finRango])
+              ->orWhereBetween('fecha_salida', [$inicioRango, $finRango]);
+        })
+        ->count();
+
+    // Estadísticas agrupadas por mes dentro del rango
+    $statsMensuales = Reservacion::select(
+            DB::raw('DATE_FORMAT(fecha_entrada, "%Y-%m") as periodo'),
+            DB::raw('COUNT(*) as total_reservas'),
+            DB::raw('SUM(precio_total) as total_ingresos')
+        )
+        ->whereBetween('fecha_entrada', [$inicioRango, $finRango])
+        ->whereIn('estado', ['activa', 'confirmada', 'completada'])
+        ->groupBy('periodo')
+        ->orderBy('periodo')
+        ->get();
+
+    $labels            = $statsMensuales->pluck('periodo');          // ej. 2025-01, 2025-02...
+    $reservasMensuales = $statsMensuales->pluck('total_reservas')->map(fn($v) => (int) $v);
+    $ingresosMensuales = $statsMensuales->pluck('total_ingresos')->map(fn($v) => (float) $v);
+
+    $reportes = [
+        'ocupacion_actual'   => $ocupacionActual,
+        'ingresos_mes'       => (float) $ingresosRango,      // ahora es "del rango"
+        'reservas_activas'   => $reservasActivas,
+        'labels_meses'       => $labels,
+        'reservas_mensuales' => $reservasMensuales,
+        'ingresos_mensuales' => $ingresosMensuales,
+        'modo'               => $modo,
+        'inicio_rango'       => $inicioRango->toDateString(),
+        'fin_rango'          => $finRango->toDateString(),
+    ];
+
+    // OJO: tu vista se llama 'Gerente'
+    return view('Gerente', compact(
+        'huespedes',
+        'empleados',
+        'habitaciones',
+        'tiposHabitacion',
+        'tarifasDinamicas',
+        'reservasHoy',
+        'reportes'
+    ));
 }
+
+
 
     // =============================================
     // GESTIÓN DE EMPLEADOS (MÉTODOS EXISTENTES)

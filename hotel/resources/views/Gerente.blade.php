@@ -899,35 +899,90 @@
 
       <!-- Sección: Reportes -->
       <div id="reportes" class="seccion">
-        <h2>Reportes</h2>
-        <p>Estadísticas, ingresos y desempeño general del hotel.</p>
-
-        <div class="reportes-container">
-          <!-- 🔹 Tarjetas de resumen -->
-          <div class="reportes-resumen">
-            <div class="reporte-card">
-              <h3>Ocupación Actual</h3>
-              <p id="ocupacionPorcentaje">--%</p>
-            </div>
-
-            <div class="reporte-card">
-              <h3>Ingresos del Mes</h3>
-              <p id="ingresosMes">$-- MXN</p>
-            </div>
-
-            <div class="reporte-card">
-              <h3>Reservas Activas</h3>
-              <p id="reservasActivas">--</p>
-            </div>
+  <h2>Reportes</h2>
+  <p>Estadísticas, ingresos y desempeño general del hotel.</p>
+  {{-- Filtros de fechas para los reportes --}}
+  <form method="GET" action="{{ url()->current() }}" class="mb-4">
+      <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+              <label class="form-label text-light">Rango rápido</label>
+              <select name="modo" class="form-select">
+                  <option value="anio" {{ ($reportes['modo'] ?? 'anio') === 'anio' ? 'selected' : '' }}>Año actual</option>
+                  <option value="mes" {{ ($reportes['modo'] ?? '') === 'mes' ? 'selected' : '' }}>Mes actual</option>
+                  <option value="30" {{ ($reportes['modo'] ?? '') === '30' ? 'selected' : '' }}>Últimos 30 días</option>
+                  <option value="personalizado" {{ ($reportes['modo'] ?? '') === 'personalizado' ? 'selected' : '' }}>Personalizado</option>
+              </select>
           </div>
 
-          <!-- 🔹 Gráficas -->
-          <div class="graficas-reportes">
-            <canvas id="graficaOcupacion"></canvas>
-            <canvas id="graficaIngresos"></canvas>
+          <div class="col-md-3">
+              <label class="form-label text-light">Desde</label>
+              <input
+                  type="date"
+                  name="desde"
+                  class="form-control"
+                  value="{{ request('desde', $reportes['inicio_rango'] ?? '') }}"
+              >
           </div>
-        </div>
+
+          <div class="col-md-3">
+              <label class="form-label text-light">Hasta</label>
+              <input
+                  type="date"
+                  name="hasta"
+                  class="form-control"
+                  value="{{ request('hasta', $reportes['fin_rango'] ?? '') }}"
+              >
+          </div>
+
+          <div class="col-md-3">
+              <button type="submit" class="btn btn-primary w-100">
+                  <i class="fas fa-filter"></i> Filtrar
+              </button>
+          </div>
       </div>
+
+      <small class="text-muted d-block mt-2">
+          Mostrando datos del <strong>{{ $reportes['inicio_rango'] ?? '-' }}</strong>
+          al <strong>{{ $reportes['fin_rango'] ?? '-' }}</strong>.
+      </small>
+    </form>
+
+      <div class="reportes-resumen">
+    <div class="reporte-card">
+      <h3>Ocupación Actual</h3>
+      <p id="ocupacionPorcentaje">--%</p>
+    </div>
+
+    <div class="reporte-card">
+      <h3>Ingresos del periodo</h3> {{-- puedes cambiar el título si quieres --}}
+      <p id="ingresosMes">$-- MXN</p>
+    </div>
+
+    <div class="reporte-card">
+      <h3>Reservas Activas</h3>
+      <p id="reservasActivas">--</p>
+    </div>
+  </div>
+
+    <div class="row mt-4">
+      <div class="col-lg-6">
+          <div class="reporte-card">
+              <h3>Reservas por periodo</h3>
+              <canvas id="graficaOcupacion"></canvas>
+          </div>
+      </div>
+
+      <div class="col-lg-6">
+          <div class="reporte-card">
+              <h3>Ingresos por periodo</h3>
+              <canvas id="graficaIngresos"></canvas>
+          </div>
+      </div>
+  </div>
+</div> {{-- 👈 cierre de <div id="reportes" class="seccion"> --}}
+
+
+
 
       <!-- Sección: Cerrar sesión - CON FORMULARIO FUNCIONAL -->
       <div id="cerrar" class="seccion">
@@ -949,192 +1004,236 @@
       </div>
     </main>
   </div>
+<script>
+  window.datosReportes = @json($reportes);
+</script>
 
-    <script>
-    // Navegación entre secciones principales
-    const links = document.querySelectorAll('.nav-link');
-    const secciones = document.querySelectorAll('.seccion');
+   <script>
+// Navegación entre secciones principales
+const links = document.querySelectorAll('.nav-link');
+const secciones = document.querySelectorAll('.seccion');
 
-    links.forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        links.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-        const targetId = link.getAttribute('data-target');
-        secciones.forEach(sec => sec.classList.remove('visible'));
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-          targetSection.classList.add('visible');
-          
-          // Inicializar gráficas si es la sección de reportes
-          if (targetId === 'reportes') {
-            setTimeout(inicializarGraficas, 100);
-          }
-        }
-      });
-    });
-
-    // Función para mostrar sección específica
-    function mostrarSeccion(seccionId) {
-      links.forEach(l => l.classList.remove('active'));
-      secciones.forEach(sec => sec.classList.remove('visible'));
+links.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    links.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    const targetId = link.getAttribute('data-target');
+    secciones.forEach(sec => sec.classList.remove('visible'));
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) {
+      targetSection.classList.add('visible');
       
-      const inicioLink = document.querySelector('[data-target="inicio"]');
-      if (inicioLink) {
-        inicioLink.classList.add('active');
-      }
-      
-      const seccion = document.getElementById(seccionId);
-      if (seccion) {
-        seccion.classList.add('visible');
+      // Inicializar gráficas si es la sección de reportes
+      if (targetId === 'reportes') {
+        setTimeout(inicializarGraficas, 100);
       }
     }
+  });
+});
 
-    // Sistema de pestañas para usuarios
-    function mostrarTab(tabName) {
-      // Ocultar todos los contenidos de pestañas
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      
-      // Mostrar la pestaña seleccionada
-      document.getElementById('tab-' + tabName).classList.add('active');
-      
-      // Actualizar botones activos
-      document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-      });
-      event.target.classList.add('active');
-    }
+// Función para mostrar sección específica (usada en "Cancelar" de cerrar sesión)
+function mostrarSeccion(seccionId) {
+  links.forEach(l => l.classList.remove('active'));
+  secciones.forEach(sec => sec.classList.remove('visible'));
+  
+  const inicioLink = document.querySelector(`[data-target="${seccionId}"]`);
+  if (inicioLink) {
+    inicioLink.classList.add('active');
+  }
+  
+  const seccion = document.getElementById(seccionId);
+  if (seccion) {
+    seccion.classList.add('visible');
+  }
+}
 
-    // Inicializar gráficas de reportes
-    function inicializarGraficas() {
-      // Actualizar tarjetas de resumen
-      document.getElementById('ocupacionPorcentaje').textContent = '75%';
-      document.getElementById('ingresosMes').textContent = '$125,430 MXN';
-      document.getElementById('reservasActivas').textContent = '18';
+// Sistema de pestañas para usuarios
+function mostrarTab(tabName) {
+  // Ocultar todos los contenidos de pestañas
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Mostrar la pestaña seleccionada
+  document.getElementById('tab-' + tabName).classList.add('active');
+  
+  // Actualizar botones activos
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.classList.remove('active');
+  });
+  event.target.classList.add('active'); // funciona porque llamas la función desde onclick en el HTML
+}
 
-      // Gráfica de Ocupación
-      const ctxOcupacion = document.getElementById('graficaOcupacion').getContext('2d');
-      new Chart(ctxOcupacion, {
-        type: 'line',
-        data: {
-          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-          datasets: [{
-            label: 'Ocupación %',
-            data: [65, 70, 75, 80, 78, 85, 90, 88, 82, 75, 70, 68],
-            borderColor: '#d4af37',
-            backgroundColor: 'rgba(212, 175, 55, 0.1)',
-            tension: 0.4,
-            fill: true
-          }]
+// =========================
+// GRÁFICAS DE REPORTES
+// =========================
+let chartOcupacionInstance = null;
+let chartIngresosInstance  = null;
+
+function inicializarGraficas() {
+  const data = window.datosReportes || {};
+
+  const ocupacion   = data.ocupacion_actual   ?? 0;
+  const ingresosMes = data.ingresos_mes       ?? 0;
+  const reservasAct = data.reservas_activas   ?? 0;
+  const labels      = data.labels_meses       ?? [];
+  const reservas    = data.reservas_mensuales ?? [];
+  const ingresos    = data.ingresos_mensuales ?? [];
+
+  // --- Actualizar tarjetas de resumen ---
+  const elOcup   = document.getElementById('ocupacionPorcentaje');
+  const elIngres = document.getElementById('ingresosMes');
+  const elResAct = document.getElementById('reservasActivas');
+
+  if (elOcup)   elOcup.textContent   = `${ocupacion}%`;
+  if (elIngres) elIngres.textContent = ingresosMes.toLocaleString('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2
+  });
+  if (elResAct) elResAct.textContent = reservasAct;
+
+  // 🔹 Obtener canvas
+  const canvas1 = document.getElementById('graficaOcupacion');
+  const canvas2 = document.getElementById('graficaIngresos');
+  if (!canvas1 || !canvas2) return;
+
+  const ctx1 = canvas1.getContext('2d');
+  const ctx2 = canvas2.getContext('2d');
+
+  // 🔹 Destruir instancias anteriores si ya existen (para no duplicar)
+  if (chartOcupacionInstance) {
+    chartOcupacionInstance.destroy();
+  }
+  if (chartIngresosInstance) {
+    chartIngresosInstance.destroy();
+  }
+
+  // --- Gráfica 1: Reservas por periodo (línea) ---
+  chartOcupacionInstance = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Reservas por periodo',
+        data: reservas,
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.12)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#4b5563' } }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#4b5563', stepSize: 1 },
+          grid: { color: 'rgba(148,163,184,0.3)' }
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              labels: {
-                color: '#fff'
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              ticks: {
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255,255,255,0.1)'
-              }
-            },
-            x: {
-              ticks: {
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255,255,255,0.1)'
-              }
+        x: {
+          ticks: { color: '#4b5563' },
+          grid: { color: 'rgba(148,163,184,0.2)' }
+        }
+      }
+    }
+  });
+
+  // --- Gráfica 2: Ingresos por periodo (barras) ---
+  chartIngresosInstance = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Ingresos (MXN)',
+        data: ingresos,
+        backgroundColor: 'rgba(34, 197, 94, 0.85)',
+        borderColor: 'rgba(22, 163, 74, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#4b5563' } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const value = ctx.parsed.y || 0;
+              return value.toLocaleString('es-MX', {
+                style: 'currency',
+                currency: 'MXN',
+                minimumFractionDigits: 2
+              });
             }
           }
         }
-      });
-
-      // Gráfica de Ingresos
-      const ctxIngresos = document.getElementById('graficaIngresos').getContext('2d');
-      new Chart(ctxIngresos, {
-        type: 'bar',
-        data: {
-          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-          datasets: [{
-            label: 'Ingresos (MXN)',
-            data: [95000, 110000, 105000, 120000, 115000, 130000, 145000, 140000, 125000, 120000, 110000, 100000],
-            backgroundColor: 'rgba(40, 167, 69, 0.8)',
-            borderColor: '#28a745',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              labels: {
-                color: '#fff'
-              }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#4b5563',
+            callback: function (value) {
+              return value.toLocaleString('es-MX', {
+                style: 'currency',
+                currency: 'MXN',
+                maximumFractionDigits: 0
+              });
             }
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                color: '#fff',
-                callback: function(value) {
-                  return '$' + value.toLocaleString();
-                }
-              },
-              grid: {
-                color: 'rgba(255,255,255,0.1)'
-              }
-            },
-            x: {
-              ticks: {
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255,255,255,0.1)'
-              }
-            }
-          }
+          grid: { color: 'rgba(148,163,184,0.3)' }
+        },
+        x: {
+          ticks: { color: '#4b5563' },
+          grid: { color: 'rgba(148,163,184,0.2)' }
         }
-      });
+      }
     }
+  });
+}
 
-    // Búsqueda en tiempo real para habitaciones (SOLO PARA DATOS REALES)
-    document.addEventListener('DOMContentLoaded', function() {
-      // Búsqueda para habitaciones (datos reales desde BD)
-      document.getElementById('buscarHabitacion').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('#listaHabitaciones tr');
-        
-        rows.forEach(row => {
-          const text = row.textContent.toLowerCase();
-          row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
-      });
 
-      // Búsqueda para reservas (solo si hay datos reales)
-document.getElementById('buscarReserva').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('#listaReservas tr');
-    
-    rows.forEach(row => {
+// =========================
+// BÚSQUEDAS EN TABLAS
+// =========================
+document.addEventListener('DOMContentLoaded', function() {
+  // Búsqueda para habitaciones
+  const buscarHabitacionInput = document.getElementById('buscarHabitacion');
+  if (buscarHabitacionInput) {
+    buscarHabitacionInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#listaHabitaciones tr');
+      
+      rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
     });
+  }
+
+  // Búsqueda para reservas
+  const buscarReservaInput = document.getElementById('buscarReserva');
+  if (buscarReservaInput) {
+    buscarReservaInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#listaReservas tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+  }
 });
-    });
-  </script>
+</script>
+
 
 
 
