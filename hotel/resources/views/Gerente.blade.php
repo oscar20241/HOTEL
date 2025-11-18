@@ -14,7 +14,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
-  <div class="dashboard-container d-flex">
+   <div class="dashboard-container d-flex">
     <!-- Sidebar -->
     <aside class="sidebar p-3">
       <img src="{{ asset('/img/logo.png') }}" alt="Logo del hotel" class="logo-dash mb-3">
@@ -50,33 +50,78 @@
       <!-- Sección: Inicio -->
       <div id="inicio" class="seccion visible">
         <h2>Panel de Control</h2>
+
+        @php
+            $totalHabitaciones = $habitaciones->count();
+            $ocupadas = $habitaciones->where('estado', 'ocupada')->count();
+            $ocupacionPorcentaje = $totalHabitaciones > 0
+                ? round(($ocupadas / $totalHabitaciones) * 100)
+                : 0;
+
+            $totalHuespedes = $huespedes->count();
+        @endphp
+
         <div class="row g-4 mt-3">
+
+          <!-- Habitaciones Ocupadas → sección Habitaciones -->
           <div class="col-md-4">
-            <div class="card info-card">
+            <div class="card info-card card-inicio" data-target="habitaciones">
               <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-bed text-warning"></i> Habitaciones Ocupadas</h5>
-                <p class="card-text fs-4">18 / 24</p>
+                <h5 class="card-title">
+                  <i class="fas fa-bed text-warning"></i> Habitaciones Ocupadas
+                </h5>
+                <p class="card-text fs-4">
+                  {{ $ocupadas }} / {{ $totalHabitaciones }}
+                </p>
+                <small class="text-muted">
+                  Ocupación: {{ $ocupacionPorcentaje }}%
+                </small>
               </div>
             </div>
           </div>
+
+          <!-- Reservas del Día → sección Reservas -->
           <div class="col-md-4">
-            <div class="card info-card">
+            <div class="card info-card card-inicio" data-target="reservas">
               <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-calendar-check text-warning"></i> Reservas del Día</h5>
-                <p class="card-text fs-4">12</p>
+                <h5 class="card-title">
+                  <i class="fas fa-calendar-check text-warning"></i> Reservas del Día
+                </h5>
+                <p class="card-text fs-4">
+                  {{ $reservasHoy ?? 0 }}
+                </p>
+                <small class="text-muted">
+                  Check-in / check-out con fecha de hoy
+                </small>
               </div>
             </div>
           </div>
+
+          <!-- Clientes Activos → sección Usuarios -->
           <div class="col-md-4">
-            <div class="card info-card">
+            <div class="card info-card card-inicio" data-target="usuarios">
               <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-users text-warning"></i> Clientes Activos</h5>
-                <p class="card-text fs-4">43</p>
+                <h5 class="card-title">
+                  <i class="fas fa-users text-warning"></i> Clientes Activos
+                </h5>
+                <p class="card-text fs-4">
+                  {{ $totalHuespedes }}
+                </p>
+                <small class="text-muted">
+                  Huéspedes registrados en el sistema
+                </small>
               </div>
             </div>
           </div>
+
         </div>
       </div>
+
+      <!-- 🔽 A partir de aquí deja tal cual tus otras secciones:
+           reservas, habitaciones, tarifas, usuarios, reportes, cerrar sesión -->
+
+
+
 
      <!-- Sección: Reservas (ADMIN mejorada) -->
    <div id="reservas" class="seccion">
@@ -1832,8 +1877,60 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render diferido (cuando abras la pestaña Calendario)
   // Si tu página abre con la pestaña de Reservas visible, puedes llamar aquí:
   // calendar.render();
+
+
+  // Navegación entre secciones principales
+const links = document.querySelectorAll('.nav-link');
+const secciones = document.querySelectorAll('.seccion');
+
+links.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    links.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    const targetId = link.getAttribute('data-target');
+    secciones.forEach(sec => sec.classList.remove('visible'));
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) {
+      targetSection.classList.add('visible');
+      
+      // Inicializar gráficas si es la sección de reportes
+      if (targetId === 'reportes') {
+        setTimeout(inicializarGraficas, 100);
+      }
+    }
+  });
+});
+
+
+// --- Hacer clickeables las tarjetas del inicio ---
+const cardsInicio = document.querySelectorAll('.card-inicio[data-target]');
+
+cardsInicio.forEach(card => {
+  card.style.cursor = 'pointer'; // para que salga la manita
+
+  card.addEventListener('click', () => {
+    const targetId = card.dataset.target;
+
+    // Buscar el link del sidebar que apunte a esa sección
+    const navLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+
+    if (navLink) {
+      // Disparamos el click del sidebar para reutilizar toda la lógica que ya tienes
+      navLink.click();
+    } else {
+      // Por si acaso, fallback directo
+      secciones.forEach(sec => sec.classList.remove('visible'));
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) {
+        targetSection.classList.add('visible');
+      }
+    }
+  });
+});
 });
 </script>
+
 
 
 
