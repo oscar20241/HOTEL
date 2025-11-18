@@ -29,7 +29,7 @@
         <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900/40"></div>
         <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-4">
             <p class="uppercase text-sm tracking-[0.3em] text-white/60">Reservación {{ $reservacion->codigo_reserva }}</p>
-            <h1 class="text-4xl sm:text-5xl font-semibold">Edita tu estancia</h1>
+            <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold">Edita tu estancia</h1>
             <p class="max-w-2xl text-white/75">
                 Ajusta fechas, cambia de habitación o actualiza tus notas. Comprobamos la disponibilidad al instante para que solo
                 elijas noches libres o sin mantenimiento.

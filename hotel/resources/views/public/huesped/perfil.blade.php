@@ -3,7 +3,7 @@
 @section('content')
     <section class="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <h1 class="text-4xl font-semibold">Mi perfil</h1>
+            <h1 class="text-4xl font-['Playfair_Display']">Mi perfil</h1>
             <p class="mt-3 text-sm text-white/70 max-w-2xl">Actualiza tus datos personales y mantén tu información de seguridad al día para que podamos brindarte una experiencia impecable en Hotel PASA EL EXTRA Inn.</p>
         </div>
     </section>
