@@ -11,6 +11,65 @@
 }
 
 
+.fas.fa-home,
+.fas.fa-plus-circle,
+.fas.fa-calendar-day,
+.fas.fa-sign-in-alt,
+.fas.fa-sign-out-alt,
+.fas.fa-concierge-bell,
+.fas.fa-door-open,
+.fas.fa-filter,
+.fas.fa-search,
+.fas.fa-calendar-day,
+.fas.fa-bed,
+.fas.fa-edit,
+.fas.fa-save,
+.fas.fa-sync-alt,
+.fas.fa-hashtag,
+.fas.fa-user,
+.fas.fa-calendar-check,
+.fas.fa-calendar-times,
+.fas.fa-tag,
+.fas.fa-cog,
+.fas.fa-check,
+.fas.fa-eye,
+.fas.fa-sign-in-alt,
+.fas.fa-spinner,
+.fas.fa-exclamation-triangle,
+.fas.fa-calendar-times,
+.fas.fa-concierge-bell {
+  color: rgb(49, 45, 53) !important;
+}
+
+/* Iconos específicos con variaciones */
+.fas.fa-filter.text-warning,
+.fas.fa-calendar-day.text-warning,
+.fas.fa-bed.text-warning,
+.fas.fa-edit.text-warning,
+.fas.fa-plus-circle.text-warning {
+  color: var(--morado) !important;
+}
+
+.fas.fa-calendar-day.text-primary {
+  color: var(--morado) !important;
+}
+
+/* ============================================================
+   🟣 BOTÓN GUARDAR RESERVACIÓN EN MORADO
+============================================================ */
+.btn-warning.text-dark.fw-semibold {
+  background-color: rgb(146, 91, 255) !important;
+  border-color: rgba(106, 74, 245, 0.745) !important;
+  color: var(--blanco) !important;
+}
+
+.btn-warning.text-dark.fw-semibold:hover {
+  background-color: var(--morado-accento) !important;
+  border-color: var(--morado-accento) !important;
+  color: var(--blanco) !important;
+  box-shadow: 0 0 10px var(--sombra-morada);
+}
+
 /* ============================================================
    🟣 CHECK-OUT SECTION 
 ============================================================ */
@@ -19,7 +78,7 @@
   flex-direction: column;
   gap: 15px;
   margin-top: 20px;
-  background-color: var(--fondo-oscuro);
+  background-color: rgba(255, 255, 255, 0.947);
   padding: 20px;
   border: 1px solid var(--morado);
   border-radius: 12px;
@@ -31,15 +90,15 @@
   padding: 12px 14px;
   border: 1px solid var(--morado);
   border-radius: 10px;
-  background-color: var(--blanco);
-  color: #000;
+  background-color: rgb(223, 223, 223);
+  color: #000000;
   font-size: 16px;
   outline: none;
   transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
 .checkout-input::placeholder {
-  color: #555;
+  color: #000000;
 }
 
 .checkout-input:focus {
@@ -66,7 +125,7 @@
 /* Botón rojo */
 .btn-liberar {
   background-color: #e74c3c;
-  color: #fff;
+  color: #ffffff;
 }
 .btn-liberar:hover {
   background-color: #c0392b;
@@ -82,7 +141,6 @@
   background-color: #27ae60;
   box-shadow: 0 0 12px rgba(46, 204, 113, 0.6);
 }
-
 
 /* ============================================================
    🟣 SERVICIOS SECTION
@@ -113,7 +171,6 @@
   border-color: var(--morado);
   box-shadow: 0 0 10px var(--sombra-morada);
 }
-
 
 /* Tabla de servicios */
 .tabla-servicios {
@@ -150,7 +207,6 @@
   font-weight: bold;
 }
 
-
 /* Botón completar */
 .btn-completar-servicio {
   background-color: var(--morado);
@@ -173,24 +229,23 @@
   cursor: not-allowed;
 }
 
-
 /* ============================================================
    🟣 TARJETAS Y FILTROS
 ============================================================ */
 .card.mt-4.p-3.shadow-sm {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(54, 13, 132);
+  color: #000000;
   backdrop-filter: blur(8px);
   box-shadow: none;
 }
 
-/* ⭐ NUEVOS INPUTS (MUY VISIBLES) ⭐ */
+/* NUEVOS INPUTS*/
 .card input[type="date"],
 .card select,
 .card input[type="text"] {
   background-color: #ffffff;
-  color: #2c2c2c;
+  color: #000000;
   border: 2px solid var(--morado);
   border-radius: 10px;
   padding: 10px 12px;
@@ -208,13 +263,12 @@
 .card input[type="date"]:focus,
 .card select:focus,
 .card input[type="text"]:focus {
-  background-color: #f5e9ff;
+  background-color: #ffffff;
   border-color: var(--morado-accento);
   box-shadow: 0 0 10px var(--sombra-morada);
   outline: none;
   color: #000;
 }
-
 
 /* Botón filtro */
 #btnFiltrar {
@@ -233,7 +287,6 @@
 .card h5 {
   color: var(--morado-accento);
 }
-
 
 /* ============================================================
    🟣 TABLA OCUPACIÓN TRANSLÚCIDA
@@ -277,11 +330,58 @@
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
 }
+
 #tablaOcupacion tbody .estado-disponible {
   color: #2ecc71;
   font-weight: bold;
 }
+
 #tablaOcupacion tbody .estado-ocupado {
   color: #e74c3c;
   font-weight: bold;
+}
+
+/* ============================================================
+   🟣 BOTONES ADICIONALES EN MORADO
+============================================================ */
+.btn-success {
+  background-color: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+.btn-success:hover {
+  background-color: var(--morado-accento) !important;
+  border-color: var(--morado-accento) !important;
+}
+
+.btn-primary {
+  background-color: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--morado-accento) !important;
+  border-color: var(--morado-accento) !important;
+}
+
+.btn-outline-primary {
+  color: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--morado) !important;
+  border-color: var(--morado) !important;
+  color: var(--blanco) !important;
+}
+
+.btn-outline-success {
+  color: var(--morado) !important;
+  border-color: var(--morado) !important;
+}
+
+.btn-outline-success:hover {
+  background-color: var(--morado) !important;
+  border-color: var(--morado) !important;
+  color: var(--blanco) !important;
 }
