@@ -11,6 +11,20 @@
   @vite(['resources/css/recepcionista.css'])
 </head>
 <body>
+  <!-- Toast Container para mensajes Bootstrap -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <i class="fas fa-info-circle me-2 text-primary"></i>
+        <strong class="me-auto">Sistema Hotel</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" id="toastMessage">
+        Mensaje del sistema
+      </div>
+    </div>
+  </div>
+
   <div class="dashboard-container d-flex">
     <aside class="sidebar p-3">
       <img src="{{ asset('/img/logo.png') }}" alt="Logo del hotel" class="logo-dash mb-3">
@@ -21,7 +35,6 @@
         <a href="#" class="nav-link" data-target="reservas"><i class="fas fa-calendar-day"></i> Reservaciones del Día</a>
         <a href="#" class="nav-link" data-target="checkin"><i class="fas fa-sign-in-alt"></i> Check-In</a>
         <a href="#" class="nav-link" data-target="checkout"><i class="fas fa-sign-out-alt"></i> Check-Out</a>
-        <a href="#" class="nav-link" data-target="servicios"><i class="fas fa-concierge-bell"></i> Servicios</a>
         <a href="#" class="nav-link text-danger mt-auto" data-target="cerrar"><i class="fas fa-door-open"></i> Cerrar sesión</a>
       </nav>
     </aside>
@@ -122,6 +135,9 @@
               <input type="number" class="form-control" min="1" max="8" placeholder="Ej. 2" required>
             </div>
             <div class="col-md-6">
+              <label class="form-label">Teléfono:</label>
+              <input type="tel" class="form-control" placeholder="Ej. 555-1234" required>
+            </div>
             <div class="col-12">
               <label class="form-label">Comentarios o Solicitudes Especiales:</label>
               <textarea class="form-control" rows="2" placeholder="Ej. Solicita cama adicional..."></textarea>
@@ -149,7 +165,7 @@
               <table class="table table-striped table-hover" id="tablaReservasDia">
                 <thead class="table-primary">
                   <tr>
-                    <th><i class="fas fa-hashtag"></i> # Reserva</th>
+                    <th><i class="fas fa-hashtag"></i> Reserva</th>
                     <th><i class="fas fa-user"></i> Huésped</th>
                     <th><i class="fas fa-bed"></i> Habitación</th>
                     <th><i class="fas fa-calendar-check"></i> Check-In</th>
@@ -171,7 +187,6 @@
         </div>
       </div>
 
-      <!-- Las otras secciones (checkin, checkout, servicios, cerrar) se mantienen igual -->
       <div id="checkin" class="seccion">
         <h2>Check-In</h2>
         <form class="row g-3 mt-3" id="formCheckIn">
@@ -204,32 +219,6 @@
         </div>
       </div>
 
-      <div id="servicios" class="seccion">
-        <h2>Servicios</h2>
-        <p>Gestión de servicios activos y solicitudes especiales.</p>
-        <div class="servicios-container">
-          <input 
-            type="text" 
-            id="buscarServicio" 
-            class="servicios-input" 
-            placeholder="Buscar habitación..."
-          />
-          <table class="tabla-servicios">
-            <thead>
-              <tr>
-                <th>Número de Habitación</th>
-                <th>Servicio Requerido</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="cuerpoTablaServicios">
-              <!-- Los servicios se cargarán aquí dinámicamente -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <div id="cerrar" class="seccion">
         <h2>Cerrar sesión</h2>
         <p>¿Estás seguro que deseas salir?</p>
@@ -246,6 +235,7 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Navegación entre secciones
     const links = document.querySelectorAll('.nav-link');
@@ -265,8 +255,6 @@
           // Cargar datos cuando se muestre la sección de reservas
           if (targetId === 'reservas') {
             cargarReservasDelDia();
-          } else if (targetId === 'servicios') {
-            cargarServicios();
           } else if (targetId === 'inicio') {
             cargarEstadisticasInicio();
           }
@@ -289,6 +277,41 @@
       }
     }
 
+    // Función para mostrar toast de Bootstrap
+    function mostrarToast(mensaje, tipo = 'info') {
+      const toastEl = document.getElementById('liveToast');
+      const toastMessage = document.getElementById('toastMessage');
+      const toastHeader = toastEl.querySelector('.toast-header');
+      
+      // Configurar color según el tipo
+      let iconClass = 'fas fa-info-circle me-2 text-primary';
+      let headerClass = 'bg-primary text-white';
+      
+      switch(tipo) {
+        case 'error':
+          iconClass = 'fas fa-exclamation-triangle me-2 text-danger';
+          headerClass = 'bg-danger text-white';
+          break;
+        case 'success':
+          iconClass = 'fas fa-check-circle me-2 text-success';
+          headerClass = 'bg-success text-white';
+          break;
+        case 'warning':
+          iconClass = 'fas fa-exclamation-circle me-2 text-warning';
+          headerClass = 'bg-warning text-dark';
+          break;
+      }
+      
+      // Actualizar contenido
+      toastHeader.className = `toast-header ${headerClass}`;
+      toastHeader.querySelector('i').className = iconClass;
+      toastMessage.textContent = mensaje;
+      
+      // Mostrar toast
+      const toast = new bootstrap.Toast(toastEl);
+      toast.show();
+    }
+
     // Función para cargar reservas del día desde la base de datos
     function cargarReservasDelDia() {
       const tbody = document.getElementById('cuerpoTablaReservas');
@@ -302,27 +325,7 @@
         </tr>
       `;
       
-      // Aquí deberías hacer una llamada AJAX a tu backend para obtener las reservas del día
-      // Ejemplo con fetch:
-      /*
-      fetch('/api/reservas-del-dia')
-        .then(response => response.json())
-        .then(reservas => {
-          mostrarReservasEnTabla(reservas);
-        })
-        .catch(error => {
-          console.error('Error al cargar reservas:', error);
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="7" class="text-center text-danger py-4">
-                <i class="fas fa-exclamation-triangle me-2"></i>Error al cargar las reservas
-              </td>
-            </tr>
-          `;
-        });
-      */
-      
-      // Por ahora, dejamos la tabla vacía para que se llene con datos reales
+      // Simular carga de datos
       setTimeout(() => {
         tbody.innerHTML = `
           <tr>
@@ -334,7 +337,7 @@
       }, 1000);
     }
 
-    // Función para mostrar las reservas en la tabla (se llamará desde la respuesta AJAX)
+    // Función para mostrar las reservas en la tabla
     function mostrarReservasEnTabla(reservas) {
       const tbody = document.getElementById('cuerpoTablaReservas');
       tbody.innerHTML = '';
@@ -380,7 +383,7 @@
       const resultadosDiv = document.getElementById('resultadosFiltro');
 
       if (!inicio || !fin) {
-        alert('Por favor selecciona ambas fechas.');
+        mostrarToast('Por favor selecciona ambas fechas.', 'warning');
         return;
       }
 
@@ -397,27 +400,7 @@
       
       resultadosDiv.style.display = 'block';
 
-      // Aquí deberías hacer una llamada AJAX a tu backend para obtener los datos de ocupación
-      // Ejemplo con fetch:
-      /*
-      fetch(`/api/ocupacion?inicio=${inicio}&fin=${fin}`)
-        .then(response => response.json())
-        .then(resultados => {
-          mostrarResultadosOcupacion(resultados);
-        })
-        .catch(error => {
-          console.error('Error al cargar ocupación:', error);
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="5" class="text-center text-danger py-4">
-                <i class="fas fa-exclamation-triangle me-2"></i>Error al cargar la ocupación
-              </td>
-            </tr>
-          `;
-        });
-      */
-      
-      // Por ahora, dejamos la tabla vacía para que se llene con datos reales
+      // Simular búsqueda
       setTimeout(() => {
         tbody.innerHTML = `
           <tr>
@@ -429,7 +412,7 @@
       }, 1000);
     });
 
-    // Función para mostrar los resultados de ocupación (se llamará desde la respuesta AJAX)
+    // Función para mostrar los resultados de ocupación
     function mostrarResultadosOcupacion(resultados) {
       const tbody = document.querySelector('#tablaOcupacion tbody');
       tbody.innerHTML = '';
@@ -459,139 +442,52 @@
       });
     }
 
-    // Función para cargar servicios desde la base de datos
-    function cargarServicios() {
-      const tbody = document.getElementById('cuerpoTablaServicios');
-      
-      // Mostrar indicador de carga
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="4" class="text-center text-muted py-4">
-            <i class="fas fa-spinner fa-spin me-2"></i>Cargando servicios...
-          </td>
-        </tr>
-      `;
-      
-      // Aquí deberías hacer una llamada AJAX a tu backend para obtener los servicios
-      // Ejemplo con fetch:
-      /*
-      fetch('/api/servicios')
-        .then(response => response.json())
-        .then(servicios => {
-          mostrarServiciosEnTabla(servicios);
-        })
-        .catch(error => {
-          console.error('Error al cargar servicios:', error);
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="4" class="text-center text-danger py-4">
-                <i class="fas fa-exclamation-triangle me-2"></i>Error al cargar los servicios
-              </td>
-            </tr>
-          `;
-        });
-      */
-      
-      // Por ahora, dejamos la tabla vacía para que se llene con datos reales
-      setTimeout(() => {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="4" class="text-center text-muted py-4">
-              <i class="fas fa-concierge-bell me-2"></i>No hay servicios pendientes
-            </td>
-          </tr>
-        `;
-      }, 1000);
-    }
-
-    // Función para mostrar servicios en la tabla (se llamará desde la respuesta AJAX)
-    function mostrarServiciosEnTabla(servicios) {
-      const tbody = document.getElementById('cuerpoTablaServicios');
-      tbody.innerHTML = '';
-      
-      if (servicios.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="4" class="text-center text-muted py-4">
-              <i class="fas fa-concierge-bell me-2"></i>No hay servicios pendientes
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      servicios.forEach(servicio => {
-        const estadoClass = servicio.estado === 'Pendiente' ? 'estado-pendiente' : 'estado-completado';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${servicio.habitacion}</td>
-          <td>${servicio.servicio}</td>
-          <td><span class="${estadoClass}">${servicio.estado}</span></td>
-          <td>
-            <button class="btn-completar-servicio" ${servicio.estado === 'Completado' ? 'disabled' : ''}>
-              ${servicio.estado === 'Completado' ? 'Listo ✓' : 'Marcar como Listo'}
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      // Agregar event listeners a los botones de completar servicio
-      document.querySelectorAll('.btn-completar-servicio').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const fila = btn.closest('tr');
-          const habitacion = fila.cells[0].textContent;
-          
-          // Aquí deberías hacer una llamada AJAX para marcar el servicio como completado
-          /*
-          fetch(`/api/servicios/${habitacion}/completar`, { method: 'POST' })
-            .then(response => response.json())
-            .then(resultado => {
-              if (resultado.exito) {
-                fila.querySelector('.estado-pendiente').textContent = 'Completado';
-                fila.querySelector('.estado-pendiente').classList.replace('estado-pendiente', 'estado-completado');
-                btn.textContent = 'Listo ✓';
-                btn.disabled = true;
-              }
-            })
-            .catch(error => {
-              console.error('Error al completar servicio:', error);
-              alert('Error al marcar el servicio como completado');
-            });
-          */
-          
-          // Por ahora, solo actualizamos la interfaz
-          fila.querySelector('.estado-pendiente').textContent = 'Completado';
-          fila.querySelector('.estado-pendiente').classList.replace('estado-pendiente', 'estado-completado');
-          btn.textContent = 'Listo ✓';
-          btn.disabled = true;
-        });
-      });
-    }
-
     // Función para cargar estadísticas en la sección de inicio
     function cargarEstadisticasInicio() {
       // Aquí deberías hacer una llamada AJAX a tu backend para obtener las estadísticas
-      // Ejemplo con fetch:
-      /*
-      fetch('/api/estadisticas')
-        .then(response => response.json())
-        .then(estadisticas => {
-          document.getElementById('reservasPendientes').textContent = estadisticas.reservasPendientes;
-          document.getElementById('habitacionesDisponibles').textContent = estadisticas.habitacionesDisponibles;
-        })
-        .catch(error => {
-          console.error('Error al cargar estadísticas:', error);
-        });
-      */
+      // Por ahora, solo valores de ejemplo
+      document.getElementById('reservasPendientes').textContent = '5';
+      document.getElementById('habitacionesDisponibles').textContent = '12';
     }
+
+    // Agregar funcionalidad a los botones de checkout
+    document.querySelector('.btn-liberar')?.addEventListener('click', function() {
+      const roomNumber = document.getElementById('roomNumber').value;
+      if (!roomNumber) {
+        mostrarToast('Por favor ingresa un número de habitación', 'warning');
+        return;
+      }
+      mostrarToast(`Habitación ${roomNumber} liberada exitosamente`, 'success');
+      // Aquí iría la lógica para liberar la habitación
+    });
+
+    document.querySelector('.btn-checkout')?.addEventListener('click', function() {
+      const roomNumber = document.getElementById('roomNumber').value;
+      if (!roomNumber) {
+        mostrarToast('Por favor ingresa un número de habitación', 'warning');
+        return;
+      }
+      mostrarToast(`Check-out confirmado para habitación ${roomNumber}`, 'success');
+      // Aquí iría la lógica para procesar el check-out
+    });
+
+    // Manejo de formularios
+    document.getElementById('formNuevaReserva')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      mostrarToast('Reservación guardada exitosamente', 'success');
+      // Aquí iría la lógica para guardar la reservación
+    });
+
+    document.getElementById('formCheckIn')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      mostrarToast('Check-in registrado exitosamente', 'success');
+      // Aquí iría la lógica para registrar el check-in
+    });
 
     // Cargar datos al iniciar si estamos en esa sección
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('reservas').classList.contains('visible')) {
         cargarReservasDelDia();
-      } else if (document.getElementById('servicios').classList.contains('visible')) {
-        cargarServicios();
       } else if (document.getElementById('inicio').classList.contains('visible')) {
         cargarEstadisticasInicio();
       }

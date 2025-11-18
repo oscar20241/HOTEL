@@ -14,7 +14,7 @@ body {
 /* === SIDEBAR === */
 .sidebar {
   width: 260px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0);
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
@@ -105,7 +105,7 @@ body {
 
 /* === TARJETAS === */
 .info-card {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.148);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(150, 120, 255, 0.35);
   border-radius: 12px;
