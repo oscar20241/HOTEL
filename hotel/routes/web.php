@@ -17,9 +17,6 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/habitaciones/{habitacion}/disponibilidad', [PublicHabitacionController::class, 'disponibilidad'])
     ->name('habitaciones.disponibilidad');
 
-Route::get('/tipos-habitacion/{tipoHabitacion}/disponibilidad', [PublicHabitacionController::class, 'disponibilidadPorTipo'])
-    ->name('tipos-habitacion.disponibilidad');
-
 
 
 
@@ -68,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
 
         if ($user->esRecepcionista()) {
             return redirect()->route('home');
+            return redirect()->route('recepcionista.dashboard');
         }
 
         return redirect()->route('huesped.dashboard');
@@ -141,3 +139,16 @@ Route::middleware(['auth']) // agrega tu middleware/role si aplica
         Route::get('/reservas/events', [AdminReservasController::class, 'apiEvents'])->name('reservas.events'); // eventos calendario JSON
     });
 
+// =============================================
+// RUTAS DE RECEPCIONISTA
+
+Route::prefix('recepcionista')->middleware(['auth', 'empleado.activo', 'es.recepcionista'])->group(function () {
+    Route::get('/dashboard', [RecepcionistaController::class, 'dashboard'])->name('recepcionista.dashboard');
+    Route::get('/reservaciones', [RecepcionistaController::class, 'reservaciones'])->name('recepcionista.reservaciones');
+    Route::get('/checkin', [RecepcionistaController::class, 'checkin'])->name('recepcionista.checkin');
+    
+    // Agrega estas rutas para las funcionalidades que necesitas
+    Route::post('/reservaciones/cancelar', [RecepcionistaController::class, 'cancelarReservacion'])->name('recepcionista.reservaciones.cancelar');
+    Route::post('/clientes/historial', [RecepcionistaController::class, 'buscarHistorial'])->name('recepcionista.clientes.historial');
+    Route::post('/checkout', [RecepcionistaController::class, 'checkout'])->name('recepcionista.checkout');
+});
