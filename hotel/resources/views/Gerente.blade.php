@@ -79,7 +79,7 @@
       </div>
 
      <!-- Sección: Reservas (ADMIN mejorada) -->
-<div id="reservas" class="seccion">
+   <div id="reservas" class="seccion">
   <h2>Reservaciones</h2>
   <p>Gestión completa de todas las reservas del hotel.</p>
 
@@ -146,7 +146,6 @@
     </div>
   </div>
 </div>
-
 
             <!-- Sección: Habitaciones MEJORADA -->
       <div id="habitaciones" class="seccion">
