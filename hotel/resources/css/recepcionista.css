@@ -1,35 +1,50 @@
-/* === 🟡 CHECK-OUT SECTION === */----------------------------
+/* ============================================================
+   🟣 ESTILOS GENERALES – MORADO Y BLANCO
+============================================================ */
+:root {
+  --morado: #6a0dad;
+  --morado-oscuro: #4a087a;
+  --morado-accento: #8b37d4;
+  --blanco: #ffffff;
+  --fondo-oscuro: #111217;
+  --sombra-morada: rgba(138, 55, 212, 0.3);
+}
+
+
+/* ============================================================
+   🟣 CHECK-OUT SECTION 
+============================================================ */
 .checkout-container {
   display: flex;
   flex-direction: column;
   gap: 15px;
   margin-top: 20px;
-  background-color: #111217;
+  background-color: var(--fondo-oscuro);
   padding: 20px;
-  border: 1px solid #d4af37;
+  border: 1px solid var(--morado);
   border-radius: 12px;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 12px var(--sombra-morada);
 }
 
 .checkout-input {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #444;
+  border: 1px solid var(--morado);
   border-radius: 10px;
-  background-color: #1a1c22;
-  color: #fff;
+  background-color: var(--blanco);
+  color: #000;
   font-size: 16px;
   outline: none;
   transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
 .checkout-input::placeholder {
-  color: #aaa;
+  color: #555;
 }
 
 .checkout-input:focus {
-  border-color: #d4af37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  border-color: var(--morado-accento);
+  box-shadow: 0 0 10px var(--sombra-morada);
 }
 
 .checkout-buttons {
@@ -48,7 +63,7 @@
   transition: all 0.3s ease;
 }
 
-/* Botón para liberar habitación */
+/* Botón rojo */
 .btn-liberar {
   background-color: #e74c3c;
   color: #fff;
@@ -58,7 +73,7 @@
   box-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
 }
 
-/* Botón para confirmar check-out */
+/* Botón verde */
 .btn-checkout {
   background-color: #2ecc71;
   color: #fff;
@@ -68,21 +83,24 @@
   box-shadow: 0 0 12px rgba(46, 204, 113, 0.6);
 }
 
-/* === 🧽 SERVICIOS SECTION === */
+
+/* ============================================================
+   🟣 SERVICIOS SECTION
+============================================================ */
 .servicios-container {
-  background-color: #111217;
+  background-color: var(--fondo-oscuro);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #d4af37;
+  border: 1px solid var(--morado);
   margin-top: 20px;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 12px var(--sombra-morada);
 }
 
 .servicios-input {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #444;
+  border: 1px solid var(--morado-accento);
   background-color: #1a1c22;
   color: #fff;
   font-size: 16px;
@@ -92,9 +110,10 @@
 }
 
 .servicios-input:focus {
-  border-color: #d4af37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+  border-color: var(--morado);
+  box-shadow: 0 0 10px var(--sombra-morada);
 }
+
 
 /* Tabla de servicios */
 .tabla-servicios {
@@ -106,19 +125,19 @@
 }
 
 .tabla-servicios th {
-  background-color: #d4af37;
-  color: #111217;
+  background-color: var(--morado);
+  color: var(--blanco);
   padding: 10px;
-  border-bottom: 2px solid #b9972e;
+  border-bottom: 2px solid var(--morado-accento);
 }
 
 .tabla-servicios td {
   padding: 10px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
 .tabla-servicios tr:hover {
-  background-color: rgba(212, 175, 55, 0.05);
+  background-color: rgba(138,55,212,0.1);
 }
 
 /* Estados */
@@ -126,16 +145,16 @@
   color: #e74c3c;
   font-weight: bold;
 }
-
 .estado-completado {
   color: #2ecc71;
   font-weight: bold;
 }
 
-/* Botón de completar */
+
+/* Botón completar */
 .btn-completar-servicio {
-  background-color: #d4af37;
-  color: #111217;
+  background-color: var(--morado);
+  color: var(--blanco);
   border: none;
   padding: 8px 14px;
   border-radius: 20px;
@@ -145,9 +164,8 @@
 }
 
 .btn-completar-servicio:hover:not(:disabled) {
-  background-color: #b9972e;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  background-color: var(--morado-accento);
+  box-shadow: 0 0 10px var(--sombra-morada);
 }
 
 .btn-completar-servicio:disabled {
@@ -155,110 +173,115 @@
   cursor: not-allowed;
 }
 
+
+/* ============================================================
+   🟣 TARJETAS Y FILTROS
+============================================================ */
 .card.mt-4.p-3.shadow-sm {
-  background-color: rgba(255, 255, 255, 0.05); /* Transparente con leve fondo */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
-  color: #fff; /* Texto blanco */
-  backdrop-filter: blur(8px); /* Efecto de difuminado elegante */
-  box-shadow: none; /* Quita sombra blanca */
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  box-shadow: none;
 }
 
-/* Inputs y tabla adaptados al fondo oscuro */
+/* ⭐ NUEVOS INPUTS (MUY VISIBLES) ⭐ */
 .card input[type="date"],
 .card select,
 .card input[type="text"] {
-  background-color: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #ffffff;
+  color: #2c2c2c;
+  border: 2px solid var(--morado);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
 }
 
-.card input[type="date"]:focus {
-  background-color: rgba(0, 0, 0, 0.6);
-  border-color: #f1c40f; /* Amarillo dorado de acento */
+.card input[type="date"]::placeholder,
+.card select::placeholder,
+.card input[type="text"]::placeholder {
+  color: var(--morado);
+  opacity: 0.8;
+}
+
+.card input[type="date"]:focus,
+.card select:focus,
+.card input[type="text"]:focus {
+  background-color: #f5e9ff;
+  border-color: var(--morado-accento);
+  box-shadow: 0 0 10px var(--sombra-morada);
   outline: none;
-}
-
-/* Tabla dentro del filtro */
-#tablaOcupacion {
-  color: #fff;
-}
-
-#tablaOcupacion thead {
-  background-color: rgba(0, 0, 0, 0.6);
-}
-
-#tablaOcupacion tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Botón dorado */
-#btnFiltrar {
-  background-color: #d4af37;
-  border: none;
   color: #000;
+}
+
+
+/* Botón filtro */
+#btnFiltrar {
+  background-color: var(--morado);
+  border: none;
+  color: #fff;
   font-weight: bold;
   transition: 0.3s;
 }
 
 #btnFiltrar:hover {
-  background-color: #f1c40f;
-  transform: scale(1.03);
+  background-color: var(--morado-accento);
+  transform: scale(1.05);
 }
 
-/* Etiquetas y títulos */
 .card h5 {
-  color: #f1c40f;
+  color: var(--morado-accento);
 }
 
-/* === TABLA TRANSPARENTE  */
+
+/* ============================================================
+   🟣 TABLA OCUPACIÓN TRANSLÚCIDA
+============================================================ */
 #tablaOcupacion {
-  background: transparent !important; 
-  border-collapse: separate;
-  border-spacing: 0 8px; 
-}
-
-
-.card #tablaOcupacion,
-.card table,
-.table {
   background: transparent !important;
+  border-collapse: separate;
+  border-spacing: 0 8px;
 }
 
+#tablaOcupacion thead {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  color: var(--blanco);
+}
 
 #tablaOcupacion tbody tr {
-  background: rgba(255, 255, 255, 0.07); 
-  backdrop-filter: blur(10px);
+  background: rgba(20, 20, 20, 0.75);
   border-radius: 10px;
   transition: all 0.3s ease;
 }
 
-
 #tablaOcupacion tbody tr:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(135, 76, 185, 0.65);
   transform: scale(1.01);
 }
 
-
 #tablaOcupacion tbody td {
   border: none !important;
-  color: #ffffff;
+  color: var(--blanco);
   padding: 12px 16px;
-  background: transparent !important; 
+  background: transparent !important;
 }
-
 
 #tablaOcupacion tbody tr td:first-child {
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
 }
+
 #tablaOcupacion tbody tr td:last-child {
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
 }
-
-/* Encabezado translúcido */
-#tablaOcupacion thead {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
-  color: #f1c40f;
+#tablaOcupacion tbody .estado-disponible {
+  color: #2ecc71;
+  font-weight: bold;
+}
+#tablaOcupacion tbody .estado-ocupado {
+  color: #e74c3c;
+  font-weight: bold;
 }

@@ -64,7 +64,7 @@ Route::middleware(['auth'])->group(function () {
         }
 
         if ($user->esRecepcionista()) {
-            return redirect()->route('home');
+            return redirect()->route('recepcionista.dashboard');
         }
 
         return redirect()->route('huesped.dashboard');
@@ -120,4 +120,18 @@ Route::prefix('recepcion')->middleware(['auth', 'empleado.activo', 'es.recepcion
 // Rutas para huéspedes (sin verificación de estado de empleado)
 Route::middleware(['auth'])->group(function () {
     // Rutas específicas para huéspedes
+});
+
+// =============================================
+// RUTAS DE RECEPCIONISTA
+
+Route::prefix('recepcionista')->middleware(['auth', 'empleado.activo', 'es.recepcionista'])->group(function () {
+    Route::get('/dashboard', [RecepcionistaController::class, 'dashboard'])->name('recepcionista.dashboard');
+    Route::get('/reservaciones', [RecepcionistaController::class, 'reservaciones'])->name('recepcionista.reservaciones');
+    Route::get('/checkin', [RecepcionistaController::class, 'checkin'])->name('recepcionista.checkin');
+    
+    // Agrega estas rutas para las funcionalidades que necesitas
+    Route::post('/reservaciones/cancelar', [RecepcionistaController::class, 'cancelarReservacion'])->name('recepcionista.reservaciones.cancelar');
+    Route::post('/clientes/historial', [RecepcionistaController::class, 'buscarHistorial'])->name('recepcionista.clientes.historial');
+    Route::post('/checkout', [RecepcionistaController::class, 'checkout'])->name('recepcionista.checkout');
 });
