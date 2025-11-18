@@ -46,7 +46,7 @@ class PublicHabitacionController extends Controller
     /**
      * Return JSON availability blocks for the requested room.
      */
-    public function disponibilidad(Request $request, Habitacion $habitacion)
+    public function disponibilidad(HttpRequest $request, Habitacion $habitacion)
     {
         $bloques = [];
 
