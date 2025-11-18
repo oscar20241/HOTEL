@@ -34,7 +34,7 @@ class StoreReservacionRequest extends FormRequest
             }
 
             // ❌ En mantenimiento
-            if ($habitacion->estaEnMantenimiento()) {
+            if ($habitacion->estado === 'mantenimiento') {
                 $v->errors()->add('habitacion_id', 'La habitación está en mantenimiento.');
                 return;
             }
