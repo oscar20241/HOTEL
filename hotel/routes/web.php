@@ -121,3 +121,20 @@ Route::prefix('recepcion')->middleware(['auth', 'empleado.activo', 'es.recepcion
 Route::middleware(['auth'])->group(function () {
     // Rutas específicas para huéspedes
 });
+
+
+
+
+
+
+use App\Http\Controllers\AdminReservasController;
+
+Route::middleware(['auth']) // agrega tu middleware/role si aplica
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/reservas', [AdminReservasController::class, 'view'])->name('reservas.view'); // (opcional si quieres una vista propia)
+        Route::get('/reservas/list', [AdminReservasController::class, 'apiIndex'])->name('reservas.list');     // listado JSON
+        Route::get('/reservas/events', [AdminReservasController::class, 'apiEvents'])->name('reservas.events'); // eventos calendario JSON
+    });
+

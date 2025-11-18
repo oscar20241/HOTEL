@@ -78,35 +78,74 @@
         </div>
       </div>
 
-      <!-- Sección: Reservas -->
-      <div id="reservas" class="seccion">
-        <h2>Reservaciones</h2>
-        <p>Gestión completa de todas las reservas del hotel.</p>
+     <!-- Sección: Reservas (ADMIN mejorada) -->
+   <div id="reservas" class="seccion">
+  <h2>Reservaciones</h2>
+  <p>Gestión completa de todas las reservas del hotel.</p>
 
-        <div class="reservas-container">
-          <input 
-            type="text" 
-            id="buscarReserva" 
-            class="reservas-input" 
-            placeholder="Buscar por nombre o número de habitación..."
-          />
-
-          <table class="tabla-reservas">
-            <thead>
-              <tr>
-                <th># Habitación</th>
-                <th>Huésped</th>
-                <th>Check-In</th>
-                <th>Check-Out</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="listaReservas">
-              <!-- Las reservaciones se cargarán automáticamente aquí -->
-            </tbody>
-          </table>
+  <!-- Filtros -->
+  <div class="reservas-container">
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <input type="text" id="buscarReserva" class="reservas-input" placeholder="Buscar huésped / habitación...">
+      </div>
+      <div class="col-md-3">
+        <select id="filtroHabitacion" class="form-select" style="background:#1a1c22;color:#fff;border:1px solid #444;">
+          <option value="">Todas las habitaciones</option>
+          @foreach($habitaciones as $h)
+            <option value="{{ $h->id }}">Hab {{ $h->numero }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select id="filtroEstado" class="form-select" style="background:#1a1c22;color:#fff;border:1px solid #444;">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="activa">Activa</option>
+          <option value="completada">Completada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <!-- Rango de fechas con 2 inputs (De / A) -->
+        <div class="d-flex gap-2">
+          <input type="date" id="filtroDesde" class="form-control" style="background:#1a1c22;color:#fff;border:1px solid #444;">
+          <input type="date" id="filtroHasta" class="form-control" style="background:#1a1c22;color:#fff;border:1px solid #444;">
         </div>
       </div>
+    </div>
+
+    <!-- Pestañas Lista / Calendario -->
+    <div class="usuarios-tabs mb-3">
+      <button class="tab-button active" data-res-tab="lista">Listado</button>
+      <button class="tab-button" data-res-tab="calendario">Calendario</button>
+    </div>
+
+    <!-- LISTA -->
+    <div id="tab-res-lista" class="tab-content active">
+      <table class="tabla-reservas">
+        <thead>
+          <tr>
+            <th># Habitación</th>
+            <th>Huésped</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Estado</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="listaReservas"></tbody>
+      </table>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div id="tab-res-calendario" class="tab-content">
+      <div id="calendarioReservas" style="background:#1a1c22;border:1px solid #333;border-radius:10px;padding:10px;"></div>
+      <small class="text-muted d-block mt-2">*Arrastra/zoom con el calendario (mes/semana/día) para explorar.</small>
+    </div>
+  </div>
+</div>
 
             <!-- Sección: Habitaciones MEJORADA -->
       <div id="habitaciones" class="seccion">
@@ -1657,7 +1696,147 @@ window.addEventListener('click', function(e) {
     cerrarModalTarifa();
   }
 });
+
 </script>
-  
+
+
+
+<!-- FullCalendar + ES locale -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // --- Tabs Lista/Calendario
+  const tabBtns = document.querySelectorAll('[data-res-tab]');
+  const tabLista = document.getElementById('tab-res-lista');
+  const tabCal   = document.getElementById('tab-res-calendario');
+  tabBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tabBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      if (btn.dataset.resTab === 'lista') {
+        tabLista.classList.add('active');  tabCal.classList.remove('active');
+      } else {
+        tabCal.classList.add('active');    tabLista.classList.remove('active');
+        calendar.render(); // asegura render cuando se muestra
+      }
+    });
+  });
+
+  // --- Filtros/inputs
+  const buscarInput = document.getElementById('buscarReserva');
+  const selHab      = document.getElementById('filtroHabitacion');
+  const selEstado   = document.getElementById('filtroEstado');
+  const inpDesde    = document.getElementById('filtroDesde');
+  const inpHasta    = document.getElementById('filtroHasta');
+  const tbody       = document.getElementById('listaReservas');
+
+  // --- Cargar LISTA
+  async function cargarLista() {
+    const params = new URLSearchParams({
+      q: (buscarInput.value || '').trim(),
+      habitacion_id: selHab.value || '',
+      estado: selEstado.value || '',
+      desde: inpDesde.value || '',
+      hasta: inpHasta.value || ''
+    });
+    const res = await fetch(`{{ route('admin.reservas.list') }}?`+params.toString(), {headers:{'Accept':'application/json'}});
+    const json = await res.json();
+
+    const badge = (estado) => {
+      const map = {
+        pendiente:  'estado-pendiente',
+        confirmada: 'text-info fw-bold',
+        activa:     'estado-activa',
+        completada: 'text-secondary fw-bold',
+        cancelada:  'estado-finalizada'
+      };
+      const cls = map[estado] || 'text-muted';
+      return `<span class="${cls}">${(estado||'').charAt(0).toUpperCase()+estado.slice(1)}</span>`;
+    };
+
+    tbody.innerHTML = (json.items || []).map(r => `
+      <tr>
+        <td><strong>${r.habitacion ?? '-'}</strong></td>
+        <td>${r.huesped ?? '-'}</td>
+        <td>${r.check_in}</td>
+        <td>${r.check_out}</td>
+        <td>${badge(r.estado)}</td>
+        <td>$${r.precio}</td>
+      </tr>
+    `).join('') || `
+      <tr><td colspan="6" class="text-muted text-center py-3">Sin resultados</td></tr>
+    `;
+  }
+
+  [buscarInput, selHab, selEstado, inpDesde, inpHasta].forEach(el => {
+    el.addEventListener('input', () => { cargarLista(); calendar.refetchEvents(); });
+    el.addEventListener('change', () => { cargarLista(); calendar.refetchEvents(); });
+  });
+
+  // Inicial
+  cargarLista();
+
+  // --- CALENDARIO (FullCalendar)
+  const calendarEl = document.getElementById('calendarioReservas');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    height: 'auto',
+    locale: 'es',       // << español
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+    },
+    navLinks: true,
+    nowIndicator: true,
+    eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false },
+
+    // Pasa filtros actuales al backend cada vez que el calendario pida eventos
+    events: (info, success, failure) => {
+      const params = new URLSearchParams({
+        start: info.startStr,
+        end: info.endStr,
+        habitacion_id: selHab.value || '',
+        estado: selEstado.value || ''
+      });
+      fetch(`{{ route('admin.reservas.events') }}?`+params.toString(), {headers:{'Accept':'application/json'}})
+        .then(r => r.json())
+        .then(data => success(data))
+        .catch(err => failure(err));
+    },
+
+    eventDidMount: (arg) => {
+      // Tooltip simple
+      const p = arg.event.extendedProps;
+      arg.el.title = `${arg.event.title}\n${p.estado.toUpperCase()} · $${(p.precio||0).toFixed(2)}`;
+    },
+
+    // Opcional: click para ver detalle (puedes dirigir a una vista si quieres)
+    eventClick: (info) => {
+      const p = info.event.extendedProps;
+      alert(
+        `Reserva #${info.event.id}\n` +
+        `Habitación: ${p.habitacion}\n` +
+        `Huésped: ${p.huesped}\n` +
+        `Estado: ${p.estado}\n` +
+        `Entrada: ${info.event.startStr}\n` +
+        `Salida: ${info.event.endStr}\n` +
+        `Total: $${(p.precio||0).toFixed(2)}`
+      );
+    }
+  });
+
+  // Render diferido (cuando abras la pestaña Calendario)
+  // Si tu página abre con la pestaña de Reservas visible, puedes llamar aquí:
+  // calendar.render();
+});
+</script>
+
+
+
+
 </body>
 </html>
