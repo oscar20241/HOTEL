@@ -26,13 +26,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-9 3.75h10.5M9 21h6a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0015 3H9a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 009 21z" />
                         </svg>
                     </span>
-                    <span class="font-['Playfair_Display'] tracking-wide">Hotel PASA EL EXTRA Inn</span>
+                    <div class="flex items-center space-x-3">
+                        <img src={{ asset('img/logo.png')}} alt="Logo Hotel Pasa el Extra Inn" class="w-24 h-24 object-contain">
+                        <span style="font-family: 'Poppins', sans-serif;" class="font-bold text-2xl tracking-wide uppercase">
+                            Hotel Pasa el Extra INN
+                        </span>
+                        </div>
+
+
                 </a>
                 <div class="flex items-center gap-4">
                     @auth
                         <span class="hidden sm:inline text-sm text-slate-500">Hola, {{ Auth::user()->name }}</span>
                         @if (Auth::user()->esHuesped())
-                            <a href="{{ route('huesped.dashboard') }}#mis-reservas" class="hidden sm:inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                            <a href="{{ route('huesped.dashboard') }}#mis-reservas" class="hidden sm:inline-flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m6.75-2.25v12A2.25 2.25 0 0119.5 21H4.5A2.25 2.25 0 012.25 18V6A2.25 2.25 0 014.5 3.75h15A2.25 2.25 0 0121.75 6z" />
                                 </svg>

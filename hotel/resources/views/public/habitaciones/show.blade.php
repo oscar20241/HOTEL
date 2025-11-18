@@ -3,16 +3,9 @@
 @php
     use Illuminate\Support\Facades\Storage;
 
-    $tipo = $habitacion->tipoHabitacion;
     $imagenes = $habitacion->imagenes;
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
-
-    $habitacionesTipo = collect($tipo?->habitaciones ?? [$habitacion]);
-    $operativasTipo = $habitacionesTipo->filter(fn ($habitacionTipo) => $habitacionTipo->estado !== 'mantenimiento');
-    $disponiblesTipo = $habitacionesTipo->where('estado', 'disponible');
-    $capacidadMaxima = $tipo?->capacidad ?? $habitacion->capacidad;
-    $precioReferencia = $tipo?->precio_actual ?? $habitacion->precio_actual;
 @endphp
 
 @section('content')
@@ -21,45 +14,23 @@
         <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900/40"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div class="max-w-3xl space-y-4">
-                <p class="uppercase text-sm tracking-[0.3em] text-white/70">{{ $tipo?->nombre ?? 'Habitación' }}</p>
-                <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold">
-                    {{ $tipo?->nombre ? 'Colección ' . $tipo->nombre : 'Habitación ' . $habitacion->numero }}
-                </h1>
-                <p class="text-white/80 text-lg">
-                    @if ($habitacion->caracteristicas)
-                        {{ $habitacion->caracteristicas }}
-                    @else
-                        Disfruta de un ambiente sofisticado y acogedor diseñado para ofrecer descanso absoluto. Nuestra habitación ofrece acabados premium, ropa de cama hipoalergénica y servicios exclusivos para cada huésped.
-                    @endif
-                </p>
-                <p class="text-sm text-white/70">
-                    Habitación de referencia: {{ $habitacion->numero }} · Estado actual: {{ ucfirst($habitacion->estado) }}.
-                    Al reservar, te asignaremos automáticamente la mejor habitación disponible dentro de esta categoría.
-                </p>
+                <p class="uppercase text-sm tracking-[0.3em] text-white/70">{{ $habitacion->tipoHabitacion->nombre ?? 'Habitación' }}</p>
+                <h1 class="text-4xl sm:text-5xl font-bold font-semibold">Habitación {{ $habitacion->numero }}</h1>
+                @if ($habitacion->caracteristicas)
+                    <p class="text-white/80 text-lg">{{ $habitacion->caracteristicas }}</p>
+                @endif
                 <div class="flex flex-wrap items-center gap-6 pt-4">
                     <div>
-                        <p class="text-sm text-white/60">Tarifa desde</p>
+                        <p class="text-sm text-white/60">Tarifa actual</p>
                         <p class="text-3xl font-semibold">
-                            ${{ number_format($precioReferencia, 2) }}
+                            ${{ number_format($habitacion->precio_actual, 2) }}
                             <span class="text-base font-normal">MXN / noche</span>
                         </p>
                     </div>
-                    @php
-                        $estadoBadge = $disponiblesTipo->isNotEmpty() ? 'disponible' : ($operativasTipo->isEmpty() ? 'mantenimiento' : 'ocupada');
-                    @endphp
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-sm uppercase tracking-[0.2em]">
                         <span class="h-2.5 w-2.5 rounded-full
-                            {{ $estadoBadge === 'disponible' ? 'bg-emerald-400' : ($estadoBadge === 'mantenimiento' ? 'bg-amber-400' : 'bg-slate-300') }}"></span>
-                        @switch($estadoBadge)
-                            @case('disponible')
-                                Habitaciones disponibles
-                                @break
-                            @case('ocupada')
-                                Ocupadas en estas fechas
-                                @break
-                            @default
-                                En mantenimiento
-                        @endswitch
+                            {{ $habitacion->estado === 'disponible' ? 'bg-emerald-400' : ($habitacion->estado === 'mantenimiento' ? 'bg-amber-400' : 'bg-slate-300') }}"></span>
+                        {{ ucfirst($habitacion->estado) }}
                     </div>
                 </div>
             </div>
@@ -109,32 +80,26 @@
                 {{-- Detalles + Reserva --}}
                 <div class="space-y-8">
                     <div class="space-y-4">
-                        <h2 class="text-2xl font-semibold text-slate-900">Detalles de la categoría</h2>
+                        <h2 class="text-2xl font-semibold text-slate-900">Detalles de la habitación</h2>
                         <p class="text-slate-600 leading-relaxed">
-                            Selecciona tus fechas y nosotros nos encargamos de asignarte una habitación disponible dentro de esta categoría. Todas las opciones comparten el mismo estilo, amenidades y confort que ves en el ejemplo.
+                            Disfruta de un ambiente sofisticado y acogedor diseñado para ofrecer descanso absoluto. Nuestra habitación ofrece acabados premium, ropa de cama hipoalergénica y servicios exclusivos para cada huésped.
                         </p>
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div class="rounded-2xl bg-slate-50 p-4">
                                 <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Capacidad</p>
-                                <p class="mt-1 text-lg font-semibold text-slate-800">Hasta {{ $capacidadMaxima }} huésped{{ $capacidadMaxima === 1 ? '' : 'es' }}</p>
+                                <p class="mt-1 text-lg font-semibold text-slate-800">Hasta {{ $habitacion->capacidad }} huéspedes</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 p-4">
                                 <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Tipo</p>
-                                <p class="mt-1 text-lg font-semibold text-slate-800">{{ $tipo?->nombre ?? 'Habitación' }}</p>
+                                <p class="mt-1 text-lg font-semibold text-slate-800">{{ $habitacion->tipoHabitacion->nombre ?? 'Habitación' }}</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 p-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Habitaciones disponibles</p>
-                                <p class="mt-1 text-lg font-semibold text-slate-800">
-                                    @if ($operativasTipo->count())
-                                        {{ $disponiblesTipo->count() }} de {{ $operativasTipo->count() }} operativas
-                                    @else
-                                        No disponibles temporalmente
-                                    @endif
-                                </p>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Estado</p>
+                                <p class="mt-1 text-lg font-semibold capitalize text-slate-800">{{ $habitacion->estado }}</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 p-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Ejemplo mostrado</p>
-                                <p class="mt-1 text-lg font-semibold text-slate-800">Habitación {{ $habitacion->numero }}</p>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Número</p>
+                                <p class="mt-1 text-lg font-semibold text-slate-800">{{ $habitacion->numero }}</p>
                             </div>
                         </div>
                     </div>
@@ -183,19 +148,15 @@
                                 {{-- Formulario de reservación para huésped --}}
                                 <form action="{{ route('reservaciones.store') }}" method="POST" id="form-reserva" class="space-y-4">
                                     @csrf
-                                    @if ($tipo)
-                                        <input type="hidden" name="tipo_habitacion_id" value="{{ $tipo->id }}">
-                                    @else
-                                        <input type="hidden" name="habitacion_id" value="{{ $habitacion->id }}">
-                                    @endif
+                                    <input type="hidden" name="habitacion_id" value="{{ $habitacion->id }}">
                                     <div class="grid sm:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium text-indigo-900 mb-1">Personas</label>
                                             <input type="number" name="numero_huespedes" id="numero_huespedes"
-                                                   min="1" max="{{ $capacidadMaxima }}" value="{{ old('numero_huespedes', 1) }}"
+                                                   min="1" max="{{ $habitacion->capacidad }}" value="{{ old('numero_huespedes', 1) }}"
                                                    class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                                                   required>
-                                            <small class="text-indigo-900/70">Capacidad máx: {{ $capacidadMaxima }}</small>
+                                                   {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
+                                            <small class="text-indigo-900/70">Capacidad máx: {{ $habitacion->capacidad }}</small>
                                             @error('numero_huespedes') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                                         </div>
                                         <div>
@@ -203,7 +164,7 @@
                                             <input type="text" id="rango-fechas"
                                                    placeholder="Selecciona entrada y salida"
                                                    class="w-full rounded-xl border border-indigo-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                                                   required>
+                                                   {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }} required>
                                             <input type="hidden" name="fecha_entrada" id="fecha_entrada" value="{{ old('fecha_entrada') }}">
                                             <input type="hidden" name="fecha_salida" id="fecha_salida" value="{{ old('fecha_salida') }}">
                                             @error('fecha_entrada') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
@@ -232,7 +193,7 @@
                                         </div>
                                         <div class="rounded-2xl bg-white border border-indigo-100 p-4">
                                             <p class="text-xs uppercase tracking-[0.2em] text-indigo-500">Tarifa por noche</p>
-                                            <p class="mt-1 text-xl font-semibold text-indigo-900">${{ number_format($precioReferencia, 2) }} MXN</p>
+                                            <p class="mt-1 text-xl font-semibold text-indigo-900">${{ number_format($habitacion->precio_actual, 2) }} MXN</p>
                                         </div>
                                         <div class="rounded-2xl bg-white border border-indigo-100 p-4">
                                             <p class="text-xs uppercase tracking-[0.2em] text-indigo-500">Estimado total</p>
@@ -246,12 +207,9 @@
                                         @error('notas') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                                     </div>
 
-                                    @if ($tipo)
-                                        <p class="text-xs text-indigo-900/80">Asignaremos automáticamente una habitación {{ $tipo->nombre }} disponible al confirmar tu solicitud.</p>
-                                    @endif
-
                                     <div class="flex flex-wrap items-center gap-3">
-                                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
+                                            {{ $habitacion->estado === 'mantenimiento' ? 'disabled' : '' }}>
                                             Confirmar reservación
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -273,15 +231,12 @@
                                         </a>
                                     </div>
 
-                                    @if ($habitacion->estaEnMantenimiento())
+                                    @if ($habitacion->estado === 'mantenimiento')
                                         <p class="text-amber-700 bg-amber-100 border border-amber-200 rounded-xl px-3 py-2 text-sm inline-block">
                                             Esta habitación está en mantenimiento y no se puede reservar por ahora.
                                         </p>
                                     @endif
                                     @error('habitacion_id')
-                                        <div class="text-red-600 text-sm">{{ $message }}</div>
-                                    @enderror
-                                    @error('tipo_habitacion_id')
                                         <div class="text-red-600 text-sm">{{ $message }}</div>
                                     @enderror
                                 </form>
@@ -298,7 +253,7 @@
         <div class="bg-slate-900 rounded-3xl overflow-hidden">
             <div class="grid lg:grid-cols-2">
                 <div class="p-8 sm:p-12 space-y-4 text-white">
-                    <h2 class="text-3xl font-['Playfair_Display'] font-semibold">Servicios pensados para ti</h2>
+                    <h2 class="text-3xl  font-semibold">Servicios pensados para ti</h2>
                     <p class="text-white/70">Acceso al spa, gimnasio 24 horas, servicio a la habitación gourmet y concierge personalizado. Complementa tu estancia con experiencias únicas en la ciudad.</p>
                     <ul class="space-y-3 text-white/80 text-sm">
                         <li class="flex items-center gap-3">
@@ -428,8 +383,8 @@
                 return;
             }
 
-            let capacidadMax = {{ (int) $capacidadMaxima }};
-            const precioNoche = parseFloat('{{ number_format($precioReferencia, 2, '.', '') }}');
+            const capacidadMax = {{ (int) $habitacion->capacidad }};
+            const precioNoche = parseFloat('{{ number_format($habitacion->precio_actual, 2, '.', '') }}');
             const inpPersonas = document.getElementById('numero_huespedes');
             const nochesSpan = document.getElementById('noches');
             const precioSpan = document.getElementById('precio_estimado');
@@ -537,28 +492,12 @@
                 }
             };
 
-            const endpoint = @json($tipo
-                ? route('tipos-habitacion.disponibilidad', $tipo)
-                : route('habitaciones.disponibilidad', $habitacion));
+            const endpoint = @json(route('habitaciones.disponibilidad', $habitacion));
             const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
 
             fetch(endpoint)
                 .then((response) => (response.ok ? response.json() : Promise.reject()))
                 .then((data) => {
-                    if (typeof data.capacidad === 'number' && data.capacidad > 0) {
-                        capacidadMax = data.capacidad;
-                        if (inpPersonas) {
-                            inpPersonas.setAttribute('max', capacidadMax);
-                            let value = parseInt(inpPersonas.value || '1', 10);
-                            if (Number.isNaN(value) || value < 1) {
-                                value = 1;
-                            }
-                            if (value > capacidadMax) {
-                                value = capacidadMax;
-                            }
-                            inpPersonas.value = value;
-                        }
-                    }
                     inicializarCalendario(data.bloques || [], defaultRange);
                 })
                 .catch(() => {

@@ -46,26 +46,6 @@ class Habitacion extends Model
         return $this->hasMany(Reservacion::class);
     }
 
-    public function estadoNormalizado(): string
-    {
-        return Str::lower($this->estado ?? '');
-    }
-
-    public function estadoEs(string $estado): bool
-    {
-        return $this->estadoNormalizado() === Str::lower($estado);
-    }
-
-    public function estaEnMantenimiento(): bool
-    {
-        return $this->estadoEs('mantenimiento');
-    }
-
-    public function estaOperativa(): bool
-    {
-        return !$this->estaEnMantenimiento();
-    }
-
     public function estaDisponible($fechaEntrada, $fechaSalida, ?int $reservacionIgnorarId = null)
     {
         // No disponible si está en mantenimiento
