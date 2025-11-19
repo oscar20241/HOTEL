@@ -14,7 +14,7 @@ body {
 /* === SIDEBAR === */
 .sidebar {
   width: 260px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0);
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
@@ -90,7 +90,7 @@ body {
 
 /* === CONTENIDO PRINCIPAL === */
 .main-content {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0);
   backdrop-filter: blur(10px);
   padding: 20px;
   border-radius: 14px;
@@ -99,13 +99,13 @@ body {
 }
 
 .main-content h2 {
-  color: #5a2dff;
+  color: #3d1fa8;
   font-weight: bold;
 }
 
 /* === TARJETAS === */
 .info-card {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.148);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(150, 120, 255, 0.35);
   border-radius: 12px;

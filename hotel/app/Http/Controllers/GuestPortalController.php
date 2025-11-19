@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Habitacion;
+use App\Models\TipoHabitacion;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class GuestPortalController extends Controller
@@ -10,7 +12,7 @@ class GuestPortalController extends Controller
     /**
      * Display the guest dashboard with upcoming stays and reservations.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -26,9 +28,17 @@ class GuestPortalController extends Controller
             return redirect()->route('home');
         }
 
-        $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal'])
+        $tiposHabitacion = TipoHabitacion::with(['habitaciones' => function ($query) {
+                $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
+            }, 'tarifasDinamicas'])
+            ->orderBy('precio_base')
+            ->get();
+
+        $habitaciones = Habitacion::with(['tipoHabitacion', 'imagenPrincipal', 'imagenes'])
             ->orderBy('numero')
             ->get();
+
+        $tipoPreferidoId = null;
 
         $reservaciones = $user->reservaciones()
             ->with([
@@ -47,8 +57,10 @@ class GuestPortalController extends Controller
 
         return view('public.huesped.dashboard', [
             'habitaciones' => $habitaciones,
+            'tiposHabitacion' => $tiposHabitacion,
             'reservaciones' => $reservaciones,
             'proximaReservacion' => $proximaReservacion,
+            'tipoPreferidoId' => $tipoPreferidoId,
         ]);
     }
 }

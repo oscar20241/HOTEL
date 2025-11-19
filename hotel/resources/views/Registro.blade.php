@@ -24,7 +24,7 @@
                     </span>
                     ¿Ya tienes cuenta?
                 </a>
-                <h1 class="text-4xl font-bold text-white">Regístrate y vive la experiencia en PASA EL EXTRA Inn</h1>
+                <h1 class="text-4xl font-['Playfair_Display'] text-white">Regístrate y vive la experiencia PASA EL EXTRA Inn</h1>
                 <p class="text-base text-white/70 max-w-md">Completa tus datos para reservar de manera más ágil, recibir recomendaciones personalizadas y acceder a beneficios exclusivos para huéspedes frecuentes.</p>
                 <div class="flex flex-wrap gap-4 text-sm text-white/70">
                     <div class="flex items-center gap-2">
@@ -60,7 +60,7 @@
                 <div class="flex items-center gap-3 mb-6">
                     <img src="{{ asset('/img/logo.png') }}" alt="Hotel PASA EL EXTRA Inn" class="h-12">
                     <div>
-                        <p class="text-xs uppercase tracking-[0.4em] text-white/60">HOTEL PASA EL EXTRA Inn</p>
+                        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Hotel PASA EL EXTRA Inn</p>
                         <p class="text-lg font-semibold text-white">Registro de huéspedes</p>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
                         <div>
                             <label for="fecha_nacimiento" class="block text-sm font-semibold text-white/70">Fecha de nacimiento</label>
                             <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" max="{{ \Carbon\Carbon::now()->subYears(18)->toDateString() }}" required class="mt-2 w-full rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-indigo-400">
-                            <p class="mt-2 text-xs text-white/60">Debes ser mayor de edad para registrarte en HOTEL PASA EL EXTRA Inn.</p>
+                            <p class="mt-2 text-xs text-white/60">Debes ser mayor de edad para registrarte en Hotel PASA EL EXTRA Inn.</p>
                         </div>
                     </div>
                     <div>
