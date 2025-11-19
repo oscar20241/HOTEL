@@ -23,7 +23,8 @@ class Reservacion extends Model
     'numero_huespedes',
     'estado',
     'precio_total',
-    'notas'
+    'notas',
+    'metodo_pago'
 ];
 
 
