@@ -33,8 +33,6 @@
         <a href="#" class="nav-link active" data-target="inicio"><i class="fas fa-home"></i> Inicio</a>
          <a href="#" class="nav-link" data-target="nueva-reserva"><i class="fas fa-plus-circle"></i> Nueva Reservación</a>
         <a href="#" class="nav-link" data-target="reservas"><i class="fas fa-calendar-day"></i> Reservaciones del Día</a>
-        <a href="#" class="nav-link" data-target="checkin"><i class="fas fa-sign-in-alt"></i> Check-In</a>
-        <a href="#" class="nav-link" data-target="checkout"><i class="fas fa-sign-out-alt"></i> Check-Out</a>
         <a href="#" class="nav-link text-danger mt-auto" data-target="cerrar"><i class="fas fa-door-open"></i> Cerrar sesión</a>
       </nav>
     </aside>
@@ -258,39 +256,6 @@
         </div>
       </div>
 
-      <div id="checkin" class="seccion">
-  <h2>Check-In</h2>
-  <form class="row g-3 mt-3" id="formCheckIn">
-    <div class="col-md-6">
-      <input type="text" name="codigo_reserva" class="form-control"
-             placeholder="Código de reserva" required />
-    </div>
-    <div class="col-12">
-      <button class="btn btn-primary" type="submit">
-        <i class="fas fa-check"></i> Registrar
-      </button>
-    </div>
-  </form>
-</div>
-
-
-      <div id="checkout" class="seccion">
-        <h2>Check-Out</h2>
-        <p>Procesa la salida de huéspedes y libera habitaciones.</p>
-        <div class="checkout-container">
-          <input 
-            type="text" 
-            id="roomNumber" 
-            class="checkout-input" 
-            placeholder="Buscar número de habitación..."
-          />
-          <div class="checkout-buttons">
-            <button class="btn-liberar">Liberar Habitación</button>
-            <button class="btn-checkout">Confirmar Check-Out</button>
-          </div>
-        </div>
-      </div>
-
       <div id="cerrar" class="seccion">
         <h2>Cerrar sesión</h2>
         <p>¿Estás seguro que deseas salir?</p>
@@ -309,6 +274,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    const csrfToken = '{{ csrf_token() }}';
     // Navegación entre secciones
     const links = document.querySelectorAll('.nav-link');
     const secciones = document.querySelectorAll('.seccion');
@@ -416,7 +382,7 @@
     function mostrarReservasEnTabla(reservas) {
       const tbody = document.getElementById('cuerpoTablaReservas');
       tbody.innerHTML = '';
-      
+
       if (reservas.length === 0) {
         tbody.innerHTML = `
           <tr>
@@ -439,12 +405,17 @@
           <td>${reserva.checkout}</td>
           <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
           <td>
-            <button class="btn btn-sm btn-outline-primary" title="Ver detalles">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-success" title="Check-In">
-              <i class="fas fa-sign-in-alt"></i>
-            </button>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-primary" title="Ver detalles">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button type="button" class="btn btn-outline-success" title="Check-In" data-action="checkin" data-codigo="${codigo}" ${checkinDisabled}>
+                <i class="fas fa-sign-in-alt"></i>
+              </button>
+              <button type="button" class="btn btn-outline-danger" title="Check-Out" data-action="checkout" data-codigo="${codigo}" ${checkoutDisabled}>
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -568,51 +539,60 @@
       throw new Error(data.message || 'Error al registrar el check-in');
     }
 
-    mostrarToast(data.message, 'success');
-    // Opcional: refrescar tarjetas / tabla
-    // location.reload();
-  } catch (err) {
-    mostrarToast(err.message, 'error');
-  }
-});
 
+    const tablaReservas = document.getElementById('tablaReservasDia');
+    const actionEndpoints = {
+      checkin: "{{ route('recepcion.checkin') }}",
+      checkout: "{{ route('recepcion.checkout') }}"
+    };
 
-document.querySelector('.btn-checkout')?.addEventListener('click', async function() {
-  const codigo = document.getElementById('roomNumber').value; // o pon otro input solo para código
+    tablaReservas?.addEventListener('click', function(event) {
+      const boton = event.target.closest('button[data-action]');
+      if (!boton) return;
 
-  if (!codigo) {
-    mostrarToast('Ingresa el código de reserva', 'warning');
-    return;
-  }
+      const accion = boton.dataset.action;
+      const codigo = boton.dataset.codigo;
 
-  try {
-    const res = await fetch("{{ route('recepcion.checkout') }}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ codigo_reserva: codigo })
+      if (!codigo) {
+        mostrarToast('La reserva no tiene un código asignado.', 'warning');
+        return;
+      }
+
+      ejecutarAccionReserva(accion, codigo, boton);
     });
 
-    const data = await res.json();
+    async function ejecutarAccionReserva(accion, codigo, boton) {
+      if (!actionEndpoints[accion]) return;
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Error al registrar el check-out');
+      boton.disabled = true;
+      boton.classList.add('disabled');
+
+      try {
+        const res = await fetch(actionEndpoints[accion], {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ codigo_reserva: codigo })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo completar la acción');
+        }
+
+        mostrarToast(data.message, 'success');
+        cargarReservasDelDia();
+      } catch (err) {
+        mostrarToast(err.message, 'error');
+      } finally {
+        boton.disabled = false;
+        boton.classList.remove('disabled');
+      }
     }
-
-    mostrarToast(data.message, 'success');
-  } catch (err) {
-    mostrarToast(err.message, 'error');
-  }
-});
-
-
-
-
-
-
 
 
   </script>
