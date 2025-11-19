@@ -67,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
         }
 
         if ($user->esRecepcionista()) {
-            return redirect()->route('home');
+            return redirect()->route('recepcion.dashboard');
         }
 
         return redirect()->route('huesped.dashboard');
@@ -115,10 +115,12 @@ Route::middleware(['auth', 'empleado.activo'])->group(function () {
     Route::delete('/gerente/tarifas/{id}', [AdminUserController::class, 'destroyTarifa'])->name('gerente.tarifas.destroy');
 });
 
-// Rutas de recepcionista con verificación de estado Y rol
-Route::prefix('recepcion')->middleware(['auth', 'empleado.activo', 'es.recepcionista'])->group(function () {
-    // ... tus rutas de recepcionista (si las tienes)
-});
+
+
+
+
+
+
 
 // Rutas para huéspedes (sin verificación de estado de empleado)
 Route::middleware(['auth'])->group(function () {
@@ -141,3 +143,29 @@ Route::middleware(['auth']) // agrega tu middleware/role si aplica
         Route::get('/reservas/events', [AdminReservasController::class, 'apiEvents'])->name('reservas.events'); // eventos calendario JSON
     });
 
+// =======================
+// RUTAS RECEPCIONISTA
+// =======================
+Route::middleware(['auth', 'empleado.activo', 'es.recepcionista'])
+    ->prefix('recepcion')
+    ->name('recepcion.')
+    ->group(function () {
+        // Dashboard del recepcionista
+        Route::get('/', [RecepcionistaController::class, 'dashboard'])
+            ->name('dashboard');
+
+        // Guardar nueva reservación desde el formulario
+        Route::post('/reservas', [RecepcionistaController::class, 'storeReserva'])
+            ->name('reservas.store');
+
+        // Check-in / Check-out (cuando los tengas listos)
+        Route::post('/checkin',  [RecepcionistaController::class, 'hacerCheckin'])
+            ->name('checkin');
+
+        Route::post('/checkout', [RecepcionistaController::class, 'hacerCheckout'])
+            ->name('checkout');
+
+        // Filtro de ocupación
+        Route::get('/ocupacion', [RecepcionistaController::class, 'filtrarOcupacion'])
+            ->name('ocupacion');
+    });
