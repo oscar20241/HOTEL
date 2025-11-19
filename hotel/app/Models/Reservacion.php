@@ -12,17 +12,20 @@ class Reservacion extends Model
     
     protected $table = 'reservaciones';
 
-    protected $fillable = [
-        'codigo_reserva',
-        'user_id',
-        'habitacion_id',
-        'fecha_entrada',
-        'fecha_salida',
-        'numero_huespedes',
-        'estado',
-        'precio_total',
-        'notas'
-    ];
+   protected $fillable = [
+    'codigo_reserva',
+    'user_id',
+    'habitacion_id',
+    'fecha_entrada',
+    'fecha_salida',
+    'fecha_checkin',      // 👈 nuevo
+    'fecha_checkout',     // 👈 nuevo
+    'numero_huespedes',
+    'estado',
+    'precio_total',
+    'notas'
+];
+
 
     protected $casts = [
         'fecha_entrada' => 'date',

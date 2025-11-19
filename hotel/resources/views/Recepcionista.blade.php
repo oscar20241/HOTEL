@@ -84,70 +84,141 @@
           </div>
           
           <div class="col-md-6">
-            <div class="card info-card">
-              <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-calendar-day text-warning"></i> Reservas Pendientes</h5>
-                <p class="card-text fs-4" id="reservasPendientes">0</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card info-card">
-              <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-bed text-warning"></i> Habitaciones Disponibles</h5>
-                <p class="card-text fs-4" id="habitacionesDisponibles">0</p>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="card info-card">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="fas fa-calendar-day text-warning"></i> Reservas Pendientes
+      </h5>
+      <p class="card-text fs-4" id="reservasPendientes">
+        {{ $reservasPendientes ?? 0 }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="col-md-6">
+  <div class="card info-card">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="fas fa-bed text-warning"></i> Habitaciones Disponibles
+      </h5>
+      <p class="card-text fs-4" id="habitacionesDisponibles">
+        {{ $habitacionesDisponibles ?? 0 }}
+      </p>
+    </div>
+  </div>
+</div>
       </div>
-      
+      </div>
       <div id="nueva-reserva" class="seccion">
         <h2><i class="fas fa-plus-circle text-warning"></i> Generar Nueva Reservación</h2>
         <p>Completa el formulario para registrar una nueva reserva.</p>
+        @if ($errors->any())
+  <div class="alert alert-danger">
+    <ul class="mb-0">
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+  </div>
+@endif
+
+@if (session('success'))
+  <div class="alert alert-success">
+    {{ session('success') }}
+  </div>
+@endif
 
         <div class="card mt-4 p-3 shadow-sm">
           <h5 class="mb-3"><i class="fas fa-edit text-warning"></i> Formulario de Registro</h5>
-          <form class="row g-3" id="formNuevaReserva">
-            <div class="col-md-6">
-              <label class="form-label">Nombre del Huésped:</label>
-              <input type="text" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Fecha de Entrada:</label>
-              <input type="date" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Fecha de Salida:</label>
-              <input type="date" class="form-control" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Tipo de Habitación:</label>
-              <select class="form-select" required>
-                <option value="">Seleccione...</option>
-                <option>Individual</option>
-                <option>Doble</option>
-                <option>Suite</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Personas:</label>
-              <input type="number" class="form-control" min="1" max="8" placeholder="Ej. 2" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Teléfono:</label>
-              <input type="tel" class="form-control" placeholder="Ej. 555-1234" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Comentarios o Solicitudes Especiales:</label>
-              <textarea class="form-control" rows="2" placeholder="Ej. Solicita cama adicional..."></textarea>
-            </div>
-            <div class="col-12 text-end mt-3">
-              <button type="submit" class="btn btn-warning text-dark fw-semibold">
-                <i class="fas fa-save"></i> Guardar Reservación
-              </button>
-            </div>
-          </form>
+          <form class="row g-3" id="formNuevaReserva"
+      method="POST"
+      action="{{ route('recepcion.reservas.store') }}">
+    @csrf
+
+    {{-- Huésped --}}
+    <div class="col-md-6">
+      <label class="form-label">Huésped:</label>
+      <select name="user_id" class="form-select" required>
+        <option value="">Seleccione huésped...</option>
+        @foreach($huespedes as $huesped)
+          <option value="{{ $huesped->id }}" {{ old('user_id') == $huesped->id ? 'selected' : '' }}>
+            {{ $huesped->name }} ({{ $huesped->email }})
+          </option>
+        @endforeach
+      </select>
+    </div>
+
+    {{-- Fecha de entrada --}}
+    <div class="col-md-3">
+      <label class="form-label">Fecha de Entrada:</label>
+      <input type="date" name="fecha_checkin"
+             class="form-control"
+             value="{{ old('fecha_checkin') }}"
+             required>
+    </div>
+
+    {{-- Fecha de salida --}}
+    <div class="col-md-3">
+      <label class="form-label">Fecha de Salida:</label>
+      <input type="date" name="fecha_checkout"
+             class="form-control"
+             value="{{ old('fecha_checkout') }}"
+             required>
+    </div>
+
+    {{-- Tipo de habitación --}}
+    <div class="col-md-6">
+      <label class="form-label">Tipo de Habitación:</label>
+      <select name="tipo_habitacion_id" class="form-select" required>
+        <option value="">Seleccione...</option>
+        @foreach($tiposHabitacion as $tipo)
+          <option value="{{ $tipo->id }}" {{ old('tipo_habitacion_id') == $tipo->id ? 'selected' : '' }}>
+            {{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}
+          </option>
+        @endforeach
+      </select>
+    </div>
+
+    {{-- Adultos --}}
+    <div class="col-md-3">
+      <label class="form-label">Adultos:</label>
+      <input type="number" name="adultos" class="form-control"
+             min="1" max="8"
+             value="{{ old('adultos', 1) }}" required>
+    </div>
+
+    {{-- Niños --}}
+    <div class="col-md-3">
+      <label class="form-label">Niños:</label>
+      <input type="number" name="ninos" class="form-control"
+             min="0" max="8"
+             value="{{ old('ninos', 0) }}">
+    </div>
+
+    {{-- Teléfono --}}
+    <div class="col-md-6">
+      <label class="form-label">Teléfono de contacto:</label>
+      <input type="tel" name="telefono"
+             class="form-control"
+             placeholder="Ej. 322-555-1234"
+             value="{{ old('telefono') }}">
+    </div>
+
+    {{-- Comentarios --}}
+    <div class="col-12">
+      <label class="form-label">Comentarios o Solicitudes Especiales:</label>
+      <textarea name="notas" class="form-control" rows="2"
+                placeholder="Ej. Solicita cama adicional...">{{ old('notas') }}</textarea>
+    </div>
+
+    <div class="col-12 text-end mt-3">
+      <button type="submit" class="btn btn-warning text-dark fw-semibold">
+        <i class="fas fa-save"></i> Guardar Reservación
+      </button>
+    </div>
+</form>
+
         </div>
       </div>
       
@@ -188,19 +259,20 @@
       </div>
 
       <div id="checkin" class="seccion">
-        <h2>Check-In</h2>
-        <form class="row g-3 mt-3" id="formCheckIn">
-          <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Nombre del huésped" required />
-          </div>
-          <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Número de habitación" required />
-          </div>
-          <div class="col-12">
-            <button class="btn btn-primary" type="submit"><i class="fas fa-check"></i> Registrar</button>
-          </div>
-        </form>
-      </div>
+  <h2>Check-In</h2>
+  <form class="row g-3 mt-3" id="formCheckIn">
+    <div class="col-md-6">
+      <input type="text" name="codigo_reserva" class="form-control"
+             placeholder="Código de reserva" required />
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary" type="submit">
+        <i class="fas fa-check"></i> Registrar
+      </button>
+    </div>
+  </form>
+</div>
+
 
       <div id="checkout" class="seccion">
         <h2>Check-Out</h2>
@@ -255,9 +327,7 @@
           // Cargar datos cuando se muestre la sección de reservas
           if (targetId === 'reservas') {
             cargarReservasDelDia();
-          } else if (targetId === 'inicio') {
-            cargarEstadisticasInicio();
-          }
+          } 
         }
       });
     });
@@ -377,40 +447,35 @@
     }
 
     // Filtrado de ocupación
-    document.getElementById('btnFiltrar').addEventListener('click', () => {
-      const inicio = document.getElementById('fechaInicio').value;
-      const fin = document.getElementById('fechaFin').value;
-      const resultadosDiv = document.getElementById('resultadosFiltro');
 
-      if (!inicio || !fin) {
+    document.getElementById('btnFiltrar').addEventListener('click', () => {
+    const inicio = document.getElementById('fechaInicio').value;
+    const fin = document.getElementById('fechaFin').value;
+
+    if (!inicio || !fin) {
         mostrarToast('Por favor selecciona ambas fechas.', 'warning');
         return;
-      }
+    }
 
-      const tbody = document.querySelector('#tablaOcupacion tbody');
-      
-      // Mostrar indicador de carga
-      tbody.innerHTML = `
+    const tbody = document.querySelector('#tablaOcupacion tbody');
+    const resultadosDiv = document.getElementById('resultadosFiltro');
+
+    tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="text-center text-muted py-4">
+          <td colspan="5" class="text-center py-3 text-muted">
             <i class="fas fa-spinner fa-spin me-2"></i>Buscando ocupación...
           </td>
         </tr>
-      `;
-      
-      resultadosDiv.style.display = 'block';
+    `;
 
-      // Simular búsqueda
-      setTimeout(() => {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="text-center text-muted py-4">
-              <i class="fas fa-search me-2"></i>No se encontraron resultados para el rango de fechas seleccionado
-            </td>
-          </tr>
-        `;
-      }, 1000);
-    });
+    resultadosDiv.style.display = 'block';
+
+    fetch(`/recepcion/ocupacion?inicio=${inicio}&fin=${fin}`)
+        .then(res => res.json())
+        .then(data => mostrarResultadosOcupacion(data))
+        .catch(() => mostrarToast('Error al obtener la ocupación.', 'error'));
+});
+
 
     // Función para mostrar los resultados de ocupación
     function mostrarResultadosOcupacion(resultados) {
@@ -442,13 +507,7 @@
       });
     }
 
-    // Función para cargar estadísticas en la sección de inicio
-    function cargarEstadisticasInicio() {
-      // Aquí deberías hacer una llamada AJAX a tu backend para obtener las estadísticas
-      // Por ahora, solo valores de ejemplo
-      document.getElementById('reservasPendientes').textContent = '5';
-      document.getElementById('habitacionesDisponibles').textContent = '12';
-    }
+   
 
     // Agregar funcionalidad a los botones de checkout
     document.querySelector('.btn-liberar')?.addEventListener('click', function() {
@@ -471,12 +530,7 @@
       // Aquí iría la lógica para procesar el check-out
     });
 
-    // Manejo de formularios
-    document.getElementById('formNuevaReserva')?.addEventListener('submit', function(e) {
-      e.preventDefault();
-      mostrarToast('Reservación guardada exitosamente', 'success');
-      // Aquí iría la lógica para guardar la reservación
-    });
+
 
     document.getElementById('formCheckIn')?.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -492,6 +546,81 @@
         cargarEstadisticasInicio();
       }
     });
+
+
+    document.getElementById('formCheckIn')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const codigo = this.querySelector('input[name="codigo_reserva"]').value;
+
+  if (!codigo) {
+    mostrarToast('Ingresa el código de reserva', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch("{{ route('recepcion.checkin') }}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ codigo_reserva: codigo })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Error al registrar el check-in');
+    }
+
+    mostrarToast(data.message, 'success');
+    // Opcional: refrescar tarjetas / tabla
+    // location.reload();
+  } catch (err) {
+    mostrarToast(err.message, 'error');
+  }
+});
+
+
+document.querySelector('.btn-checkout')?.addEventListener('click', async function() {
+  const codigo = document.getElementById('roomNumber').value; // o pon otro input solo para código
+
+  if (!codigo) {
+    mostrarToast('Ingresa el código de reserva', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch("{{ route('recepcion.checkout') }}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ codigo_reserva: codigo })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Error al registrar el check-out');
+    }
+
+    mostrarToast(data.message, 'success');
+  } catch (err) {
+    mostrarToast(err.message, 'error');
+  }
+});
+
+
+
+
+
+
+
+
   </script>
 </body>
 </html>
