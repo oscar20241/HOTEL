@@ -10,8 +10,8 @@
         <div class="absolute inset-0 opacity-40" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'); background-size: cover; background-position: center;"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col lg:flex-row gap-10 items-center">
             <div class="lg:w-1/2 space-y-6">
-                <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a Hotel PASA EL EXTRA Inn</p>
-                <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold leading-tight">Elige la categoría perfecta para tu estancia</h1>
+                <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a HOTEL PASA EL EXTRA INN</p>
+                <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">Elige la categoría perfecta para tu estancia</h1>
                 <p class="text-white/80 text-lg">Descubre nuestras suites, habitaciones dobles y opciones ejecutivas. Tú seleccionas el tipo de habitación y nosotros asignamos la mejor opción disponible para tus fechas.</p>
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="#categorias" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-indigo-700 font-semibold shadow-lg shadow-indigo-900/30 hover:bg-slate-100 transition">
@@ -30,7 +30,7 @@
             </div>
             <div class="lg:w-1/2 grid grid-cols-2 gap-4">
                 <div class="row-span-2 rounded-3xl overflow-hidden shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1590490359854-dfba19688d73?auto=format&fit=crop&w=800&q=80" alt="Suite principal" class="h-full w-full object-cover">
+                    <img src="{{ asset('img/suite_principal.png') }}" alt="Suite principal" class="h-full w-full object-cover">
                 </div>
                 <div class="rounded-3xl overflow-hidden shadow-2xl">
                     <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80" alt="Lobby" class="h-full w-full object-cover">
@@ -45,7 +45,7 @@
     <section id="categorias" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <div>
-                <h2 class="text-3xl font-['Playfair_Display'] font-semibold text-slate-900">Nuestras categorías de habitación</h2>
+                <h2 class="text-3xl font-semibold text-slate-900">Descubre nuestra categorías de habitaciones</h2>
                 <p class="mt-3 text-slate-500">Selecciona el tipo que más te guste. Confirmaremos una habitación disponible dentro de esa categoría para tus fechas.</p>
             </div>
             <div class="flex items-center gap-3 text-sm text-slate-500">
@@ -106,7 +106,7 @@
                 @endphp
                 <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition-transform">
                     <div class="relative h-56">
-                        <img src="{{ $imagenUrl }}" alt="{{ $tipo->nombre }}" class="absolute inset-0 w-full h-full object-cover">
+                        <img src="{{ asset('img/habitacion_sencilla.jpg') }}" alt="{{ $tipo->nombre }}" class="absolute inset-0 w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/10 to-transparent"></div>
                         <div class="absolute inset-x-0 bottom-0 p-5 text-white flex items-end justify-between">
                             <div>
@@ -184,7 +184,7 @@
 
     <section id="cta-reservar" class="bg-slate-900 text-white py-16">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <h2 class="text-3xl font-['Playfair_Display']">¿Listo para reservar?</h2>
+            <h2 class="text-3xl font-bold">¿Listo para reservar?</h2>
             <p class="text-sm text-white/70">Inicia sesión como huésped para solicitar una reservación por categoría o crea una cuenta nueva para comenzar.</p>
             <div class="flex flex-wrap justify-center gap-4">
                 @auth
