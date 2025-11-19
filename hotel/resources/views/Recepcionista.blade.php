@@ -152,18 +152,18 @@
     {{-- Fecha de entrada --}}
     <div class="col-md-3">
       <label class="form-label">Fecha de Entrada:</label>
-      <input type="date" name="fecha_checkin"
+      <input type="date" name="fecha_entrada"
              class="form-control"
-             value="{{ old('fecha_checkin') }}"
+             value="{{ old('fecha_entrada') }}"
              required>
     </div>
 
     {{-- Fecha de salida --}}
     <div class="col-md-3">
       <label class="form-label">Fecha de Salida:</label>
-      <input type="date" name="fecha_checkout"
+      <input type="date" name="fecha_salida"
              class="form-control"
-             value="{{ old('fecha_checkout') }}"
+             value="{{ old('fecha_salida') }}"
              required>
     </div>
 
@@ -385,7 +385,7 @@
     // Función para cargar reservas del día desde la base de datos
     function cargarReservasDelDia() {
       const tbody = document.getElementById('cuerpoTablaReservas');
-      
+
       // Mostrar indicador de carga
       tbody.innerHTML = `
         <tr>
@@ -394,17 +394,22 @@
           </td>
         </tr>
       `;
-      
-      // Simular carga de datos
-      setTimeout(() => {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center text-muted py-4">
-              <i class="fas fa-calendar-times me-2"></i>No hay reservas para hoy
-            </td>
-          </tr>
-        `;
-      }, 1000);
+
+      fetch("{{ route('recepcion.reservas-dia') }}", {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(data => mostrarReservasEnTabla(data))
+        .catch(() => {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center text-danger py-4">
+                <i class="fas fa-times-circle me-2"></i>Error al cargar reservas
+              </td>
+            </tr>`;
+        });
     }
 
     // Función para mostrar las reservas en la tabla
@@ -424,10 +429,10 @@
       }
 
       reservas.forEach(reserva => {
-        const badgeClass = reserva.estado === 'Confirmada' ? 'bg-success' : 'bg-warning';
+        const badgeClass = ['Confirmada', 'Activa'].includes(reserva.estado) ? 'bg-success' : 'bg-warning';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>${reserva.id}</strong></td>
+          <td><strong>${reserva.codigo ?? reserva.id}</strong></td>
           <td>${reserva.huesped}</td>
           <td><span class="badge bg-primary">${reserva.habitacion}</span></td>
           <td>${reserva.checkin}</td>
@@ -470,7 +475,7 @@
 
     resultadosDiv.style.display = 'block';
 
-    fetch(`/recepcion/ocupacion?inicio=${inicio}&fin=${fin}`)
+    fetch(`{{ route('recepcion.ocupacion') }}?inicio=${inicio}&fin=${fin}`)
         .then(res => res.json())
         .then(data => mostrarResultadosOcupacion(data))
         .catch(() => mostrarToast('Error al obtener la ocupación.', 'error'));
@@ -520,24 +525,6 @@
       // Aquí iría la lógica para liberar la habitación
     });
 
-    document.querySelector('.btn-checkout')?.addEventListener('click', function() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      if (!roomNumber) {
-        mostrarToast('Por favor ingresa un número de habitación', 'warning');
-        return;
-      }
-      mostrarToast(`Check-out confirmado para habitación ${roomNumber}`, 'success');
-      // Aquí iría la lógica para procesar el check-out
-    });
-
-
-
-    document.getElementById('formCheckIn')?.addEventListener('submit', function(e) {
-      e.preventDefault();
-      mostrarToast('Check-in registrado exitosamente', 'success');
-      // Aquí iría la lógica para registrar el check-in
-    });
-
     // Cargar datos al iniciar si estamos en esa sección
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('reservas').classList.contains('visible')) {
@@ -546,6 +533,13 @@
         cargarEstadisticasInicio();
       }
     });
+
+    function cargarEstadisticasInicio() {
+      // Los valores iniciales ya vienen renderizados por Blade, pero
+      // mantenemos la función para evitar errores en consola y permitir
+      // futuras mejoras sin modificar la vista.
+      return true;
+    }
 
 
     document.getElementById('formCheckIn')?.addEventListener('submit', async function(e) {
