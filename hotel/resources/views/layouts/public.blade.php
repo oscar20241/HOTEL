@@ -26,7 +26,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-9 3.75h10.5M9 21h6a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0015 3H9a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 009 21z" />
                         </svg>
                     </span>
-                    <span class="font-['Playfair_Display'] tracking-wide">Hotel PASA EL EXTRA Inn</span>
+                    <span class="font-semibold tracking-wide">HOTEL PASA EL EXTRA INN</span>
                 </a>
                 <div class="flex items-center gap-4">
                     @auth
@@ -79,7 +79,7 @@
     <footer class="bg-slate-900 text-slate-200 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid gap-8 md:grid-cols-3">
             <div>
-                <h3 class="text-lg font-semibold mb-3">Hotel PASA EL EXTRA Inn</h3>
+                <h3 class="text-lg font-semibold mb-3">HOTEL PASA EL EXTRA INN</h3>
                 <p class="text-sm text-slate-400">Vive una experiencia inolvidable en el corazón de la ciudad. Habitaciones elegantes, servicio de primera y amenidades pensadas para tu descanso.</p>
             </div>
             <div>
