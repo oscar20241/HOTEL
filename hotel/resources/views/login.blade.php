@@ -24,8 +24,12 @@
                     </span>
                     Regresar al inicio
                 </a>
-                <h1 class="text-4xl font-['Playfair_Display'] text-white">Tu estadía comienza aquí</h1>
-                <p class="text-base text-white/70 max-w-md">Accede a tu cuenta para gestionar reservaciones, actualizar tus datos y descubrir experiencias diseñadas para ti en Hotel PASA EL EXTRA Inn.</p>
+               <h1 class="text-4xl font-bold text-white">Tu estadía comienza aquí</h1>
+                <img src="{{ asset('img/logo.png') }}" alt="Imagen" class="w-40 h-40 object-cover">
+                <p class="text-base text-white/70 max-w-md">
+                    Accede a tu cuenta para gestionar reservaciones, actualizar tus datos y descubrir experiencias diseñadas para ti en Hotel PASA EL EXTRA Inn.
+                </p>
+
             </div>
 
             <div class="flex-1 max-w-lg w-full">
@@ -65,9 +69,9 @@
                             <label for="password" class="block text-sm font-semibold text-white/70">Contraseña</label>
                             <input type="password" id="password" name="password" required placeholder="••••••••" class="mt-2 w-full rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-indigo-400">
                         </div>
-                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition">
+                      <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 3.75l-.666 1.995M5.25 9h13.5m-.906 11.25l-.666-1.995M7.5 21l-.666-1.995m6.816-15.255l.666 1.995m2.95 9.51l.666 1.995M12 6.75v9" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3.75 3.75L12 16.5" />
                             </svg>
                             Iniciar sesión
                         </button>

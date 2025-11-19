@@ -39,9 +39,7 @@
         <a href="#" class="nav-link" data-target="reportes">
           <i class="fas fa-chart-bar"></i> Reportes
         </a>
-        <a href="#" class="nav-link text-danger mt-auto" data-target="cerrar">
-          <i class="fas fa-power-off"></i> Cerrar sesión
-        </a>
+        <a href="#" class="nav-link text-danger mt-auto" data-target="cerrar"><i class="fas fa-door-open"></i> Cerrar sesión</a>
       </nav>
     </aside>
 
@@ -135,28 +133,29 @@
         <input type="text" id="buscarReserva" class="reservas-input" placeholder="Buscar huésped / habitación...">
       </div>
       <div class="col-md-3">
-        <select id="filtroHabitacion" class="form-select" style="background:#1a1c22;color:#fff;border:1px solid #444;">
+        <select id="filtroHabitacion" class="filtro-input" style="background:#fffff;color:#1a1c22;border:1px solid #5f0fc1ff;">
           <option value="">Todas las habitaciones</option>
           @foreach($habitaciones as $h)
             <option value="{{ $h->id }}">Hab {{ $h->numero }}</option>
           @endforeach
         </select>
       </div>
-      <div class="col-md-3">
-        <select id="filtroEstado" class="form-select" style="background:#1a1c22;color:#fff;border:1px solid #444;">
-          <option value="">Todos los estados</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="confirmada">Confirmada</option>
-          <option value="activa">Activa</option>
-          <option value="completada">Completada</option>
-          <option value="cancelada">Cancelada</option>
-        </select>
-      </div>
+<div class="col-md-3">
+  <select id="filtroEstado" class="filtro-input">
+    <option value="">Todos los estados</option>
+    <option value="pendiente">Pendiente</option>
+    <option value="confirmada">Confirmada</option>
+    <option value="activa">Activa</option>
+    <option value="completada">Completada</option>
+    <option value="cancelada">Cancelada</option>
+  </select>
+</div>
+
       <div class="col-md-3">
         <!-- Rango de fechas con 2 inputs (De / A) -->
-        <div class="d-flex gap-2">
-          <input type="date" id="filtroDesde" class="form-control" style="background:#1a1c22;color:#fff;border:1px solid #444;">
-          <input type="date" id="filtroHasta" class="form-control" style="background:#1a1c22;color:#fff;border:1px solid #444;">
+        <div class="col-d-flex gap-2">
+          <input type="date" id="filtroDesde" class="filtro-input" style="background:#fffff;color:#1a1c22;border:1px solid #730de0ff;">
+          <input type="date" id="filtroHasta" class="filtro-input" style="background:#fffff;color:#1a1c22;border:1px solid #7615c0ff;">
         </div>
       </div>
     </div>
@@ -186,7 +185,7 @@
 
     <!-- CALENDARIO -->
     <div id="tab-res-calendario" class="tab-content">
-      <div id="calendarioReservas" style="background:#1a1c22;border:1px solid #333;border-radius:10px;padding:10px;"></div>
+      <div id="calendarioReservas" style="background:#ffffff; border:1px solid #730DE0; border-radius:10px; padding:10px; color:#730DE0;"></div>
       <small class="text-muted d-block mt-2">*Arrastra/zoom con el calendario (mes/semana/día) para explorar.</small>
     </div>
   </div>

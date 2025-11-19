@@ -298,7 +298,7 @@
         <div class="bg-slate-900 rounded-3xl overflow-hidden">
             <div class="grid lg:grid-cols-2">
                 <div class="p-8 sm:p-12 space-y-4 text-white">
-                    <h2 class="text-3xl font-['Playfair_Display'] font-semibold">Servicios pensados para ti</h2>
+                    <h2 class="text-3xl font-semibold">Servicios pensados para ti</h2>
                     <p class="text-white/70">Acceso al spa, gimnasio 24 horas, servicio a la habitación gourmet y concierge personalizado. Complementa tu estancia con experiencias únicas en la ciudad.</p>
                     <ul class="space-y-3 text-white/80 text-sm">
                         <li class="flex items-center gap-3">

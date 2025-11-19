@@ -1,6 +1,6 @@
 /* ===RESERVAS SECTION === */
 .reservas-container {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.953);
   backdrop-filter: blur(14px);
   padding: 20px;
   border-radius: 12px;
@@ -14,7 +14,7 @@
   padding: 12px;
   border-radius: 8px;
   border: 1px solid rgba(140, 90, 255, 0.35);
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.848);
   backdrop-filter: blur(8px);
   color: #3a0ca3;
   font-size: 16px;
@@ -38,7 +38,7 @@
 }
 
 .tabla-reservas th {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.078);
   backdrop-filter: blur(10px);
   color: #3a0ca3;
   padding: 10px;
@@ -271,7 +271,7 @@
 
 /* Tabla activa */
 .table-active {
-  background: rgba(90, 45, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   border-left: 3px solid #5a2dff;
 }
 
@@ -321,4 +321,26 @@
 }
 .grafica-card canvas {
   height: 260px !important;
+}
+
+.filtro-input {
+  background: rgba(255, 255, 255, 0.932);
+  color: #3a0ca3;
+  border: 1px solid rgba(140, 90, 255, 0.77);
+  padding: 12px 15px;
+  border-radius: 12px;
+  font-size: 15px;
+  width: 100%;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.filtro-input:hover,
+.filtro-input:focus {
+  background: rgba(255, 255, 255, 0.73);
+  border-color: #5a2dff;
+  box-shadow: 0 0 10px rgba(90, 45, 255, 0.3);
+}
+.filtro-input {
+  backdrop-filter: blur(12px);
 }
