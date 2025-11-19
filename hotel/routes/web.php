@@ -158,6 +158,10 @@ Route::middleware(['auth', 'empleado.activo', 'es.recepcionista'])
         Route::post('/reservas', [RecepcionistaController::class, 'storeReserva'])
             ->name('reservas.store');
 
+        // Listado de reservaciones del día
+        Route::get('/reservas-dia', [RecepcionistaController::class, 'reservasDelDia'])
+            ->name('reservas-dia');
+
         // Check-in / Check-out (cuando los tengas listos)
         Route::post('/checkin',  [RecepcionistaController::class, 'hacerCheckin'])
             ->name('checkin');

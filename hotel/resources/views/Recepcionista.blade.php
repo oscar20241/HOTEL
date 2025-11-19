@@ -33,8 +33,6 @@
         <a href="#" class="nav-link active" data-target="inicio"><i class="fas fa-home"></i> Inicio</a>
          <a href="#" class="nav-link" data-target="nueva-reserva"><i class="fas fa-plus-circle"></i> Nueva Reservación</a>
         <a href="#" class="nav-link" data-target="reservas"><i class="fas fa-calendar-day"></i> Reservaciones del Día</a>
-        <a href="#" class="nav-link" data-target="checkin"><i class="fas fa-sign-in-alt"></i> Check-In</a>
-        <a href="#" class="nav-link" data-target="checkout"><i class="fas fa-sign-out-alt"></i> Check-Out</a>
         <a href="#" class="nav-link text-danger mt-auto" data-target="cerrar"><i class="fas fa-door-open"></i> Cerrar sesión</a>
       </nav>
     </aside>
@@ -152,18 +150,18 @@
     {{-- Fecha de entrada --}}
     <div class="col-md-3">
       <label class="form-label">Fecha de Entrada:</label>
-      <input type="date" name="fecha_checkin"
+      <input type="date" name="fecha_entrada"
              class="form-control"
-             value="{{ old('fecha_checkin') }}"
+             value="{{ old('fecha_entrada') }}"
              required>
     </div>
 
     {{-- Fecha de salida --}}
     <div class="col-md-3">
       <label class="form-label">Fecha de Salida:</label>
-      <input type="date" name="fecha_checkout"
+      <input type="date" name="fecha_salida"
              class="form-control"
-             value="{{ old('fecha_checkout') }}"
+             value="{{ old('fecha_salida') }}"
              required>
     </div>
 
@@ -258,39 +256,6 @@
         </div>
       </div>
 
-      <div id="checkin" class="seccion">
-  <h2>Check-In</h2>
-  <form class="row g-3 mt-3" id="formCheckIn">
-    <div class="col-md-6">
-      <input type="text" name="codigo_reserva" class="form-control"
-             placeholder="Código de reserva" required />
-    </div>
-    <div class="col-12">
-      <button class="btn btn-primary" type="submit">
-        <i class="fas fa-check"></i> Registrar
-      </button>
-    </div>
-  </form>
-</div>
-
-
-      <div id="checkout" class="seccion">
-        <h2>Check-Out</h2>
-        <p>Procesa la salida de huéspedes y libera habitaciones.</p>
-        <div class="checkout-container">
-          <input 
-            type="text" 
-            id="roomNumber" 
-            class="checkout-input" 
-            placeholder="Buscar número de habitación..."
-          />
-          <div class="checkout-buttons">
-            <button class="btn-liberar">Liberar Habitación</button>
-            <button class="btn-checkout">Confirmar Check-Out</button>
-          </div>
-        </div>
-      </div>
-
       <div id="cerrar" class="seccion">
         <h2>Cerrar sesión</h2>
         <p>¿Estás seguro que deseas salir?</p>
@@ -309,6 +274,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    const csrfToken = '{{ csrf_token() }}';
     // Navegación entre secciones
     const links = document.querySelectorAll('.nav-link');
     const secciones = document.querySelectorAll('.seccion');
@@ -385,7 +351,7 @@
     // Función para cargar reservas del día desde la base de datos
     function cargarReservasDelDia() {
       const tbody = document.getElementById('cuerpoTablaReservas');
-      
+
       // Mostrar indicador de carga
       tbody.innerHTML = `
         <tr>
@@ -394,24 +360,29 @@
           </td>
         </tr>
       `;
-      
-      // Simular carga de datos
-      setTimeout(() => {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center text-muted py-4">
-              <i class="fas fa-calendar-times me-2"></i>No hay reservas para hoy
-            </td>
-          </tr>
-        `;
-      }, 1000);
+
+      fetch("{{ route('recepcion.reservas-dia') }}", {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(data => mostrarReservasEnTabla(data))
+        .catch(() => {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center text-danger py-4">
+                <i class="fas fa-times-circle me-2"></i>Error al cargar reservas
+              </td>
+            </tr>`;
+        });
     }
 
     // Función para mostrar las reservas en la tabla
     function mostrarReservasEnTabla(reservas) {
       const tbody = document.getElementById('cuerpoTablaReservas');
       tbody.innerHTML = '';
-      
+
       if (reservas.length === 0) {
         tbody.innerHTML = `
           <tr>
@@ -424,22 +395,30 @@
       }
 
       reservas.forEach(reserva => {
-        const badgeClass = reserva.estado === 'Confirmada' ? 'bg-success' : 'bg-warning';
+        const badgeClass = ['Confirmada', 'Activa'].includes(reserva.estado) ? 'bg-success' : 'bg-warning';
+        const codigo = reserva.codigo ?? reserva.id;
+        const checkinDisabled = reserva.puede_checkin ? '' : 'disabled';
+        const checkoutDisabled = reserva.puede_checkout ? '' : 'disabled';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>${reserva.id}</strong></td>
+          <td><strong>${reserva.codigo ?? reserva.id}</strong></td>
           <td>${reserva.huesped}</td>
           <td><span class="badge bg-primary">${reserva.habitacion}</span></td>
           <td>${reserva.checkin}</td>
           <td>${reserva.checkout}</td>
           <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
           <td>
-            <button class="btn btn-sm btn-outline-primary" title="Ver detalles">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-success" title="Check-In">
-              <i class="fas fa-sign-in-alt"></i>
-            </button>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-primary" title="Ver detalles">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button type="button" class="btn btn-outline-success" title="Check-In" data-action="checkin" data-codigo="${codigo}" ${checkinDisabled}>
+                <i class="fas fa-sign-in-alt"></i>
+              </button>
+              <button type="button" class="btn btn-outline-danger" title="Check-Out" data-action="checkout" data-codigo="${codigo}" ${checkoutDisabled}>
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -470,7 +449,7 @@
 
     resultadosDiv.style.display = 'block';
 
-    fetch(`/recepcion/ocupacion?inicio=${inicio}&fin=${fin}`)
+    fetch(`{{ route('recepcion.ocupacion') }}?inicio=${inicio}&fin=${fin}`)
         .then(res => res.json())
         .then(data => mostrarResultadosOcupacion(data))
         .catch(() => mostrarToast('Error al obtener la ocupación.', 'error'));
@@ -507,37 +486,6 @@
       });
     }
 
-   
-
-    // Agregar funcionalidad a los botones de checkout
-    document.querySelector('.btn-liberar')?.addEventListener('click', function() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      if (!roomNumber) {
-        mostrarToast('Por favor ingresa un número de habitación', 'warning');
-        return;
-      }
-      mostrarToast(`Habitación ${roomNumber} liberada exitosamente`, 'success');
-      // Aquí iría la lógica para liberar la habitación
-    });
-
-    document.querySelector('.btn-checkout')?.addEventListener('click', function() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      if (!roomNumber) {
-        mostrarToast('Por favor ingresa un número de habitación', 'warning');
-        return;
-      }
-      mostrarToast(`Check-out confirmado para habitación ${roomNumber}`, 'success');
-      // Aquí iría la lógica para procesar el check-out
-    });
-
-
-
-    document.getElementById('formCheckIn')?.addEventListener('submit', function(e) {
-      e.preventDefault();
-      mostrarToast('Check-in registrado exitosamente', 'success');
-      // Aquí iría la lógica para registrar el check-in
-    });
-
     // Cargar datos al iniciar si estamos en esa sección
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('reservas').classList.contains('visible')) {
@@ -547,78 +495,67 @@
       }
     });
 
-
-    document.getElementById('formCheckIn')?.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const codigo = this.querySelector('input[name="codigo_reserva"]').value;
-
-  if (!codigo) {
-    mostrarToast('Ingresa el código de reserva', 'warning');
-    return;
-  }
-
-  try {
-    const res = await fetch("{{ route('recepcion.checkin') }}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ codigo_reserva: codigo })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Error al registrar el check-in');
+    function cargarEstadisticasInicio() {
+      // Los valores iniciales ya vienen renderizados por Blade, pero
+      // mantenemos la función para evitar errores en consola y permitir
+      // futuras mejoras sin modificar la vista.
+      return true;
     }
 
-    mostrarToast(data.message, 'success');
-    // Opcional: refrescar tarjetas / tabla
-    // location.reload();
-  } catch (err) {
-    mostrarToast(err.message, 'error');
-  }
-});
 
+    const tablaReservas = document.getElementById('tablaReservasDia');
+    const actionEndpoints = {
+      checkin: "{{ route('recepcion.checkin') }}",
+      checkout: "{{ route('recepcion.checkout') }}"
+    };
 
-document.querySelector('.btn-checkout')?.addEventListener('click', async function() {
-  const codigo = document.getElementById('roomNumber').value; // o pon otro input solo para código
+    tablaReservas?.addEventListener('click', function(event) {
+      const boton = event.target.closest('button[data-action]');
+      if (!boton) return;
 
-  if (!codigo) {
-    mostrarToast('Ingresa el código de reserva', 'warning');
-    return;
-  }
+      const accion = boton.dataset.action;
+      const codigo = boton.dataset.codigo;
 
-  try {
-    const res = await fetch("{{ route('recepcion.checkout') }}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ codigo_reserva: codigo })
+      if (!codigo) {
+        mostrarToast('La reserva no tiene un código asignado.', 'warning');
+        return;
+      }
+
+      ejecutarAccionReserva(accion, codigo, boton);
     });
 
-    const data = await res.json();
+    async function ejecutarAccionReserva(accion, codigo, boton) {
+      if (!actionEndpoints[accion]) return;
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Error al registrar el check-out');
+      boton.disabled = true;
+      boton.classList.add('disabled');
+
+      try {
+        const res = await fetch(actionEndpoints[accion], {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ codigo_reserva: codigo })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo completar la acción');
+        }
+
+        mostrarToast(data.message, 'success');
+        cargarReservasDelDia();
+      } catch (err) {
+        mostrarToast(err.message, 'error');
+      } finally {
+        boton.disabled = false;
+        boton.classList.remove('disabled');
+      }
     }
-
-    mostrarToast(data.message, 'success');
-  } catch (err) {
-    mostrarToast(err.message, 'error');
-  }
-});
-
-
-
-
-
-
 
 
   </script>
