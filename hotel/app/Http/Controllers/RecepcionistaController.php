@@ -175,7 +175,6 @@ class RecepcionistaController extends Controller
             ->orderBy('fecha_entrada')
             ->get()
             ->map(function ($reserva) {
-                $estado = strtolower($reserva->estado ?? 'pendiente');
                 return [
                     'id'        => $reserva->id,
                     'codigo'    => $reserva->codigo_reserva,
@@ -184,9 +183,7 @@ class RecepcionistaController extends Controller
                     'tipo'      => optional(optional($reserva->habitacion)->tipoHabitacion)->nombre,
                     'checkin'   => optional($reserva->fecha_entrada)->format('Y-m-d'),
                     'checkout'  => optional($reserva->fecha_salida)->format('Y-m-d'),
-                    'estado'    => ucfirst($estado),
-                    'puede_checkin'  => in_array($estado, ['pendiente', 'confirmada']),
-                    'puede_checkout' => $estado === 'activa',
+                    'estado'    => ucfirst($reserva->estado ?? 'pendiente'),
                 ];
             });
 

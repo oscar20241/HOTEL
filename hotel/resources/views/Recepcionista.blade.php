@@ -396,9 +396,6 @@
 
       reservas.forEach(reserva => {
         const badgeClass = ['Confirmada', 'Activa'].includes(reserva.estado) ? 'bg-success' : 'bg-warning';
-        const codigo = reserva.codigo ?? reserva.id;
-        const checkinDisabled = reserva.puede_checkin ? '' : 'disabled';
-        const checkoutDisabled = reserva.puede_checkout ? '' : 'disabled';
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${reserva.codigo ?? reserva.id}</strong></td>
@@ -486,6 +483,19 @@
       });
     }
 
+   
+
+    // Agregar funcionalidad a los botones de checkout
+    document.querySelector('.btn-liberar')?.addEventListener('click', function() {
+      const roomNumber = document.getElementById('roomNumber').value;
+      if (!roomNumber) {
+        mostrarToast('Por favor ingresa un número de habitación', 'warning');
+        return;
+      }
+      mostrarToast(`Habitación ${roomNumber} liberada exitosamente`, 'success');
+      // Aquí iría la lógica para liberar la habitación
+    });
+
     // Cargar datos al iniciar si estamos en esa sección
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('reservas').classList.contains('visible')) {
@@ -500,6 +510,33 @@
       // mantenemos la función para evitar errores en consola y permitir
       // futuras mejoras sin modificar la vista.
       return true;
+    }
+
+
+    document.getElementById('formCheckIn')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const codigo = this.querySelector('input[name="codigo_reserva"]').value;
+
+  if (!codigo) {
+    mostrarToast('Ingresa el código de reserva', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch("{{ route('recepcion.checkin') }}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ codigo_reserva: codigo })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Error al registrar el check-in');
     }
 
 
