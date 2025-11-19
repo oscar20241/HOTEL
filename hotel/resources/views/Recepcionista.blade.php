@@ -273,328 +273,314 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const csrfToken = '{{ csrf_token() }}';
-    // Navegación entre secciones
-    const links = document.querySelectorAll('.nav-link');
-    const secciones = document.querySelectorAll('.seccion');
+ <script>
+  const csrfToken = '{{ csrf_token() }}';
 
-    links.forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        links.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-        const targetId = link.getAttribute('data-target');
-        secciones.forEach(sec => sec.classList.remove('visible'));
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-          targetSection.classList.add('visible');
-          
-          // Cargar datos cuando se muestre la sección de reservas
-          if (targetId === 'reservas') {
-            cargarReservasDelDia();
-          } 
-        }
-      });
-    });
+  // ---------------- NAVEGACIÓN ENTRE SECCIONES ----------------
+  const links = document.querySelectorAll('.nav-link');
+  const secciones = document.querySelectorAll('.seccion');
 
-    function mostrarSeccion(seccionId) {
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
       links.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+
+      const targetId = link.getAttribute('data-target');
       secciones.forEach(sec => sec.classList.remove('visible'));
-      
-      const inicioLink = document.querySelector('[data-target="inicio"]');
-      if (inicioLink) {
-        inicioLink.classList.add('active');
+
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) {
+        targetSection.classList.add('visible');
+
+        // Cargar datos cuando se muestre la sección de reservas
+        if (targetId === 'reservas') {
+          cargarReservasDelDia();
+        }
       }
-      
-      const seccion = document.getElementById(seccionId);
-      if (seccion) {
-        seccion.classList.add('visible');
-      }
+    });
+  });
+
+  function mostrarSeccion(seccionId) {
+    links.forEach(l => l.classList.remove('active'));
+    secciones.forEach(sec => sec.classList.remove('visible'));
+
+    const inicioLink = document.querySelector('[data-target="inicio"]');
+    if (inicioLink) {
+      inicioLink.classList.add('active');
     }
 
-    // Función para mostrar toast de Bootstrap
-    function mostrarToast(mensaje, tipo = 'info') {
-      const toastEl = document.getElementById('liveToast');
-      const toastMessage = document.getElementById('toastMessage');
-      const toastHeader = toastEl.querySelector('.toast-header');
-      
-      // Configurar color según el tipo
-      let iconClass = 'fas fa-info-circle me-2 text-primary';
-      let headerClass = 'bg-primary text-white';
-      
-      switch(tipo) {
-        case 'error':
-          iconClass = 'fas fa-exclamation-triangle me-2 text-danger';
-          headerClass = 'bg-danger text-white';
-          break;
-        case 'success':
-          iconClass = 'fas fa-check-circle me-2 text-success';
-          headerClass = 'bg-success text-white';
-          break;
-        case 'warning':
-          iconClass = 'fas fa-exclamation-circle me-2 text-warning';
-          headerClass = 'bg-warning text-dark';
-          break;
-      }
-      
-      // Actualizar contenido
-      toastHeader.className = `toast-header ${headerClass}`;
-      toastHeader.querySelector('i').className = iconClass;
-      toastMessage.textContent = mensaje;
-      
-      // Mostrar toast
-      const toast = new bootstrap.Toast(toastEl);
-      toast.show();
+    const seccion = document.getElementById(seccionId);
+    if (seccion) {
+      seccion.classList.add('visible');
+    }
+  }
+
+  // ---------------- TOAST BOOTSTRAP ----------------
+  function mostrarToast(mensaje, tipo = 'info') {
+    const toastEl = document.getElementById('liveToast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastHeader = toastEl.querySelector('.toast-header');
+
+    let iconClass = 'fas fa-info-circle me-2 text-primary';
+    let headerClass = 'bg-primary text-white';
+
+    switch (tipo) {
+      case 'error':
+        iconClass = 'fas fa-exclamation-triangle me-2 text-danger';
+        headerClass = 'bg-danger text-white';
+        break;
+      case 'success':
+        iconClass = 'fas fa-check-circle me-2 text-success';
+        headerClass = 'bg-success text-white';
+        break;
+      case 'warning':
+        iconClass = 'fas fa-exclamation-circle me-2 text-warning';
+        headerClass = 'bg-warning text-dark';
+        break;
     }
 
-    // Función para cargar reservas del día desde la base de datos
-    function cargarReservasDelDia() {
-      const tbody = document.getElementById('cuerpoTablaReservas');
+    toastHeader.className = `toast-header ${headerClass}`;
+    toastHeader.querySelector('i').className = iconClass;
+    toastMessage.textContent = mensaje;
 
-      // Mostrar indicador de carga
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+  }
+
+  // ---------------- RESERVAS DEL DÍA ----------------
+  function cargarReservasDelDia() {
+    const tbody = document.getElementById('cuerpoTablaReservas');
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center text-muted py-4">
+          <i class="fas fa-spinner fa-spin me-2"></i>Cargando reservas del día...
+        </td>
+      </tr>
+    `;
+
+    fetch("{{ route('recepcion.reservas-dia') }}", {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+      .then(res => res.json())
+      .then(data => mostrarReservasEnTabla(data))
+      .catch(() => {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-danger py-4">
+              <i class="fas fa-times-circle me-2"></i>Error al cargar reservas
+            </td>
+          </tr>`;
+      });
+  }
+
+  function mostrarReservasEnTabla(reservas) {
+    const tbody = document.getElementById('cuerpoTablaReservas');
+    tbody.innerHTML = '';
+
+    if (!Array.isArray(reservas) || reservas.length === 0) {
       tbody.innerHTML = `
         <tr>
           <td colspan="7" class="text-center text-muted py-4">
-            <i class="fas fa-spinner fa-spin me-2"></i>Cargando reservas del día...
+            <i class="fas fa-calendar-times me-2"></i>No hay reservas para hoy
           </td>
         </tr>
       `;
-
-      fetch("{{ route('recepcion.reservas-dia') }}", {
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-        .then(res => res.json())
-        .then(data => mostrarReservasEnTabla(data))
-        .catch(() => {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="7" class="text-center text-danger py-4">
-                <i class="fas fa-times-circle me-2"></i>Error al cargar reservas
-              </td>
-            </tr>`;
-        });
+      return;
     }
 
-    // Función para mostrar las reservas en la tabla
-    function mostrarReservasEnTabla(reservas) {
-      const tbody = document.getElementById('cuerpoTablaReservas');
-      tbody.innerHTML = '';
+    reservas.forEach(reserva => {
+      const codigo = reserva.codigo ?? reserva.id ?? '';
+      const badgeClass = ['Confirmada', 'Activa'].includes(reserva.estado)
+        ? 'bg-success'
+        : 'bg-warning';
 
-      if (reservas.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center text-muted py-4">
-              <i class="fas fa-calendar-times me-2"></i>No hay reservas para hoy
-            </td>
-          </tr>
-        `;
-        return;
-      }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${codigo}</strong></td>
+        <td>${reserva.huesped}</td>
+        <td><span class="badge bg-primary">${reserva.habitacion}</span></td>
+        <td>${reserva.checkin}</td>
+        <td>${reserva.checkout}</td>
+        <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
+        <td>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-primary" title="Ver detalles">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button type="button" class="btn btn-outline-success"
+                    title="Check-In"
+                    data-action="checkin"
+                    data-codigo="${codigo}">
+              <i class="fas fa-sign-in-alt"></i>
+            </button>
+            <button type="button" class="btn btn-outline-danger"
+                    title="Check-Out"
+                    data-action="checkout"
+                    data-codigo="${codigo}">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-      reservas.forEach(reserva => {
-        const badgeClass = ['Confirmada', 'Activa'].includes(reserva.estado) ? 'bg-success' : 'bg-warning';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${reserva.codigo ?? reserva.id}</strong></td>
-          <td>${reserva.huesped}</td>
-          <td><span class="badge bg-primary">${reserva.habitacion}</span></td>
-          <td>${reserva.checkin}</td>
-          <td>${reserva.checkout}</td>
-          <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
-          <td>
-            <div class="btn-group btn-group-sm" role="group">
-              <button type="button" class="btn btn-outline-primary" title="Ver detalles">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button type="button" class="btn btn-outline-success" title="Check-In" data-action="checkin" data-codigo="${codigo}" ${checkinDisabled}>
-                <i class="fas fa-sign-in-alt"></i>
-              </button>
-              <button type="button" class="btn btn-outline-danger" title="Check-Out" data-action="checkout" data-codigo="${codigo}" ${checkoutDisabled}>
-                <i class="fas fa-sign-out-alt"></i>
-              </button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Filtrado de ocupación
-
-    document.getElementById('btnFiltrar').addEventListener('click', () => {
+  // ---------------- FILTRO DE OCUPACIÓN ----------------
+  document.getElementById('btnFiltrar').addEventListener('click', () => {
     const inicio = document.getElementById('fechaInicio').value;
     const fin = document.getElementById('fechaFin').value;
 
     if (!inicio || !fin) {
-        mostrarToast('Por favor selecciona ambas fechas.', 'warning');
-        return;
+      mostrarToast('Por favor selecciona ambas fechas.', 'warning');
+      return;
     }
 
     const tbody = document.querySelector('#tablaOcupacion tbody');
     const resultadosDiv = document.getElementById('resultadosFiltro');
 
     tbody.innerHTML = `
-        <tr>
-          <td colspan="5" class="text-center py-3 text-muted">
-            <i class="fas fa-spinner fa-spin me-2"></i>Buscando ocupación...
-          </td>
-        </tr>
+      <tr>
+        <td colspan="5" class="text-center py-3 text-muted">
+          <i class="fas fa-spinner fa-spin me-2"></i>Buscando ocupación...
+        </td>
+      </tr>
     `;
 
     resultadosDiv.style.display = 'block';
 
     fetch(`{{ route('recepcion.ocupacion') }}?inicio=${inicio}&fin=${fin}`)
-        .then(res => res.json())
-        .then(data => mostrarResultadosOcupacion(data))
-        .catch(() => mostrarToast('Error al obtener la ocupación.', 'error'));
-});
+      .then(res => res.json())
+      .then(data => mostrarResultadosOcupacion(data))
+      .catch(() => mostrarToast('Error al obtener la ocupación.', 'error'));
+  });
 
+  function mostrarResultadosOcupacion(resultados) {
+    const tbody = document.querySelector('#tablaOcupacion tbody');
+    tbody.innerHTML = '';
 
-    // Función para mostrar los resultados de ocupación
-    function mostrarResultadosOcupacion(resultados) {
-      const tbody = document.querySelector('#tablaOcupacion tbody');
-      tbody.innerHTML = '';
-
-      if (resultados.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="text-center text-muted py-4">
-              <i class="fas fa-search me-2"></i>No se encontraron resultados para el rango de fechas seleccionado
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      resultados.forEach(r => {
-        const badgeClass = r.estado === 'Ocupada' ? 'bg-danger' : 'bg-success';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.habitacion}</td>
-          <td><span class="badge ${badgeClass}">${r.estado}</span></td>
-          <td>${r.huesped}</td>
-          <td>${r.entrada}</td>
-          <td>${r.salida}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+    if (resultados.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">
+            <i class="fas fa-search me-2"></i>No se encontraron resultados para el rango de fechas seleccionado
+          </td>
+        </tr>
+      `;
+      return;
     }
 
-   
-
-    // Agregar funcionalidad a los botones de checkout
-    document.querySelector('.btn-liberar')?.addEventListener('click', function() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      if (!roomNumber) {
-        mostrarToast('Por favor ingresa un número de habitación', 'warning');
-        return;
-      }
-      mostrarToast(`Habitación ${roomNumber} liberada exitosamente`, 'success');
-      // Aquí iría la lógica para liberar la habitación
+    resultados.forEach(r => {
+      const badgeClass = r.estado === 'Ocupada' ? 'bg-danger' : 'bg-success';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.habitacion}</td>
+        <td><span class="badge ${badgeClass}">${r.estado}</span></td>
+        <td>${r.huesped}</td>
+        <td>${r.entrada}</td>
+        <td>${r.salida}</td>
+      `;
+      tbody.appendChild(tr);
     });
-
-    // Cargar datos al iniciar si estamos en esa sección
-    document.addEventListener('DOMContentLoaded', function() {
-      if (document.getElementById('reservas').classList.contains('visible')) {
-        cargarReservasDelDia();
-      } else if (document.getElementById('inicio').classList.contains('visible')) {
-        cargarEstadisticasInicio();
-      }
-    });
-
-    function cargarEstadisticasInicio() {
-      // Los valores iniciales ya vienen renderizados por Blade, pero
-      // mantenemos la función para evitar errores en consola y permitir
-      // futuras mejoras sin modificar la vista.
-      return true;
-    }
-
-
-    document.getElementById('formCheckIn')?.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const codigo = this.querySelector('input[name="codigo_reserva"]').value;
-
-  if (!codigo) {
-    mostrarToast('Ingresa el código de reserva', 'warning');
-    return;
   }
 
-  try {
-    const res = await fetch("{{ route('recepcion.checkin') }}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ codigo_reserva: codigo })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Error al registrar el check-in');
+  // ---------------- OTROS (opcional liberar habitación) ----------------
+  document.querySelector('.btn-liberar')?.addEventListener('click', function () {
+    const roomNumber = document.getElementById('roomNumber').value;
+    if (!roomNumber) {
+      mostrarToast('Por favor ingresa un número de habitación', 'warning');
+      return;
     }
+    mostrarToast(`Habitación ${roomNumber} liberada exitosamente`, 'success');
+  });
 
+  document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('reservas').classList.contains('visible')) {
+      cargarReservasDelDia();
+    } else if (document.getElementById('inicio').classList.contains('visible')) {
+      cargarEstadisticasInicio();
+    }
+  });
 
-    const tablaReservas = document.getElementById('tablaReservasDia');
-    const actionEndpoints = {
-      checkin: "{{ route('recepcion.checkin') }}",
-      checkout: "{{ route('recepcion.checkout') }}"
-    };
+  function cargarEstadisticasInicio() {
+    return true;
+  }
 
-    tablaReservas?.addEventListener('click', function(event) {
-      const boton = event.target.closest('button[data-action]');
-      if (!boton) return;
+  // ---------------- ACCIONES CHECKIN / CHECKOUT (GLOBAL) ----------------
+  const actionEndpoints = {
+    checkin: "{{ route('recepcion.checkin') }}",
+    checkout: "{{ route('recepcion.checkout') }}"
+  };
 
-      const accion = boton.dataset.action;
-      const codigo = boton.dataset.codigo;
+  async function ejecutarAccionReserva(accion, codigo, boton) {
+    if (!actionEndpoints[accion]) return;
 
-      if (!codigo) {
-        mostrarToast('La reserva no tiene un código asignado.', 'warning');
-        return;
+    boton.disabled = true;
+    boton.classList.add('disabled');
+
+    try {
+      const res = await fetch(actionEndpoints[accion], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          codigo_reserva: codigo   // 👈 debe coincidir con lo que esperas en el controlador
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'No se pudo completar la acción');
       }
 
-      ejecutarAccionReserva(accion, codigo, boton);
-    });
+      mostrarToast(data.message, 'success');
+      cargarReservasDelDia();
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    } finally {
+      boton.disabled = false;
+      boton.classList.remove('disabled');
+    }
+  }
 
-    async function ejecutarAccionReserva(accion, codigo, boton) {
-      if (!actionEndpoints[accion]) return;
+  // Delegación de eventos para los botones de la tabla
+  document.getElementById('tablaReservasDia')?.addEventListener('click', function (event) {
+    const boton = event.target.closest('button[data-action]');
+    if (!boton) return;
 
-      boton.disabled = true;
-      boton.classList.add('disabled');
+    const accion = boton.dataset.action;   // "checkin" o "checkout"
+    const codigo = boton.dataset.codigo;   // viene del data-codigo
 
-      try {
-        const res = await fetch(actionEndpoints[accion], {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({ codigo_reserva: codigo })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || 'No se pudo completar la acción');
-        }
-
-        mostrarToast(data.message, 'success');
-        cargarReservasDelDia();
-      } catch (err) {
-        mostrarToast(err.message, 'error');
-      } finally {
-        boton.disabled = false;
-        boton.classList.remove('disabled');
-      }
+    if (!codigo) {
+      mostrarToast('La reserva no tiene un código asignado.', 'warning');
+      return;
     }
 
+    ejecutarAccionReserva(accion, codigo, boton);
+  });
 
-  </script>
+  // (Opcional) Si tienes un formulario manual de Check-In por código (formCheckIn)
+  document.getElementById('formCheckIn')?.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const codigo = this.querySelector('input[name="codigo_reserva"]').value;
+
+    if (!codigo) {
+      mostrarToast('Ingresa el código de reserva', 'warning');
+      return;
+    }
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    ejecutarAccionReserva('checkin', codigo, submitBtn);
+  });
+</script>
+
 </body>
 </html>

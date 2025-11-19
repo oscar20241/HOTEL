@@ -149,21 +149,48 @@ class RecepcionistaController extends Controller
         // Aquí luego lo adaptamos a tu estructura final (User + Reservacion)
     }
     
-    public function checkout(Request $request)
-    {
-        try {
-            // Aquí iría la lógica real de checkout
-            return response()->json([
-                'success' => true,
-                'message' => 'Check-out realizado correctamente'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error en check-out'
-            ], 500);
-        }
+
+
+   public function hacerCheckout(Request $request)
+{
+    $data = $request->validate([
+        'codigo_reserva' => 'required|string',
+    ]);
+
+    $reservacion = Reservacion::with('habitacion')
+        ->where('codigo_reserva', $data['codigo_reserva'])
+        ->first();
+
+    if (!$reservacion) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No se encontró una reservación con ese código.',
+        ], 404);
     }
+
+    if ($reservacion->estado !== 'activa') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Solo las reservaciones activas pueden hacer check-out.',
+        ], 422);
+    }
+
+    $reservacion->update([
+        'estado'          => 'completada',   // 👈 usar el valor que SÍ está en el enum
+        'fecha_checkout'  => Carbon::now(),
+    ]);
+
+    if ($reservacion->habitacion) {
+        $reservacion->habitacion->update(['estado' => 'disponible']);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Check-out registrado correctamente.',
+    ]);
+}
+
+
 
     public function reservasDelDia()
     {
@@ -264,42 +291,5 @@ class RecepcionistaController extends Controller
         ]);
     }
 
-    public function hacerCheckout(Request $request)
-    {
-        $data = $request->validate([
-            'codigo_reserva' => 'required|string',
-        ]);
-
-        $reservacion = Reservacion::with('habitacion')
-            ->where('codigo_reserva', $data['codigo_reserva'])
-            ->first();
-
-        if (!$reservacion) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No se encontró una reservación con ese código.',
-            ], 404);
-        }
-
-        if ($reservacion->estado !== 'activa') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Solo las reservaciones activas pueden hacer check-out.',
-            ], 422);
-        }
-
-        $reservacion->update([
-            'estado'          => 'finalizada',
-            'fecha_checkout'  => Carbon::now(),
-        ]);
-
-        if ($reservacion->habitacion) {
-            $reservacion->habitacion->update(['estado' => 'disponible']);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Check-out registrado correctamente.',
-        ]);
-    }
+   
 }

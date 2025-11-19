@@ -146,10 +146,13 @@ Route::middleware(['auth']) // agrega tu middleware/role si aplica
 // =======================
 // RUTAS RECEPCIONISTA
 // =======================
+
+
 Route::middleware(['auth', 'empleado.activo', 'es.recepcionista'])
     ->prefix('recepcion')
     ->name('recepcion.')
     ->group(function () {
+
         // Dashboard del recepcionista
         Route::get('/', [RecepcionistaController::class, 'dashboard'])
             ->name('dashboard');
@@ -162,7 +165,7 @@ Route::middleware(['auth', 'empleado.activo', 'es.recepcionista'])
         Route::get('/reservas-dia', [RecepcionistaController::class, 'reservasDelDia'])
             ->name('reservas-dia');
 
-        // Check-in / Check-out (cuando los tengas listos)
+        // Check-in / Check-out (AJAX)
         Route::post('/checkin',  [RecepcionistaController::class, 'hacerCheckin'])
             ->name('checkin');
 
