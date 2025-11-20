@@ -38,7 +38,7 @@
 .fas.fa-exclamation-triangle,
 .fas.fa-calendar-times,
 .fas.fa-concierge-bell {
-  color: rgb(49, 45, 53) !important;
+  color: rgb(214, 67, 240) !important;
 }
 
 /* Iconos específicos con variaciones */
@@ -47,7 +47,7 @@
 .fas.fa-bed.text-warning,
 .fas.fa-edit.text-warning,
 .fas.fa-plus-circle.text-warning {
-  color: var(--morado) !important;
+  color: darkmagenta !important;
 }
 
 .fas.fa-calendar-day.text-primary {

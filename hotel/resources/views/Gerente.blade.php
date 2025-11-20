@@ -365,7 +365,7 @@
         </div>
 
         <div class="table-responsive">
-          <table class="table table-dark table-hover align-middle">
+          <table class="table table-white table-hover align-middle borderless">
             <thead>
               <tr>
                 <th>Tipo de habitación</th>
@@ -644,7 +644,7 @@
   <!-- Tab Huéspedes -->
   <div id="tab-huespedes" class="tab-content active">
     <div class="table-responsive">
-      <table class="table table-dark table-hover">
+      <table class="table table-white table-hover">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -683,7 +683,7 @@
       <i class="fas fa-info-circle"></i> Personal operativo: recepcionistas y equipo de limpieza.
     </div>
     <div class="table-responsive">
-      <table class="table table-dark table-hover">
+      <table class="table table-white table-hover">
         <thead>
           <tr>
             <th># Empleado</th>
@@ -771,7 +771,7 @@
       <i class="fas fa-exclamation-triangle"></i> Los administradores tienen acceso completo al sistema.
     </div>
     <div class="table-responsive">
-      <table class="table table-dark table-hover">
+      <table class="table table-white table-hover">
         <thead>
           <tr>
             <th># Empleado</th>
@@ -848,7 +848,7 @@
       <i class="fas fa-info-circle"></i> Los gerentes son cuentas administrativas protegidas y no pueden ser eliminadas.
     </div>
     <div class="table-responsive">
-      <table class="table table-dark table-hover">
+      <table class="table table-white table-hover">
         <thead>
           <tr>
             <th># Empleado</th>
@@ -904,7 +904,7 @@
   <form method="GET" action="{{ url()->current() }}" class="mb-4">
       <div class="row g-2 align-items-end">
           <div class="col-md-3">
-              <label class="form-label text-light">Rango rápido</label>
+              <label class="form-label text-dark">Rango rápido</label>
               <select name="modo" class="form-select">
                   <option value="anio" {{ ($reportes['modo'] ?? 'anio') === 'anio' ? 'selected' : '' }}>Año actual</option>
                   <option value="mes" {{ ($reportes['modo'] ?? '') === 'mes' ? 'selected' : '' }}>Mes actual</option>
@@ -914,7 +914,7 @@
           </div>
 
           <div class="col-md-3">
-              <label class="form-label text-light">Desde</label>
+              <label class="form-label text-dark">Desde</label>
               <input
                   type="date"
                   name="desde"
@@ -924,7 +924,7 @@
           </div>
 
           <div class="col-md-3">
-              <label class="form-label text-light">Hasta</label>
+              <label class="form-label text-dark">Hasta</label>
               <input
                   type="date"
                   name="hasta"

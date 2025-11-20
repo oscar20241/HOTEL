@@ -37,7 +37,7 @@
                     <div class="flex items-center justify-center gap-3 mb-8">
                         <img src="{{ asset('/img/logo.png') }}" alt="Hotel PASA EL EXTRA Inn" class="h-14">
                         <div>
-                            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Hotel PASA EL EXTRA Inn</p>
+                            <p class="text-xs uppercase tracking-[0.4em] text-white/60">HOTEL PASA EL EXTRA INN</p>
                             <p class="text-lg font-semibold text-white">Área de huéspedes</p>
                         </div>
                     </div>

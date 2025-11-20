@@ -24,7 +24,8 @@
                     </span>
                     ¿Ya tienes cuenta?
                 </a>
-                <h1 class="text-4xl font-['Playfair_Display'] text-white">Regístrate y vive la experiencia PASA EL EXTRA Inn</h1>
+                <h1 class="text-4xl font-semibold text-white">Regístrate y vive la experiencia en HOTEL PASA EL EXTRA INN</h1>
+                 <img src="{{ asset('/img/logo.png') }}" alt="Hotel PASA EL EXTRA Inn" class="h-64 w-64 mx-auto lg:mx-0">
                 <p class="text-base text-white/70 max-w-md">Completa tus datos para reservar de manera más ágil, recibir recomendaciones personalizadas y acceder a beneficios exclusivos para huéspedes frecuentes.</p>
                 <div class="flex flex-wrap gap-4 text-sm text-white/70">
                     <div class="flex items-center gap-2">
@@ -60,7 +61,7 @@
                 <div class="flex items-center gap-3 mb-6">
                     <img src="{{ asset('/img/logo.png') }}" alt="Hotel PASA EL EXTRA Inn" class="h-12">
                     <div>
-                        <p class="text-xs uppercase tracking-[0.4em] text-white/60">Hotel PASA EL EXTRA Inn</p>
+                        <p class="text-xs uppercase tracking-[0.4em] text-white/60">HOTEL PASA EL EXTRA INN</p>
                         <p class="text-lg font-semibold text-white">Registro de huéspedes</p>
                     </div>
                 </div>

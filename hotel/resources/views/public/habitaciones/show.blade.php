@@ -22,7 +22,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div class="max-w-3xl space-y-4">
                 <p class="uppercase text-sm tracking-[0.3em] text-white/70">{{ $tipo?->nombre ?? 'Habitación' }}</p>
-                <h1 class="text-4xl sm:text-5xl font-['Playfair_Display'] font-semibold">
+                <h1 class="text-4xl sm:text-5xl font-semibold font-semibold">
                     {{ $tipo?->nombre ? 'Colección ' . $tipo->nombre : 'Habitación ' . $habitacion->numero }}
                 </h1>
                 <p class="text-white/80 text-lg">
@@ -78,7 +78,7 @@
                             </div>
                         @empty
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <img src="https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80" alt="Habitación de hotel" class="w-full h-full object-cover">
+                                <img src="{{ asset('img/suite_principal.png') }}" alt="Habitación de hotel" class="w-full h-full object-cover">
                             </div>
                         @endforelse
                     </div>
@@ -109,7 +109,7 @@
                 {{-- Detalles + Reserva --}}
                 <div class="space-y-8">
                     <div class="space-y-4">
-                        <h2 class="text-2xl font-semibold text-slate-900">Detalles de la categoría</h2>
+                        <h2 class="text-2xl font-semibold text-slate-900">D</h2>
                         <p class="text-slate-600 leading-relaxed">
                             Selecciona tus fechas y nosotros nos encargamos de asignarte una habitación disponible dentro de esta categoría. Todas las opciones comparten el mismo estilo, amenidades y confort que ves en el ejemplo.
                         </p>

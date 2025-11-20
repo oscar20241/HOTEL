@@ -337,7 +337,7 @@
 
 .filtro-input:hover,
 .filtro-input:focus {
-  background: rgba(255, 255, 255, 0.73);
+  background: rgba(255, 255, 255, 0.581);
   border-color: #5a2dff;
   box-shadow: 0 0 10px rgba(90, 45, 255, 0.3);
 }
