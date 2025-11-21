@@ -23,6 +23,16 @@ class TipoHabitacion extends Model
         return $this->hasMany(Habitacion::class);
     }
 
+    public function imagenes()
+    {
+        return $this->hasMany(TipoHabitacionImagen::class)->orderBy('orden');
+    }
+
+    public function imagenPrincipal()
+    {
+        return $this->hasOne(TipoHabitacionImagen::class)->where('es_principal', true);
+    }
+
     public function tarifasDinamicas()
     {
         return $this->hasMany(TarifaDinamica::class);

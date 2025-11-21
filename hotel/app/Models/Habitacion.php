@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Date;
 
 class Habitacion extends Model
 {
@@ -41,6 +42,11 @@ class Habitacion extends Model
         return $this->hasOne(HabitacionImagen::class)->where('es_principal', true);
     }
 
+    public function mantenimientos()
+    {
+        return $this->hasMany(HabitacionMantenimiento::class);
+    }
+
     public function reservaciones()
     {
         return $this->hasMany(Reservacion::class);
@@ -58,7 +64,29 @@ class Habitacion extends Model
 
     public function estaEnMantenimiento(): bool
     {
-        return $this->estadoEs('mantenimiento');
+        $hoy = Date::today();
+
+        $mantenimientoActivo = $this->mantenimientos()
+            ->whereDate('fecha_inicio', '<=', $hoy)
+            ->whereDate('fecha_fin', '>=', $hoy)
+            ->whereIn('estado', ['programado', 'en_curso'])
+            ->exists();
+
+        if ($mantenimientoActivo && !$this->estadoEs('mantenimiento')) {
+            $this->forceFill(['estado' => 'mantenimiento'])->saveQuietly();
+        }
+
+        if (!$mantenimientoActivo && $this->estadoEs('mantenimiento')) {
+            $tienePendiente = $this->mantenimientos()
+                ->whereDate('fecha_fin', '>=', $hoy)
+                ->exists();
+
+            if (!$tienePendiente) {
+                $this->forceFill(['estado' => 'disponible'])->saveQuietly();
+            }
+        }
+
+        return $mantenimientoActivo || $this->estadoEs('mantenimiento');
     }
 
     public function estaOperativa(): bool

@@ -67,7 +67,11 @@
                         ?? $tipo->habitaciones->first(fn($habitacion) => $habitacion->imagenes->isNotEmpty())
                         ?? $tipo->habitaciones->first();
 
-                    if ($habitacionReferencia?->imagenPrincipal) {
+                    $imagenPrincipalTipo = $tipo->imagenPrincipal ?? $tipo->imagenes->first();
+
+                    if ($imagenPrincipalTipo) {
+                        $imagenUrl = Storage::url($imagenPrincipalTipo->ruta_imagen);
+                    } elseif ($habitacionReferencia?->imagenPrincipal) {
                         $imagenUrl = Storage::url($habitacionReferencia->imagenPrincipal->ruta_imagen);
                     } elseif ($habitacionReferencia?->imagenes->first()) {
                         $imagenUrl = Storage::url($habitacionReferencia->imagenes->first()->ruta_imagen);
@@ -106,7 +110,7 @@
                 @endphp
                 <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition-transform">
                     <div class="relative h-56">
-                       <img src="{{ asset('img/habitacion_' . strtolower($tipo->nombre) . '.jpg') }}"
+                       <img src="{{ $imagenUrl }}"
                                 alt="{{ $tipo->nombre }}"
                                 class="absolute inset-0 w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/10 to-transparent"></div>

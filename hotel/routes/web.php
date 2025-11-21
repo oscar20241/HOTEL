@@ -106,6 +106,13 @@ Route::middleware(['auth', 'empleado.activo'])->group(function () {
     Route::post('/gerente/habitaciones', [AdminUserController::class, 'storeHabitacion'])->name('gerente.habitaciones.store');
     Route::put('/gerente/habitaciones/{id}', [AdminUserController::class, 'updateHabitacion'])->name('gerente.habitaciones.update');
     Route::delete('/gerente/habitaciones/{id}', [AdminUserController::class, 'destroyHabitacion'])->name('gerente.habitaciones.destroy');
+    Route::post('/gerente/habitaciones/{id}/mantenimientos', [AdminUserController::class, 'programarMantenimiento'])->name('gerente.habitaciones.mantenimientos.store');
+
+    // 🆕 RUTAS PARA GESTIÓN DE TIPOS DE HABITACIÓN
+    Route::get('/gerente/tipos-habitacion/{id}', [AdminUserController::class, 'showTipoHabitacion'])->name('gerente.tipos-habitacion.show');
+    Route::post('/gerente/tipos-habitacion', [AdminUserController::class, 'storeTipoHabitacion'])->name('gerente.tipos-habitacion.store');
+    Route::put('/gerente/tipos-habitacion/{id}', [AdminUserController::class, 'updateTipoHabitacion'])->name('gerente.tipos-habitacion.update');
+    Route::delete('/gerente/tipos-habitacion/{id}', [AdminUserController::class, 'destroyTipoHabitacion'])->name('gerente.tipos-habitacion.destroy');
 
     // 🆕 RUTAS PARA GESTIÓN DE TARIFAS DINÁMICAS
     Route::get('/gerente/tarifas', [AdminUserController::class, 'listTarifas'])->name('gerente.tarifas.index');

@@ -4,7 +4,8 @@
     use Illuminate\Support\Facades\Storage;
 
     $tipo = $habitacion->tipoHabitacion;
-    $imagenes = $habitacion->imagenes;
+    $imagenesTipo = $tipo?->imagenes ?? collect();
+    $imagenes = $imagenesTipo->isNotEmpty() ? $imagenesTipo->take(3) : $habitacion->imagenes->take(3);
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
     $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
 

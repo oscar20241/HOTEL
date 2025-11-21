@@ -26,6 +26,7 @@ class PublicHabitacionController extends Controller
                     $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
                 },
                 'tarifasDinamicas',
+                'imagenes',
             ])
             ->orderBy('precio_base')
             ->get();
@@ -49,6 +50,7 @@ class PublicHabitacionController extends Controller
                 $query->select('id', 'tipo_habitacion_id', 'estado', 'capacidad', 'numero');
             },
             'imagenes',
+            'tipoHabitacion.imagenes',
         ]);
 
         return view('public.habitaciones.show', [
