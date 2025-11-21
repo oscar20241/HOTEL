@@ -252,20 +252,21 @@
           <div class="card-body">
             <div class="table-responsive">
               <table class="table table-striped table-hover" id="tablaReservasDia">
-                <thead class="table-primary">
+                  <thead class="table-primary">
                   <tr>
                     <th><i class="fas fa-hashtag"></i> Reserva</th>
                     <th><i class="fas fa-user"></i> Huésped</th>
                     <th><i class="fas fa-bed"></i> Habitación</th>
                     <th><i class="fas fa-calendar-check"></i> Check-In</th>
                     <th><i class="fas fa-calendar-times"></i> Check-Out</th>
+                    <th><i class="fas fa-wallet"></i> Saldo</th>
                     <th><i class="fas fa-tag"></i> Estado</th>
                     <th><i class="fas fa-cog"></i> Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTablaReservas">
                   <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                       <i class="fas fa-spinner fa-spin me-2"></i>Cargando reservas del día...
                     </td>
                   </tr>
@@ -292,6 +293,37 @@
     </main>
   </div>
 
+  <!-- Modal: Registrar pago en efectivo -->
+  <div class="modal fade" id="modalPagoEfectivo" tabindex="-1" aria-labelledby="modalPagoEfectivoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalPagoEfectivoLabel"><i class="fas fa-cash-register me-2 text-success"></i>Registrar pago en efectivo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-1"><strong>Reserva:</strong> <span id="pagoCodigoReserva">--</span></p>
+          <p class="mb-1"><strong>Huésped:</strong> <span id="pagoHuesped">--</span></p>
+          <p class="mb-3"><strong>Total:</strong> <span id="pagoTotal">$0.00</span> · <strong>Saldo pendiente:</strong> <span id="pagoSaldo">$0.00</span></p>
+          <div class="mb-3">
+            <label for="pagoMonto" class="form-label">Monto a cobrar en efectivo</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="number" step="0.01" min="0.01" class="form-control" id="pagoMonto" value="0.00">
+            </div>
+            <div class="form-text">Si ingresas un monto mayor al saldo, solo se cobrará el pendiente.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" id="btnConfirmarPagoEfectivo">
+            <i class="fas fa-check"></i> Confirmar cobro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
  <script>
   const csrfToken = '{{ csrf_token() }}';
@@ -299,6 +331,20 @@
   // ---------------- NAVEGACIÓN ENTRE SECCIONES ----------------
   const links = document.querySelectorAll('.nav-link');
   const secciones = document.querySelectorAll('.seccion');
+
+  const modalPagoEfectivoEl = document.getElementById('modalPagoEfectivo');
+  const modalPagoEfectivo = modalPagoEfectivoEl ? new bootstrap.Modal(modalPagoEfectivoEl) : null;
+  const pagoCodigoReserva = document.getElementById('pagoCodigoReserva');
+  const pagoHuesped = document.getElementById('pagoHuesped');
+  const pagoTotal = document.getElementById('pagoTotal');
+  const pagoSaldo = document.getElementById('pagoSaldo');
+  const pagoMonto = document.getElementById('pagoMonto');
+  let reservaPagoSeleccionada = null;
+
+  function formatearMoneda(valor) {
+    const numero = Number(valor ?? 0);
+    return `$${numero.toFixed(2)}`;
+  }
 
   // ---------------- MODO HUÉSPED (existente o nuevo) ----------------
   const toggleNuevoHuesped = document.getElementById('toggleNuevoHuesped');
@@ -445,7 +491,7 @@
 
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center text-muted py-4">
+        <td colspan="8" class="text-center text-muted py-4">
           <i class="fas fa-spinner fa-spin me-2"></i>Cargando reservas del día...
         </td>
       </tr>
@@ -461,7 +507,7 @@
       .catch(() => {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="text-center text-danger py-4">
+            <td colspan="8" class="text-center text-danger py-4">
               <i class="fas fa-times-circle me-2"></i>Error al cargar reservas
             </td>
           </tr>`;
@@ -475,7 +521,7 @@
     if (!Array.isArray(reservas) || reservas.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center text-muted py-4">
+          <td colspan="8" class="text-center text-muted py-4">
             <i class="fas fa-calendar-times me-2"></i>No hay reservas para hoy
           </td>
         </tr>
@@ -489,6 +535,12 @@
         ? 'bg-success'
         : 'bg-warning';
 
+      const saldoPendiente = Number(reserva.saldo_pendiente ?? 0);
+      const precioTotal = Number(reserva.precio_total ?? 0);
+      const saldoBadge = saldoPendiente > 0
+        ? `<span class="badge bg-warning text-dark">Pendiente ${formatearMoneda(saldoPendiente)}</span>`
+        : '<span class="badge bg-success">Pagado</span>';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${codigo}</strong></td>
@@ -496,11 +548,21 @@
         <td><span class="badge bg-primary">${reserva.habitacion}</span></td>
         <td>${reserva.checkin}</td>
         <td>${reserva.checkout}</td>
+        <td>${saldoBadge}<div class="text-muted small">Total ${formatearMoneda(precioTotal)}</div></td>
         <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
         <td>
           <div class="btn-group btn-group-sm" role="group">
             <button type="button" class="btn btn-outline-primary" title="Ver detalles">
               <i class="fas fa-eye"></i>
+            </button>
+            <button type="button" class="btn btn-outline-warning"
+                    title="Registrar pago en efectivo"
+                    data-action="pago-efectivo"
+                    data-codigo="${codigo}"
+                    data-huesped="${reserva.huesped ?? ''}"
+                    data-saldo="${saldoPendiente}"
+                    data-total="${precioTotal}">
+              <i class="fas fa-money-bill-wave"></i>
             </button>
             <button type="button" class="btn btn-outline-success"
                     title="Check-In"
@@ -519,6 +581,66 @@
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  function abrirModalPagoEfectivo({ codigo, huesped, saldo, total }) {
+    if (!modalPagoEfectivo) return;
+
+    reservaPagoSeleccionada = {
+      codigo,
+      saldo: Number(saldo ?? 0),
+      total: Number(total ?? 0),
+      huesped: huesped || 'Huésped'
+    };
+
+    pagoCodigoReserva.textContent = reservaPagoSeleccionada.codigo || '--';
+    pagoHuesped.textContent = reservaPagoSeleccionada.huesped;
+    pagoTotal.textContent = formatearMoneda(reservaPagoSeleccionada.total);
+    pagoSaldo.textContent = formatearMoneda(reservaPagoSeleccionada.saldo);
+    pagoMonto.value = reservaPagoSeleccionada.saldo.toFixed(2);
+
+    modalPagoEfectivo.show();
+  }
+
+  async function registrarPagoEfectivo() {
+    if (!reservaPagoSeleccionada) {
+      mostrarToast('No se encontró la reservación seleccionada.', 'warning');
+      return;
+    }
+
+    const monto = parseFloat(pagoMonto?.value || '0');
+
+    if (!monto || monto <= 0) {
+      mostrarToast('Ingresa un monto válido para cobrar.', 'warning');
+      return;
+    }
+
+    try {
+      const res = await fetch("{{ route('recepcion.pago-efectivo') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          codigo_reserva: reservaPagoSeleccionada.codigo,
+          monto
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'No se pudo registrar el pago.');
+      }
+
+      mostrarToast(data.message, 'success');
+      modalPagoEfectivo?.hide();
+      cargarReservasDelDia();
+    } catch (error) {
+      mostrarToast(error.message || 'Error al registrar el pago.', 'error');
+    }
   }
 
   // ---------------- FILTRO DE OCUPACIÓN ----------------
@@ -610,6 +732,8 @@
     checkout: "{{ route('recepcion.checkout') }}"
   };
 
+  document.getElementById('btnConfirmarPagoEfectivo')?.addEventListener('click', registrarPagoEfectivo);
+
   async function ejecutarAccionReserva(accion, codigo, boton) {
     if (!actionEndpoints[accion]) return;
 
@@ -650,11 +774,21 @@
     const boton = event.target.closest('button[data-action]');
     if (!boton) return;
 
-    const accion = boton.dataset.action;   // "checkin" o "checkout"
+    const accion = boton.dataset.action;   // "checkin", "checkout" o "pago-efectivo"
     const codigo = boton.dataset.codigo;   // viene del data-codigo
 
     if (!codigo) {
       mostrarToast('La reserva no tiene un código asignado.', 'warning');
+      return;
+    }
+
+    if (accion === 'pago-efectivo') {
+      abrirModalPagoEfectivo({
+        codigo,
+        huesped: boton.dataset.huesped,
+        saldo: boton.dataset.saldo,
+        total: boton.dataset.total
+      });
       return;
     }
 
