@@ -7,6 +7,8 @@ use App\Models\Reservacion;
 use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class RecepcionistaController extends Controller
@@ -46,7 +48,10 @@ class RecepcionistaController extends Controller
     public function storeReserva(Request $request)
     {
         $data = $request->validate([
-            'user_id'            => 'required|exists:users,id',
+            'user_id'            => 'nullable|exists:users,id',
+            'nuevo_nombre'       => 'required_without:user_id|string|max:255',
+            'nuevo_email'        => 'required_without:user_id|email|unique:users,email',
+            'nuevo_telefono'     => 'nullable|string|max:30',
             'tipo_habitacion_id' => 'required|exists:tipo_habitaciones,id',
             'fecha_entrada'      => 'required|date|after_or_equal:today',
             'fecha_salida'       => 'required|date|after:fecha_entrada',
@@ -55,9 +60,22 @@ class RecepcionistaController extends Controller
             'telefono'           => 'nullable|string|max:30',
             'notas'              => 'nullable|string|max:500',
         ], [
-            'user_id.required' => 'Debes seleccionar un huésped.',
-            'user_id.exists'   => 'El huésped seleccionado no existe.',
+            'user_id.exists'          => 'El huésped seleccionado no existe.',
+            'nuevo_nombre.required_without' => 'Debes seleccionar o registrar un huésped.',
+            'nuevo_email.required_without'  => 'Debes ingresar un correo para el nuevo huésped.',
         ]);
+
+        // Crear huésped nuevo si no se seleccionó uno existente
+        if (empty($data['user_id'])) {
+            $nuevoUsuario = User::create([
+                'name'     => $data['nuevo_nombre'],
+                'email'    => $data['nuevo_email'],
+                'telefono' => $data['nuevo_telefono'] ?? null,
+                'password' => Hash::make(Str::random(12)),
+            ]);
+
+            $data['user_id'] = $nuevoUsuario->id;
+        }
 
         $entrada = Carbon::parse($data['fecha_entrada']);
         $salida  = Carbon::parse($data['fecha_salida']);
@@ -75,6 +93,14 @@ class RecepcionistaController extends Controller
         $precioNoche = $tipo->precio_actual;
         $precioTotal = $noches * $precioNoche;
 
+        $numeroHuespedes = ($data['adultos'] ?? 0) + ($data['ninos'] ?? 0);
+
+        if ($numeroHuespedes > $tipo->capacidad) {
+            return back()
+                ->withErrors(['adultos' => 'La cantidad de huéspedes excede la capacidad de la habitación seleccionada (máximo ' . $tipo->capacidad . ').'])
+                ->withInput();
+        }
+
         // Buscar una habitación libre de ese tipo
         $habitacionLibre = Habitacion::where('tipo_habitacion_id', $tipo->id)
             ->where('estado', 'disponible')
@@ -90,8 +116,6 @@ class RecepcionistaController extends Controller
         if (!empty($data['telefono'])) {
             $notas = trim($notas . "\nTeléfono de contacto: " . $data['telefono']);
         }
-
-        $numeroHuespedes = ($data['adultos'] ?? 0) + ($data['ninos'] ?? 0);
 
         Reservacion::create([
             'user_id'          => $data['user_id'],
