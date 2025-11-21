@@ -115,28 +115,32 @@
                 <div class="p-8 rounded-3xl bg-white shadow-xl">
                     <h2 class="text-2xl font-semibold text-slate-800">Generar una nueva reservación</h2>
                     <p class="mt-2 text-sm text-slate-500">Selecciona fechas y la habitación ideal para tu estancia. Nuestro equipo confirmará la disponibilidad.</p>
-                    @php
-                        $tipoSeleccionado = $tiposHabitacion->firstWhere('id', old('tipo_habitacion_id')) ?? $tiposHabitacion->first();
-                        $capacidadInicial = $tipoSeleccionado?->capacidad;
-                        $tarifaInicial = $tipoSeleccionado ? number_format($tipoSeleccionado->precio_actual, 2, '.', '') : '0.00';
-                        $nochesIniciales = 0;
-                        $estimadoInicial = 0.00;
-
-                        if (old('fecha_entrada') && old('fecha_salida') && $tipoSeleccionado) {
-                            try {
-                                $entradaAnterior = Carbon::parse(old('fecha_entrada'));
-                                $salidaAnterior = Carbon::parse(old('fecha_salida'));
-                                $nochesIniciales = max(0, $entradaAnterior->diffInDays($salidaAnterior));
-                                $estimadoInicial = $nochesIniciales * (float) $tipoSeleccionado->precio_actual;
-                            } catch (\Throwable $e) {
+                            @php
+                                $tipoSeleccionado = $tiposHabitacion->firstWhere('id', old('tipo_habitacion_id')) ?? $tiposHabitacion->first();
+                                $capacidadInicial = $tipoSeleccionado?->capacidad;
+                                $tarifaInicial = $tipoSeleccionado ? number_format($tipoSeleccionado->precio_actual, 2, '.', '') : '0.00';
                                 $nochesIniciales = 0;
                                 $estimadoInicial = 0.00;
-                            }
-                        }
 
-                        $placeholderImagen = 'https://images.unsplash.com/photo-1551888419-7ab9470cb3a7?auto=format&fit=crop&w=900&q=80';
-                    @endphp
-                    <form method="POST" action="{{ route('reservaciones.store') }}" class="mt-6 space-y-6" id="form-nueva-reserva">
+                                if (old('fecha_entrada') && old('fecha_salida') && $tipoSeleccionado) {
+                                    try {
+                                        $entradaAnterior = Carbon::parse(old('fecha_entrada'));
+                                        $salidaAnterior = Carbon::parse(old('fecha_salida'));
+                                        $nochesIniciales = max(0, $entradaAnterior->diffInDays($salidaAnterior));
+                                        $estimadoInicial = $nochesIniciales * (float) $tipoSeleccionado->precio_actual;
+                                    } catch (\Throwable $e) {
+                                        $nochesIniciales = 0;
+                                        $estimadoInicial = 0.00;
+                                    }
+                                }
+
+                                // MANTÉN ESTA VARIABLE PARA EL TIPO SELECCIONADO
+                                $placeholderImagen = asset('img/habitacion_' . strtolower($tipoSeleccionado->nombre) . '.jpg');
+
+                                $imagenSencilla = asset('img/habitacion_sencilla.jpg');
+                                $imagenDoble = asset('img/habitacion_doble.jpg');
+                                $imagenSuite = asset('img/habitacion_suite.jpg');
+                            @endphp     
                         @csrf
                         @if ($tiposHabitacion->isEmpty())
                             <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-slate-500">
@@ -159,7 +163,7 @@
                                             } elseif ($habitacionConImagen?->imagenes->first()) {
                                                 $imagenUrl = Storage::url($habitacionConImagen->imagenes->first()->ruta_imagen);
                                             } else {
-                                                $imagenUrl = $placeholderImagen;
+                                                $imagenUrl = asset('img/habitacion_' . strtolower($tipo->nombre) . '.jpg');
                                             }
 
                                             $precioTipo = number_format($tipo->precio_actual, 2, '.', '');
@@ -424,9 +428,24 @@
                             $imagenUrl = Storage::url($habitacionReferencia->imagenPrincipal->ruta_imagen);
                         } elseif ($habitacionReferencia?->imagenes->first()) {
                             $imagenUrl = Storage::url($habitacionReferencia->imagenes->first()->ruta_imagen);
-                        } else {
-                            $imagenUrl = 'https://images.unsplash.com/photo-1551888419-7ab9470cb3a7?auto=format&fit=crop&w=900&q=80';
-                        }
+                       } else {
+    $jpg = 'img/habitacion_' . strtolower($tipo->nombre) . '.jpg';
+    $png = 'img/habitacion_' . strtolower($tipo->nombre) . '.png';
+
+    if (file_exists(public_path($jpg))) {
+        $imagenUrl = asset($jpg);
+    } elseif (file_exists(public_path($png))) {
+        $imagenUrl = asset($png);
+    } else {
+        $imagenesDefault = [
+            'https://cab3fd4ae07e840188c7-50d1b5a40539d13a7a683523a0ca1dbf.ssl.cf1.rackcdn.com/u/el-moro-rooms/luxury-king/luxury-king-1.jpg',
+            'https://www.hotelmadero.com/storage/images/habitaciones/doble.jpg',
+            'https://www.hoteles.com/hotel/assets/static/habitacion_suite.jpg',
+        ];
+
+        $imagenUrl = $imagenesDefault[array_rand($imagenesDefault)];
+    }
+}
 
                         $operativas = $tipo->habitaciones->filter(fn($habitacion) => $habitacion->estaOperativa());
                         $disponibles = $operativas->filter(fn($habitacion) => $habitacion->estadoEs('disponible'))->count();

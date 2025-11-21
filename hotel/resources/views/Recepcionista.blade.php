@@ -213,16 +213,7 @@
     <div class="col-12">
       <small class="text-muted" id="capacidadMensaje">Selecciona un tipo de habitación para ver la capacidad.</small>
     </div>
-
-    {{-- Teléfono --}}
-    <div class="col-md-6">
-      <label class="form-label">Teléfono de contacto:</label>
-      <input type="tel" name="telefono"
-             class="form-control"
-             placeholder="Ej. 322-555-1234"
-             value="{{ old('telefono') }}">
-    </div>
-
+    
     {{-- Comentarios --}}
     <div class="col-12">
       <label class="form-label">Comentarios o Solicitudes Especiales:</label>

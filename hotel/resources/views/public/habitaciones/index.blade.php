@@ -30,7 +30,7 @@
             </div>
             <div class="lg:w-1/2 grid grid-cols-2 gap-4">
                 <div class="row-span-2 rounded-3xl overflow-hidden shadow-2xl">
-                    <img src="{{ asset('img/suite_principal.png') }}" alt="Suite principal" class="h-full w-full object-cover">
+                    <img src="{{ asset('img/habitacion_suite.jpg') }}" alt="Suite principal" class="h-full w-full object-cover">
                 </div>
                 <div class="rounded-3xl overflow-hidden shadow-2xl">
                     <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80" alt="Lobby" class="h-full w-full object-cover">
@@ -106,7 +106,9 @@
                 @endphp
                 <article class="bg-white rounded-3xl shadow-lg overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition-transform">
                     <div class="relative h-56">
-                        <img src="{{ asset('img/habitacion_sencilla.jpg') }}" alt="{{ $tipo->nombre }}" class="absolute inset-0 w-full h-full object-cover">
+                       <img src="{{ asset('img/habitacion_' . strtolower($tipo->nombre) . '.jpg') }}"
+                                alt="{{ $tipo->nombre }}"
+                                class="absolute inset-0 w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/10 to-transparent"></div>
                         <div class="absolute inset-x-0 bottom-0 p-5 text-white flex items-end justify-between">
                             <div>
