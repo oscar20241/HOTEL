@@ -113,9 +113,20 @@ class RecepcionistaController extends Controller
     }
 
     // Buscar una habitación libre de ese tipo
+
     $habitacionLibre = Habitacion::where('tipo_habitacion_id', $tipo->id)
-        ->where('estado', 'disponible')
-        ->first();
+    ->where('estado', 'disponible')
+    ->whereDoesntHave('reservaciones', function ($q) use ($entrada, $salida) {
+        $q->where(function ($query) use ($entrada, $salida) {
+            $query->whereDate('fecha_entrada', '<', $salida)
+                  ->whereDate('fecha_salida', '>', $entrada);
+        });
+    })
+    ->inRandomOrder()
+    ->first();
+
+
+
 
     if (!$habitacionLibre) {
         return back()

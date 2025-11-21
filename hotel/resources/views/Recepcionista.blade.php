@@ -173,19 +173,19 @@
     {{-- Fecha de entrada --}}
     <div class="col-md-3">
       <label class="form-label">Fecha de Entrada:</label>
-      <input type="date" name="fecha_entrada"
-             class="form-control"
-             value="{{ old('fecha_entrada') }}"
-             required>
+   <input type="date" name="fecha_entrada" id="fechaEntrada"
+       class="form-control"
+       value="{{ old('fecha_entrada') }}"
+       required>
     </div>
 
     {{-- Fecha de salida --}}
     <div class="col-md-3">
       <label class="form-label">Fecha de Salida:</label>
-      <input type="date" name="fecha_salida"
-             class="form-control"
-             value="{{ old('fecha_salida') }}"
-             required>
+    <input type="date" name="fecha_salida" id="fechaSalida"
+       class="form-control"
+       value="{{ old('fecha_salida') }}"
+       required>
     </div>
 
     {{-- Tipo de habitación --}}
@@ -585,15 +585,28 @@
 
       const acciones = [];
 
-      if (['pendiente', 'confirmada'].includes(estado)) {
-        acciones.push(`
-          <button type="button" class="btn btn-outline-success"
-                  title="Check-In"
-                  data-action="checkin"
-                  data-codigo="${codigo}">
-            <i class="fas fa-sign-in-alt"></i>
-          </button>
-        `);
+    if (['pendiente', 'confirmada'].includes(estado)) {
+
+  // ⛔ Si aún tiene saldo, NO permitir check-in
+  if (saldoPendiente <= 0) {
+    acciones.push(`
+      <button type="button" class="btn btn-outline-success"
+              title="Check-In"
+              data-action="checkin"
+              data-codigo="${codigo}">
+        <i class="fas fa-sign-in-alt"></i>
+      </button>
+    `);
+  } else {
+    // Mostrar botón deshabilitado
+    acciones.push(`
+      <button type="button" class="btn btn-outline-secondary" disabled
+              title="Debe pagar antes de hacer Check-In">
+        <i class="fas fa-lock"></i>
+      </button>
+    `);
+  }
+
 
         acciones.push(`
           <button type="button" class="btn btn-outline-danger"
@@ -868,6 +881,58 @@
     } else if (document.getElementById('inicio').classList.contains('visible')) {
       cargarEstadisticasInicio();
     }
+
+
+      const inputEntrada = document.querySelector('input[name="fecha_entrada"]');
+  const inputSalida  = document.querySelector('input[name="fecha_salida"]');
+
+  if (inputEntrada && inputSalida) {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); // limpiar horas
+
+    const mañana = new Date(hoy);
+    mañana.setDate(hoy.getDate() + 1);
+
+    const toInputDate = (d) => d.toISOString().split('T')[0];
+
+    // 🔒 Fecha mínima de ENTRADA = hoy
+    const hoyStr = toInputDate(hoy);
+    inputEntrada.min = hoyStr;
+    if (!inputEntrada.value || inputEntrada.value < hoyStr) {
+      inputEntrada.value = hoyStr;
+    }
+
+    // 🔒 Fecha mínima de SALIDA = mañana
+    const mañanaStr = toInputDate(mañana);
+    inputSalida.min = mañanaStr;
+    if (!inputSalida.value || inputSalida.value < mañanaStr) {
+      inputSalida.value = mañanaStr;
+    }
+
+    // 🧠 Si cambia la fecha de entrada, ajustamos la salida
+    inputEntrada.addEventListener('change', () => {
+      if (!inputEntrada.value) return;
+
+      const entrada = new Date(inputEntrada.value);
+      if (isNaN(entrada)) return;
+
+      entrada.setHours(0, 0, 0, 0);
+      const minSalida = new Date(entrada);
+      minSalida.setDate(entrada.getDate() + 1);
+
+      const minSalidaStr = toInputDate(minSalida);
+      inputSalida.min = minSalidaStr;
+
+      // Si la salida actual es menor que el mínimo, la movemos
+      if (!inputSalida.value || inputSalida.value < minSalidaStr) {
+        inputSalida.value = minSalidaStr;
+      }
+    });
+  }
+
+
+
+
   });
 
   function cargarEstadisticasInicio() {
