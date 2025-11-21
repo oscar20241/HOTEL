@@ -14,6 +14,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
+  @php use Illuminate\Support\Facades\Storage; @endphp
    <div class="dashboard-container d-flex">
     <!-- Sidebar -->
     <aside class="sidebar p-3">
@@ -198,6 +199,65 @@
         <!-- Mensajes dinámicos -->
         <div id="habitacion-messages"></div>
 
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+          <div>
+            <h5 class="mb-0">Tipos de habitación</h5>
+            <small class="text-muted">Administra las categorías que se muestran en la página pública.</small>
+          </div>
+          <button class="btn btn-primary" onclick="mostrarModalTipoHabitacion()">
+            <i class="fas fa-layer-group"></i> Nuevo tipo
+          </button>
+        </div>
+
+        <div id="tipo-messages"></div>
+        <div class="table-responsive mb-4">
+          <table class="tabla-habitaciones">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Capacidad</th>
+                <th>Precio base</th>
+                <th>Imágenes</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($tiposHabitacion as $tipo)
+                <tr data-tipo-id="{{ $tipo->id }}">
+                  <td>{{ $tipo->nombre }}</td>
+                  <td>{{ $tipo->capacidad }} huésped(es)</td>
+                  <td>${{ number_format($tipo->precio_base, 2) }}</td>
+                  <td>
+                    @php
+                      $principal = $tipo->imagenPrincipal ?? $tipo->imagenes->first();
+                    @endphp
+                    @if($principal)
+                      <img src="{{ Storage::url($principal->ruta_imagen) }}" alt="{{ $tipo->nombre }}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                      <small class="text-muted d-block">{{ $tipo->imagenes->count() }} imagen(es)</small>
+                    @else
+                      <span class="text-muted small">Sin imágenes</span>
+                    @endif
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-warning" onclick="editarTipoHabitacion({{ $tipo->id }})" title="Editar tipo">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn btn-danger" onclick="eliminarTipoHabitacion({{ $tipo->id }})" title="Eliminar tipo">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-3">Aún no has configurado tipos de habitación.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+
         <div class="d-flex justify-content-between align-items-center mb-4">
           <p>Administración completa del inventario de habitaciones del hotel.</p>
           <button class="btn btn-primary" onclick="mostrarModalHabitacion()">
@@ -325,6 +385,9 @@
                 </td>
                 <td>
                   <div class="btn-group btn-group-sm">
+                    <button class="btn btn-info" onclick="abrirMantenimiento({{ $habitacion->id }})" title="Programar mantenimiento">
+                      <i class="fas fa-tools"></i>
+                    </button>
                     <button class="btn btn-warning" onclick="editarHabitacion({{ $habitacion->id }})" title="Editar">
                       <i class="fas fa-edit"></i>
                     </button>
@@ -522,6 +585,110 @@
         <button type="submit" class="btn-confirmar">
           <i class="fas fa-save"></i> Guardar Habitación
         </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para Tipos de Habitación -->
+<div id="modalTipoHabitacion" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModalTipoHabitacion()">&times;</span>
+    <h2 id="modalTipoHabitacionTitulo">Nuevo Tipo de Habitación</h2>
+
+    <form id="formTipoHabitacion" enctype="multipart/form-data">
+      @csrf
+      <div id="tipo-method-field"></div>
+
+      <div class="mb-3">
+        <label for="tipo_nombre" class="form-label">Nombre *</label>
+        <input type="text" class="form-control" id="tipo_nombre" name="nombre" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="tipo_descripcion" class="form-label">Descripción</label>
+        <textarea class="form-control" id="tipo_descripcion" name="descripcion" rows="3" placeholder="Resumen visible en la página pública"></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tipo_capacidad" class="form-label">Capacidad *</label>
+            <input type="number" class="form-control" id="tipo_capacidad" name="capacidad" min="1" max="10" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tipo_precio_base" class="form-label">Precio base (MXN) *</label>
+            <input type="number" step="0.01" min="0" class="form-control" id="tipo_precio_base" name="precio_base" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="tipo_imagenes" class="form-label">Imágenes (mínimo 1, máximo 3)</label>
+        <input type="file" class="form-control" id="tipo_imagenes" name="imagenes[]" accept="image/*" multiple>
+        <small class="text-muted d-block mt-1">La primera imagen marcada será la principal.</small>
+      </div>
+
+      <div class="mb-3 d-none" id="tipoImagenesActualesWrapper">
+        <label class="form-label">Imágenes actuales</label>
+        <div id="tipoImagenesActuales" class="row g-3"></div>
+      </div>
+
+      <div class="mb-3 d-none" id="tipoNuevasImagenesWrapper">
+        <label class="form-label">Vista previa nuevas imágenes</label>
+        <div id="tipoNuevasImagenesPreview" class="row g-2"></div>
+      </div>
+
+      <div class="text-end">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalTipoHabitacion()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar tipo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para programar mantenimiento -->
+<div id="modalMantenimiento" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModalMantenimiento()">&times;</span>
+    <h2>Programar mantenimiento</h2>
+
+    <form id="formMantenimiento">
+      @csrf
+      <input type="hidden" id="mantenimiento_habitacion_id" name="habitacion_id">
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="fecha_mantenimiento_inicio" class="form-label">Fecha de inicio *</label>
+            <input type="date" class="form-control" id="fecha_mantenimiento_inicio" name="fecha_inicio" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="fecha_mantenimiento_fin" class="form-label">Fecha de fin *</label>
+            <input type="date" class="form-control" id="fecha_mantenimiento_fin" name="fecha_fin" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="motivo_mantenimiento" class="form-label">Motivo</label>
+        <input type="text" class="form-control" id="motivo_mantenimiento" name="motivo" placeholder="Ej. Pintura, revisión de aire acondicionado">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Mantenimientos programados</label>
+        <div id="listaMantenimientos" class="border rounded p-2" style="min-height: 60px;">
+          <small class="text-muted">Se mostrarán los próximos mantenimientos de la habitación.</small>
+        </div>
+      </div>
+
+      <div class="text-end">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalMantenimiento()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar fechas</button>
       </div>
     </form>
   </div>
@@ -1243,6 +1410,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let habitacionEditando = null;
 let tarifaEditando = null;
+let tipoHabitacionEditando = null;
+let habitacionMantenimientoId = null;
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 // Mostrar modal para nueva/editar habitación
@@ -1510,6 +1679,371 @@ function mostrarMensaje(mensaje, tipo) {
       alert.remove();
     }
   }, 5000);
+}
+
+function mostrarMensajeTipos(mensaje, tipo) {
+  const container = document.getElementById('tipo-messages');
+  if (!container) return;
+
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${tipo} alert-dismissible fade show`;
+  alert.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  container.innerHTML = '';
+  container.appendChild(alert);
+
+  setTimeout(() => {
+    if (alert.parentNode) {
+      alert.remove();
+    }
+  }, 5000);
+}
+
+function mostrarModalTipoHabitacion(tipoId = null) {
+  tipoHabitacionEditando = tipoId;
+  const modal = document.getElementById('modalTipoHabitacion');
+  const titulo = document.getElementById('modalTipoHabitacionTitulo');
+  const form = document.getElementById('formTipoHabitacion');
+  const methodField = document.getElementById('tipo-method-field');
+
+  form.reset();
+  methodField.innerHTML = '';
+  renderTipoImagenesActuales([]);
+  mostrarPreviewNuevasTipo();
+
+  if (tipoId) {
+    titulo.textContent = 'Editar Tipo de Habitación';
+    methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+
+    fetch(`/gerente/tipos-habitacion/${tipoId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('No se pudieron cargar los datos del tipo de habitación');
+        }
+        return response.json();
+      })
+      .then(data => {
+        document.getElementById('tipo_nombre').value = data.nombre || '';
+        document.getElementById('tipo_descripcion').value = data.descripcion || '';
+        document.getElementById('tipo_capacidad').value = data.capacidad || 1;
+        document.getElementById('tipo_precio_base').value = data.precio_base || 0;
+        renderTipoImagenesActuales(data.imagenes || []);
+      })
+      .catch(error => {
+        console.error(error);
+        mostrarMensajeTipos(error.message, 'danger');
+      });
+  } else {
+    titulo.textContent = 'Nuevo Tipo de Habitación';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function cerrarModalTipoHabitacion() {
+  const modal = document.getElementById('modalTipoHabitacion');
+  const form = document.getElementById('formTipoHabitacion');
+  if (form) form.reset();
+  renderTipoImagenesActuales([]);
+  mostrarPreviewNuevasTipo();
+  tipoHabitacionEditando = null;
+  modal.style.display = 'none';
+}
+
+function renderTipoImagenesActuales(imagenes = []) {
+  const wrapper = document.getElementById('tipoImagenesActualesWrapper');
+  const container = document.getElementById('tipoImagenesActuales');
+
+  if (!wrapper || !container) return;
+
+  container.innerHTML = '';
+
+  if (!Array.isArray(imagenes) || imagenes.length === 0) {
+    wrapper.classList.add('d-none');
+    return;
+  }
+
+  wrapper.classList.remove('d-none');
+
+  imagenes.forEach(imagen => {
+    const col = document.createElement('div');
+    col.className = 'col-md-4';
+    col.innerHTML = `
+      <div class="border rounded p-2 h-100">
+        <img src="${imagen.url}" alt="${imagen.nombre || 'Imagen'}" class="img-fluid rounded mb-2" style="height: 120px; width: 100%; object-fit: cover;">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="principal_existente" value="${imagen.id}" ${imagen.es_principal ? 'checked' : ''}>
+          <label class="form-check-label">Marcar como principal</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="eliminar_imagenes[]" value="${imagen.id}">
+          <label class="form-check-label">Eliminar</label>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+function mostrarPreviewNuevasTipo(filesList) {
+  const wrapper = document.getElementById('tipoNuevasImagenesWrapper');
+  const container = document.getElementById('tipoNuevasImagenesPreview');
+
+  if (!wrapper || !container) return;
+
+  const files = filesList ? Array.from(filesList) : [];
+  container.innerHTML = '';
+
+  if (files.length === 0) {
+    wrapper.classList.add('d-none');
+    return;
+  }
+
+  wrapper.classList.remove('d-none');
+
+  files.forEach((file, index) => {
+    const col = document.createElement('div');
+    col.className = 'col-4';
+    const objectUrl = URL.createObjectURL(file);
+
+    col.innerHTML = `
+      <div class="position-relative">
+        ${index === 0 ? '<span class="badge bg-info text-dark position-absolute top-0 start-0 m-1">Principal</span>' : ''}
+        <img src="${objectUrl}" alt="Nueva imagen" class="img-fluid rounded border" style="height: 90px; width: 100%; object-fit: cover;">
+      </div>
+    `;
+
+    container.appendChild(col);
+    col.querySelector('img').onload = () => URL.revokeObjectURL(objectUrl);
+  });
+}
+
+const inputImagenesTipo = document.getElementById('tipo_imagenes');
+if (inputImagenesTipo) {
+  inputImagenesTipo.addEventListener('change', event => mostrarPreviewNuevasTipo(event.target.files));
+}
+
+const formTipoHabitacion = document.getElementById('formTipoHabitacion');
+if (formTipoHabitacion) {
+  formTipoHabitacion.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const submitBtn = formTipoHabitacion.querySelector('button[type="submit"]');
+    const originalHtml = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    submitBtn.disabled = true;
+
+    const formData = new FormData(formTipoHabitacion);
+    const url = tipoHabitacionEditando
+      ? `/gerente/tipos-habitacion/${tipoHabitacionEditando}`
+      : '/gerente/tipos-habitacion';
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+      .then(async response => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          let message = 'No se pudo guardar el tipo.';
+          if (data && data.errors) {
+            message = Object.values(data.errors).flat().join(' ');
+          } else if (data && data.message) {
+            message = data.message;
+          }
+          throw new Error(message);
+        }
+        return data;
+      })
+      .then(data => {
+        if (data && data.success) {
+          mostrarMensajeTipos(data.message, 'success');
+          cerrarModalTipoHabitacion();
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          mostrarMensajeTipos(data.message || 'No se pudo guardar el tipo.', 'danger');
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        mostrarMensajeTipos(error.message, 'danger');
+      })
+      .finally(() => {
+        submitBtn.innerHTML = originalHtml;
+        submitBtn.disabled = false;
+      });
+  });
+}
+
+function editarTipoHabitacion(tipoId) {
+  mostrarModalTipoHabitacion(tipoId);
+}
+
+function eliminarTipoHabitacion(tipoId) {
+  if (!confirm('¿Eliminar este tipo de habitación? Se perderán sus imágenes.')) {
+    return;
+  }
+
+  const deleteBtn = document.querySelector(`tr[data-tipo-id="${tipoId}"] button.btn-danger`);
+  const originalHtml = deleteBtn ? deleteBtn.innerHTML : '';
+  if (deleteBtn) {
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    deleteBtn.disabled = true;
+  }
+
+  fetch(`/gerente/tipos-habitacion/${tipoId}`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        mostrarMensajeTipos(data.message, 'success');
+        const fila = document.querySelector(`tr[data-tipo-id="${tipoId}"]`);
+        if (fila) fila.remove();
+      } else {
+        mostrarMensajeTipos(data.message || 'No se pudo eliminar el tipo.', 'danger');
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      mostrarMensajeTipos('Error al eliminar: ' + error.message, 'danger');
+    })
+    .finally(() => {
+      if (deleteBtn) {
+        deleteBtn.innerHTML = originalHtml;
+        deleteBtn.disabled = false;
+      }
+    });
+}
+
+function abrirMantenimiento(habitacionId) {
+  habitacionMantenimientoId = habitacionId;
+  const modal = document.getElementById('modalMantenimiento');
+  const lista = document.getElementById('listaMantenimientos');
+  const form = document.getElementById('formMantenimiento');
+
+  if (form) {
+    form.reset();
+    document.getElementById('mantenimiento_habitacion_id').value = habitacionId;
+    document.getElementById('fecha_mantenimiento_inicio').value = new Date().toISOString().slice(0, 10);
+  }
+
+  lista.innerHTML = '<small class="text-muted">Cargando programación...</small>';
+
+  fetch(`/gerente/habitaciones/${habitacionId}`, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      renderListaMantenimientos(data.mantenimientos || []);
+    })
+    .catch(() => {
+      renderListaMantenimientos([]);
+    });
+
+  modal.style.display = 'flex';
+}
+
+function renderListaMantenimientos(mantenimientos) {
+  const lista = document.getElementById('listaMantenimientos');
+  if (!lista) return;
+
+  lista.innerHTML = '';
+
+  if (!mantenimientos || mantenimientos.length === 0) {
+    lista.innerHTML = '<small class="text-muted">No hay mantenimientos futuros.</small>';
+    return;
+  }
+
+  mantenimientos.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'd-flex justify-content-between align-items-center border rounded p-2 mb-2';
+    div.innerHTML = `
+      <div>
+        <strong>${item.fecha_inicio}</strong> al <strong>${item.fecha_fin}</strong><br>
+        <small class="text-muted">${item.motivo || 'Sin motivo'}</small>
+      </div>
+      <span class="badge bg-secondary">${item.estado}</span>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+function cerrarModalMantenimiento() {
+  const modal = document.getElementById('modalMantenimiento');
+  const form = document.getElementById('formMantenimiento');
+  if (form) form.reset();
+  habitacionMantenimientoId = null;
+  modal.style.display = 'none';
+}
+
+const formMantenimiento = document.getElementById('formMantenimiento');
+if (formMantenimiento) {
+  formMantenimiento.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!habitacionMantenimientoId) return;
+
+    const submitBtn = formMantenimiento.querySelector('button[type="submit"]');
+    const originalHtml = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    submitBtn.disabled = true;
+
+    const formData = new FormData(formMantenimiento);
+
+    fetch(`/gerente/habitaciones/${habitacionMantenimientoId}/mantenimientos`, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+      .then(async response => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          let message = 'No se pudo programar el mantenimiento.';
+          if (data && data.errors) {
+            message = Object.values(data.errors).flat().join(' ');
+          } else if (data && data.message) {
+            message = data.message;
+          }
+          throw new Error(message);
+        }
+        return data;
+      })
+      .then(data => {
+        mostrarMensaje(data.message || 'Mantenimiento guardado.', 'success');
+        cerrarModalMantenimiento();
+        setTimeout(() => location.reload(), 1000);
+      })
+      .catch(error => {
+        console.error(error);
+        mostrarMensaje(error.message, 'danger');
+      })
+      .finally(() => {
+        submitBtn.innerHTML = originalHtml;
+        submitBtn.disabled = false;
+      });
+  });
 }
 
 function mostrarMensajeTarifas(mensaje, tipo) {

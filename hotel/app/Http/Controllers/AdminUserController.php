@@ -7,6 +7,8 @@ use App\Models\Empleado;
 use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
 use App\Models\HabitacionImagen;
+use App\Models\TipoHabitacionImagen;
+use App\Models\HabitacionMantenimiento;
 use App\Models\TarifaDinamica;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -51,7 +53,8 @@ public function index(Request $request)
     $tiposHabitacion = TipoHabitacion::with([
             'tarifasDinamicas' => function ($query) {
                 $query->orderBy('fecha_inicio');
-            }
+            },
+            'imagenes'
         ])
         ->orderBy('nombre')
         ->get();
@@ -377,7 +380,20 @@ public function index(Request $request)
                     'nombre' => $imagen->nombre_original,
                     'es_principal' => $imagen->es_principal,
                 ];
-            })
+            }),
+            'mantenimientos' => $habitacion->mantenimientos()
+                ->whereDate('fecha_fin', '>=', Carbon::today())
+                ->orderBy('fecha_inicio')
+                ->get()
+                ->map(function ($mantenimiento) {
+                    return [
+                        'id' => $mantenimiento->id,
+                        'fecha_inicio' => $mantenimiento->fecha_inicio->toDateString(),
+                        'fecha_fin' => $mantenimiento->fecha_fin->toDateString(),
+                        'estado' => $mantenimiento->estado,
+                        'motivo' => $mantenimiento->motivo,
+                    ];
+                }),
         ]);
     }
 
@@ -497,10 +513,10 @@ public function storeHabitacion(Request $request)
 
     // 🆕 Eliminar habitación
     // 🆕 Eliminar habitación
-public function destroyHabitacion($id)
-{
-    try {
-        $habitacion = Habitacion::findOrFail($id);
+    public function destroyHabitacion($id)
+    {
+        try {
+            $habitacion = Habitacion::findOrFail($id);
 
         // Verificar si tiene reservaciones activas
         if ($habitacion->reservaciones()->whereIn('estado', ['confirmada', 'activa'])->exists()) {
@@ -531,6 +547,245 @@ public function destroyHabitacion($id)
         ], 500);
     }
 }
+
+    // =============================================
+    // GESTIÓN DE TIPOS DE HABITACIÓN
+    // =============================================
+
+    public function showTipoHabitacion($id)
+    {
+        $tipoHabitacion = TipoHabitacion::with('imagenes')->findOrFail($id);
+
+        return response()->json([
+            'id' => $tipoHabitacion->id,
+            'nombre' => $tipoHabitacion->nombre,
+            'descripcion' => $tipoHabitacion->descripcion,
+            'capacidad' => $tipoHabitacion->capacidad,
+            'precio_base' => (float) $tipoHabitacion->precio_base,
+            'imagenes' => $tipoHabitacion->imagenes->map(function ($imagen) {
+                return [
+                    'id' => $imagen->id,
+                    'url' => Storage::url($imagen->ruta_imagen),
+                    'nombre' => $imagen->nombre_original,
+                    'es_principal' => $imagen->es_principal,
+                ];
+            }),
+        ]);
+    }
+
+    public function storeTipoHabitacion(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:255|unique:tipos_habitacion,nombre',
+            'descripcion' => 'nullable|string',
+            'capacidad' => 'required|integer|min:1|max:10',
+            'precio_base' => 'required|numeric|min:0',
+            'imagenes' => 'required|array|min:1|max:3',
+            'imagenes.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $tipoHabitacion = TipoHabitacion::create($request->only('nombre', 'descripcion', 'capacidad', 'precio_base'));
+
+        foreach ($request->file('imagenes') as $index => $imagen) {
+            $path = $imagen->store('tipos-habitacion', 'public');
+
+            TipoHabitacionImagen::create([
+                'tipo_habitacion_id' => $tipoHabitacion->id,
+                'ruta_imagen' => $path,
+                'nombre_original' => $imagen->getClientOriginalName(),
+                'es_principal' => $index === 0,
+                'orden' => $index,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tipo de habitación creado correctamente.',
+            'tipo' => $tipoHabitacion->load('imagenes'),
+        ]);
+    }
+
+    public function updateTipoHabitacion(Request $request, $id)
+    {
+        $tipoHabitacion = TipoHabitacion::with('imagenes')->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:255|unique:tipos_habitacion,nombre,' . $tipoHabitacion->id,
+            'descripcion' => 'nullable|string',
+            'capacidad' => 'required|integer|min:1|max:10',
+            'precio_base' => 'required|numeric|min:0',
+            'imagenes' => 'nullable|array',
+            'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'eliminar_imagenes' => 'nullable|array',
+            'eliminar_imagenes.*' => 'integer|exists:tipo_habitacion_imagenes,id',
+            'principal_existente' => 'nullable|integer|exists:tipo_habitacion_imagenes,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $imagenesActuales = $tipoHabitacion->imagenes;
+        $imagenesEliminar = collect($request->input('eliminar_imagenes', []));
+        $imagenesRestantes = $imagenesActuales->reject(fn ($imagen) => $imagenesEliminar->contains($imagen->id))->count();
+        $nuevas = $request->hasFile('imagenes') ? count($request->file('imagenes')) : 0;
+
+        $totalFinal = $imagenesRestantes + $nuevas;
+
+        if ($totalFinal < 1 || $totalFinal > 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debes mantener entre 1 y 3 imágenes para el tipo de habitación.',
+            ], 422);
+        }
+
+        $tipoHabitacion->update($request->only('nombre', 'descripcion', 'capacidad', 'precio_base'));
+
+        foreach ($imagenesEliminar as $imagenId) {
+            $imagen = $imagenesActuales->firstWhere('id', $imagenId);
+            if ($imagen) {
+                Storage::disk('public')->delete($imagen->ruta_imagen);
+                $imagen->delete();
+            }
+        }
+
+        if ($request->hasFile('imagenes')) {
+            $ordenBase = $tipoHabitacion->imagenes()->max('orden') ?? 0;
+
+            foreach ($request->file('imagenes') as $index => $imagen) {
+                $path = $imagen->store('tipos-habitacion', 'public');
+
+                TipoHabitacionImagen::create([
+                    'tipo_habitacion_id' => $tipoHabitacion->id,
+                    'ruta_imagen' => $path,
+                    'nombre_original' => $imagen->getClientOriginalName(),
+                    'es_principal' => false,
+                    'orden' => $ordenBase + $index + 1,
+                ]);
+            }
+        }
+
+        $imagenesRefrescadas = $tipoHabitacion->imagenes()->orderBy('orden')->get();
+        $principalElegido = $request->input('principal_existente');
+
+        if (!$principalElegido && $imagenesRefrescadas->count()) {
+            $principalElegido = $imagenesRefrescadas->first()->id;
+        }
+
+        $imagenesRefrescadas->each(function ($imagen) use ($principalElegido) {
+            $imagen->update(['es_principal' => (int) $imagen->id === (int) $principalElegido]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tipo de habitación actualizado correctamente.',
+            'tipo' => $tipoHabitacion->load('imagenes'),
+        ]);
+    }
+
+    public function destroyTipoHabitacion($id)
+    {
+        $tipoHabitacion = TipoHabitacion::with('imagenes')->findOrFail($id);
+
+        if ($tipoHabitacion->habitaciones()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No puedes eliminar un tipo con habitaciones asociadas.',
+            ], 422);
+        }
+
+        foreach ($tipoHabitacion->imagenes as $imagen) {
+            Storage::disk('public')->delete($imagen->ruta_imagen);
+            $imagen->delete();
+        }
+
+        $tipoHabitacion->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tipo de habitación eliminado correctamente.',
+        ]);
+    }
+
+    // =============================================
+    // PROGRAMACIÓN DE MANTENIMIENTO
+    // =============================================
+
+    public function programarMantenimiento(Request $request, $id)
+    {
+        $habitacion = Habitacion::with('mantenimientos', 'reservaciones')->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'motivo' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $inicio = Carbon::parse($request->fecha_inicio);
+        $fin = Carbon::parse($request->fecha_fin);
+
+        $conflictoReservas = $habitacion->reservaciones()
+            ->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
+            ->where('fecha_entrada', '<', $fin->copy()->addDay())
+            ->where('fecha_salida', '>', $inicio)
+            ->exists();
+
+        if ($conflictoReservas) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La habitación tiene reservaciones activas en ese rango. Ajusta las fechas.',
+            ], 422);
+        }
+
+        $solapado = $habitacion->mantenimientos()
+            ->whereDate('fecha_inicio', '<=', $fin)
+            ->whereDate('fecha_fin', '>=', $inicio)
+            ->exists();
+
+        if ($solapado) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ya existe un mantenimiento programado en esas fechas.',
+            ], 422);
+        }
+
+        $estado = now()->between($inicio, $fin) ? 'en_curso' : 'programado';
+
+        $mantenimiento = HabitacionMantenimiento::create([
+            'habitacion_id' => $habitacion->id,
+            'fecha_inicio' => $inicio,
+            'fecha_fin' => $fin,
+            'motivo' => $request->motivo,
+            'estado' => $estado,
+        ]);
+
+        if ($estado === 'en_curso') {
+            $habitacion->update(['estado' => 'mantenimiento']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mantenimiento programado correctamente.',
+            'mantenimiento' => $mantenimiento,
+        ]);
+    }
 
     // =============================================
     // GESTIÓN DE TARIFAS DINÁMICAS
