@@ -136,8 +136,8 @@
 
     {{-- Huésped --}}
     <div class="col-md-6">
-      <label class="form-label">Huésped:</label>
-      <select name="user_id" class="form-select" required>
+      <label class="form-label">Huésped existente:</label>
+      <select name="user_id" class="form-select" id="selectHuesped">
         <option value="">Seleccione huésped...</option>
         @foreach($huespedes as $huesped)
           <option value="{{ $huesped->id }}" {{ old('user_id') == $huesped->id ? 'selected' : '' }}>
@@ -145,6 +145,29 @@
           </option>
         @endforeach
       </select>
+      <small class="text-muted">Si el huésped no existe, habilita el registro rápido.</small>
+    </div>
+
+    <div class="col-md-6 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="toggleNuevoHuesped" {{ old('nuevo_nombre') || old('nuevo_email') ? 'checked' : '' }}>
+        <label class="form-check-label" for="toggleNuevoHuesped">Registrar nuevo huésped</label>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Nombre del nuevo huésped:</label>
+      <input type="text" name="nuevo_nombre" id="nuevoNombre" class="form-control" value="{{ old('nuevo_nombre') }}" placeholder="Nombre completo" disabled>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Correo electrónico:</label>
+      <input type="email" name="nuevo_email" id="nuevoEmail" class="form-control" value="{{ old('nuevo_email') }}" placeholder="correo@ejemplo.com" disabled>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Teléfono:</label>
+      <input type="tel" name="nuevo_telefono" id="nuevoTelefono" class="form-control" value="{{ old('nuevo_telefono') }}" placeholder="Ej. 322-555-1234" disabled>
     </div>
 
     {{-- Fecha de entrada --}}
@@ -168,11 +191,11 @@
     {{-- Tipo de habitación --}}
     <div class="col-md-6">
       <label class="form-label">Tipo de Habitación:</label>
-      <select name="tipo_habitacion_id" class="form-select" required>
+      <select name="tipo_habitacion_id" class="form-select" id="selectTipoHabitacion" required>
         <option value="">Seleccione...</option>
         @foreach($tiposHabitacion as $tipo)
-          <option value="{{ $tipo->id }}" {{ old('tipo_habitacion_id') == $tipo->id ? 'selected' : '' }}>
-            {{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}
+          <option value="{{ $tipo->id }}" data-capacidad="{{ $tipo->capacidad }}" {{ old('tipo_habitacion_id') == $tipo->id ? 'selected' : '' }}>
+            {{ $tipo->nombre }} - Capacidad: {{ $tipo->capacidad }} - ${{ number_format($tipo->precio_base, 2) }}
           </option>
         @endforeach
       </select>
@@ -181,7 +204,7 @@
     {{-- Adultos --}}
     <div class="col-md-3">
       <label class="form-label">Adultos:</label>
-      <input type="number" name="adultos" class="form-control"
+      <input type="number" name="adultos" id="inputAdultos" class="form-control"
              min="1" max="8"
              value="{{ old('adultos', 1) }}" required>
     </div>
@@ -189,9 +212,13 @@
     {{-- Niños --}}
     <div class="col-md-3">
       <label class="form-label">Niños:</label>
-      <input type="number" name="ninos" class="form-control"
+      <input type="number" name="ninos" id="inputNinos" class="form-control"
              min="0" max="8"
              value="{{ old('ninos', 0) }}">
+    </div>
+
+    <div class="col-12">
+      <small class="text-muted" id="capacidadMensaje">Selecciona un tipo de habitación para ver la capacidad.</small>
     </div>
 
     {{-- Teléfono --}}
@@ -280,6 +307,33 @@
   const links = document.querySelectorAll('.nav-link');
   const secciones = document.querySelectorAll('.seccion');
 
+  // ---------------- MODO HUÉSPED (existente o nuevo) ----------------
+  const toggleNuevoHuesped = document.getElementById('toggleNuevoHuesped');
+  const selectHuesped = document.getElementById('selectHuesped');
+  const nuevoNombre = document.getElementById('nuevoNombre');
+  const nuevoEmail = document.getElementById('nuevoEmail');
+  const nuevoTelefono = document.getElementById('nuevoTelefono');
+
+  function actualizarModoHuesped() {
+    const registrarNuevo = toggleNuevoHuesped?.checked;
+
+    [nuevoNombre, nuevoEmail, nuevoTelefono].forEach(campo => {
+      if (!campo) return;
+      campo.disabled = !registrarNuevo;
+      campo.required = registrarNuevo && campo !== nuevoTelefono;
+    });
+
+    if (selectHuesped) {
+      selectHuesped.disabled = registrarNuevo;
+      selectHuesped.required = !registrarNuevo;
+      if (registrarNuevo) {
+        selectHuesped.value = '';
+      }
+    }
+  }
+
+  toggleNuevoHuesped?.addEventListener('change', actualizarModoHuesped);
+
   links.forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
@@ -315,6 +369,54 @@
       seccion.classList.add('visible');
     }
   }
+
+  // ---------------- CAPACIDAD POR TIPO DE HABITACIÓN ----------------
+  const selectTipoHabitacion = document.getElementById('selectTipoHabitacion');
+  const inputAdultos = document.getElementById('inputAdultos');
+  const inputNinos = document.getElementById('inputNinos');
+  const capacidadMensaje = document.getElementById('capacidadMensaje');
+
+  function obtenerCapacidadSeleccionada() {
+    const opcion = selectTipoHabitacion?.selectedOptions[0];
+    return opcion ? parseInt(opcion.dataset.capacidad || '0', 10) || 0 : 0;
+  }
+
+  function validarCapacidad() {
+    const capacidad = obtenerCapacidadSeleccionada();
+    const adultos = parseInt(inputAdultos?.value || '0', 10);
+    const ninos = parseInt(inputNinos?.value || '0', 10);
+    const total = adultos + ninos;
+
+    if (inputAdultos) inputAdultos.max = capacidad || 8;
+    if (inputNinos) inputNinos.max = capacidad || 8;
+
+    if (!capacidad) {
+      if (capacidadMensaje) capacidadMensaje.textContent = 'Selecciona un tipo de habitación para ver la capacidad.';
+      capacidadMensaje?.classList.remove('text-danger');
+      inputAdultos?.setCustomValidity('');
+      inputNinos?.setCustomValidity('');
+      return;
+    }
+
+    if (capacidadMensaje) {
+      capacidadMensaje.textContent = `Capacidad máxima: ${capacidad} huésped(es).`;
+    }
+
+    if (total > capacidad) {
+      const advertencia = `La capacidad máxima de esta habitación es ${capacidad} persona(s).`;
+      inputAdultos?.setCustomValidity(advertencia);
+      inputNinos?.setCustomValidity(advertencia);
+      capacidadMensaje?.classList.add('text-danger');
+    } else {
+      inputAdultos?.setCustomValidity('');
+      inputNinos?.setCustomValidity('');
+      capacidadMensaje?.classList.remove('text-danger');
+    }
+  }
+
+  selectTipoHabitacion?.addEventListener('change', validarCapacidad);
+  inputAdultos?.addEventListener('input', validarCapacidad);
+  inputNinos?.addEventListener('input', validarCapacidad);
 
   // ---------------- TOAST BOOTSTRAP ----------------
   function mostrarToast(mensaje, tipo = 'info') {
@@ -499,6 +601,9 @@
   });
 
   document.addEventListener('DOMContentLoaded', function () {
+    actualizarModoHuesped();
+    validarCapacidad();
+
     if (document.getElementById('reservas').classList.contains('visible')) {
       cargarReservasDelDia();
     } else if (document.getElementById('inicio').classList.contains('visible')) {
