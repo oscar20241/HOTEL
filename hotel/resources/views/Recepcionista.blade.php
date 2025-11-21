@@ -201,21 +201,14 @@
       </select>
     </div>
 
-    {{-- Adultos --}}
+    {{-- Personas --}}
     <div class="col-md-3">
-      <label class="form-label">Adultos:</label>
-      <input type="number" name="adultos" id="inputAdultos" class="form-control"
+      <label class="form-label">Personas:</label>
+      <input type="number" name="personas" id="inputPersonas" class="form-control"
              min="1" max="8"
-             value="{{ old('adultos', 1) }}" required>
+             value="{{ old('personas', 1) }}" required>
     </div>
 
-    {{-- Niños --}}
-    <div class="col-md-3">
-      <label class="form-label">Niños:</label>
-      <input type="number" name="ninos" id="inputNinos" class="form-control"
-             min="0" max="8"
-             value="{{ old('ninos', 0) }}">
-    </div>
 
     <div class="col-12">
       <small class="text-muted" id="capacidadMensaje">Selecciona un tipo de habitación para ver la capacidad.</small>
@@ -370,10 +363,10 @@
     }
   }
 
-  // ---------------- CAPACIDAD POR TIPO DE HABITACIÓN ----------------
+
+    // ---------------- CAPACIDAD POR TIPO DE HABITACIÓN ----------------
   const selectTipoHabitacion = document.getElementById('selectTipoHabitacion');
-  const inputAdultos = document.getElementById('inputAdultos');
-  const inputNinos = document.getElementById('inputNinos');
+  const inputPersonas = document.getElementById('inputPersonas');
   const capacidadMensaje = document.getElementById('capacidadMensaje');
 
   function obtenerCapacidadSeleccionada() {
@@ -383,18 +376,14 @@
 
   function validarCapacidad() {
     const capacidad = obtenerCapacidadSeleccionada();
-    const adultos = parseInt(inputAdultos?.value || '0', 10);
-    const ninos = parseInt(inputNinos?.value || '0', 10);
-    const total = adultos + ninos;
+    const personas = parseInt(inputPersonas?.value || '0', 10);
 
-    if (inputAdultos) inputAdultos.max = capacidad || 8;
-    if (inputNinos) inputNinos.max = capacidad || 8;
+    if (inputPersonas) inputPersonas.max = capacidad || 8;
 
     if (!capacidad) {
       if (capacidadMensaje) capacidadMensaje.textContent = 'Selecciona un tipo de habitación para ver la capacidad.';
       capacidadMensaje?.classList.remove('text-danger');
-      inputAdultos?.setCustomValidity('');
-      inputNinos?.setCustomValidity('');
+      inputPersonas?.setCustomValidity('');
       return;
     }
 
@@ -402,21 +391,21 @@
       capacidadMensaje.textContent = `Capacidad máxima: ${capacidad} huésped(es).`;
     }
 
-    if (total > capacidad) {
+    if (personas > capacidad) {
       const advertencia = `La capacidad máxima de esta habitación es ${capacidad} persona(s).`;
-      inputAdultos?.setCustomValidity(advertencia);
-      inputNinos?.setCustomValidity(advertencia);
+      inputPersonas?.setCustomValidity(advertencia);
       capacidadMensaje?.classList.add('text-danger');
     } else {
-      inputAdultos?.setCustomValidity('');
-      inputNinos?.setCustomValidity('');
+      inputPersonas?.setCustomValidity('');
       capacidadMensaje?.classList.remove('text-danger');
     }
   }
 
   selectTipoHabitacion?.addEventListener('change', validarCapacidad);
-  inputAdultos?.addEventListener('input', validarCapacidad);
-  inputNinos?.addEventListener('input', validarCapacidad);
+  inputPersonas?.addEventListener('input', validarCapacidad);
+
+
+
 
   // ---------------- TOAST BOOTSTRAP ----------------
   function mostrarToast(mensaje, tipo = 'info') {

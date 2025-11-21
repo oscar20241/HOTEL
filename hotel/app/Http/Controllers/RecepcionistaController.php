@@ -46,93 +46,104 @@ class RecepcionistaController extends Controller
     //  NUEVA RESERVACIÓN
     // ========================
     public function storeReserva(Request $request)
-    {
-        $data = $request->validate([
-            'user_id'            => 'nullable|exists:users,id',
-            'nuevo_nombre'       => 'required_without:user_id|string|max:255',
-            'nuevo_email'        => 'required_without:user_id|email|unique:users,email',
-            'nuevo_telefono'     => 'nullable|string|max:30',
-            'tipo_habitacion_id' => 'required|exists:tipo_habitaciones,id',
-            'fecha_entrada'      => 'required|date|after_or_equal:today',
-            'fecha_salida'       => 'required|date|after:fecha_entrada',
-            'adultos'            => 'required|integer|min:1',
-            'ninos'              => 'nullable|integer|min:0',
-            'telefono'           => 'nullable|string|max:30',
-            'notas'              => 'nullable|string|max:500',
-        ], [
-            'user_id.exists'          => 'El huésped seleccionado no existe.',
-            'nuevo_nombre.required_without' => 'Debes seleccionar o registrar un huésped.',
-            'nuevo_email.required_without'  => 'Debes ingresar un correo para el nuevo huésped.',
+{
+    $data = $request->validate([
+        'user_id'            => 'nullable|exists:users,id',
+        'nuevo_nombre'       => 'required_without:user_id|string|max:255',
+        'nuevo_email'        => 'required_without:user_id|email|unique:users,email',
+        'nuevo_telefono'     => 'nullable|string|max:30',
+
+       'tipo_habitacion_id' => 'required|exists:tipos_habitacion,id',
+
+        'fecha_entrada'      => 'required|date|after_or_equal:today',
+        'fecha_salida'       => 'required|date|after:fecha_entrada',
+
+        // 👇 YA NO usamos adultos / niños, solo personas
+        'personas'           => 'required|integer|min:1',
+
+        'telefono'           => 'nullable|string|max:30',
+        'notas'              => 'nullable|string|max:500',
+    ], [
+        'user_id.exists'                => 'El huésped seleccionado no existe.',
+        'nuevo_nombre.required_without' => 'Debes seleccionar o registrar un huésped.',
+        'nuevo_email.required_without'  => 'Debes ingresar un correo para el nuevo huésped.',
+        'personas.required'             => 'Debes indicar el número de personas.',
+        'personas.integer'              => 'El número de personas debe ser un valor numérico.',
+        'personas.min'                  => 'Debe haber al menos una persona en la reservación.',
+    ]);
+
+    // Crear huésped nuevo si no se seleccionó uno existente
+    if (empty($data['user_id'])) {
+        $nuevoUsuario = User::create([
+            'name'     => $data['nuevo_nombre'],
+            'email'    => $data['nuevo_email'],
+            'telefono' => $data['nuevo_telefono'] ?? null,
+            'password' => Hash::make(Str::random(12)),
         ]);
 
-        // Crear huésped nuevo si no se seleccionó uno existente
-        if (empty($data['user_id'])) {
-            $nuevoUsuario = User::create([
-                'name'     => $data['nuevo_nombre'],
-                'email'    => $data['nuevo_email'],
-                'telefono' => $data['nuevo_telefono'] ?? null,
-                'password' => Hash::make(Str::random(12)),
-            ]);
-
-            $data['user_id'] = $nuevoUsuario->id;
-        }
-
-        $entrada = Carbon::parse($data['fecha_entrada']);
-        $salida  = Carbon::parse($data['fecha_salida']);
-        $noches  = $entrada->diffInDays($salida);
-
-        if ($noches <= 0) {
-            return back()
-                ->withErrors(['fecha_salida' => 'La fecha de salida debe ser posterior a la de entrada.'])
-                ->withInput();
-        }
-
-        $tipo = TipoHabitacion::findOrFail($data['tipo_habitacion_id']);
-
-        // Puedes usar el accesor `precio_actual` que ya tienes en el modelo
-        $precioNoche = $tipo->precio_actual;
-        $precioTotal = $noches * $precioNoche;
-
-        $numeroHuespedes = ($data['adultos'] ?? 0) + ($data['ninos'] ?? 0);
-
-        if ($numeroHuespedes > $tipo->capacidad) {
-            return back()
-                ->withErrors(['adultos' => 'La cantidad de huéspedes excede la capacidad de la habitación seleccionada (máximo ' . $tipo->capacidad . ').'])
-                ->withInput();
-        }
-
-        // Buscar una habitación libre de ese tipo
-        $habitacionLibre = Habitacion::where('tipo_habitacion_id', $tipo->id)
-            ->where('estado', 'disponible')
-            ->first();
-
-        if (!$habitacionLibre) {
-            return back()
-                ->withErrors(['tipo_habitacion_id' => 'No hay habitaciones disponibles de este tipo.'])
-                ->withInput();
-        }
-
-        $notas = $data['notas'] ?? '';
-        if (!empty($data['telefono'])) {
-            $notas = trim($notas . "\nTeléfono de contacto: " . $data['telefono']);
-        }
-
-        Reservacion::create([
-            'user_id'          => $data['user_id'],
-            'habitacion_id'    => $habitacionLibre->id,
-            'fecha_entrada'    => $data['fecha_entrada'],
-            'fecha_salida'     => $data['fecha_salida'],
-            'precio_total'     => $precioTotal,
-            'estado'           => 'pendiente',
-            'notas'            => $notas ?: null,
-            'metodo_pago'      => 'pendiente',
-            'numero_huespedes' => $numeroHuespedes,
-        ]);
-
-        return redirect()
-            ->route('recepcion.dashboard')
-            ->with('success', 'Reservación creada correctamente.');
+        $data['user_id'] = $nuevoUsuario->id;
     }
+
+    $entrada = Carbon::parse($data['fecha_entrada']);
+    $salida  = Carbon::parse($data['fecha_salida']);
+    $noches  = $entrada->diffInDays($salida);
+
+    if ($noches <= 0) {
+        return back()
+            ->withErrors(['fecha_salida' => 'La fecha de salida debe ser posterior a la de entrada.'])
+            ->withInput();
+    }
+
+    $tipo = TipoHabitacion::findOrFail($data['tipo_habitacion_id']);
+
+    // Puedes usar el accesor `precio_actual` que ya tienes en el modelo
+    $precioNoche = $tipo->precio_actual;
+    $precioTotal = $noches * $precioNoche;
+
+    // 👇 Ahora el número de huéspedes viene solo de "personas"
+    $numeroHuespedes = $data['personas'];
+
+    if ($numeroHuespedes > $tipo->capacidad) {
+        return back()
+            ->withErrors([
+                'personas' => 'La cantidad de huéspedes excede la capacidad de la habitación seleccionada (máximo ' . $tipo->capacidad . ').'
+            ])
+            ->withInput();
+    }
+
+    // Buscar una habitación libre de ese tipo
+    $habitacionLibre = Habitacion::where('tipo_habitacion_id', $tipo->id)
+        ->where('estado', 'disponible')
+        ->first();
+
+    if (!$habitacionLibre) {
+        return back()
+            ->withErrors(['tipo_habitacion_id' => 'No hay habitaciones disponibles de este tipo.'])
+            ->withInput();
+    }
+
+    $notas = $data['notas'] ?? '';
+    if (!empty($data['telefono'])) {
+        $notas = trim($notas . "\nTeléfono de contacto: " . $data['telefono']);
+    }
+
+    Reservacion::create([
+        'user_id'          => $data['user_id'],
+        'habitacion_id'    => $habitacionLibre->id,
+        'fecha_entrada'    => $data['fecha_entrada'],
+        'fecha_salida'     => $data['fecha_salida'],
+        'precio_total'     => $precioTotal,
+        'estado'           => 'pendiente',
+        'notas'            => $notas ?: null,
+        'metodo_pago'      => 'pendiente',
+        'numero_huespedes' => $numeroHuespedes, // 👈 aquí guardamos personas
+    ]);
+
+    return redirect()
+        ->route('recepcion.dashboard')
+        ->with('success', 'Reservación creada correctamente.');
+}
+
 
     // ========================
     //  VISTAS EXTRA (si las sigues usando)
