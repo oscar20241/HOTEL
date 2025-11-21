@@ -23,6 +23,7 @@ class CreateReservacionesTable extends Migration
             $table->enum('estado', ['pendiente', 'confirmada', 'activa', 'completada', 'cancelada'])->default('pendiente');
             $table->decimal('precio_total', 10, 2);
             $table->text('notas')->nullable();
+            $table->enum('metodo_pago', ['pendiente', 'efectivo', 'tarjeta', 'transferencia', 'paypal'])->default('pendiente');
             $table->timestamps();
         });
     }

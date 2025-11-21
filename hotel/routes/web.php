@@ -172,6 +172,10 @@ Route::middleware(['auth', 'empleado.activo', 'es.recepcionista'])
         Route::post('/checkout', [RecepcionistaController::class, 'hacerCheckout'])
             ->name('checkout');
 
+        // Pago presencial en efectivo
+        Route::post('/pago-efectivo', [RecepcionistaController::class, 'registrarPagoEfectivo'])
+            ->name('pago-efectivo');
+
         // Filtro de ocupación
         Route::get('/ocupacion', [RecepcionistaController::class, 'filtrarOcupacion'])
             ->name('ocupacion');
