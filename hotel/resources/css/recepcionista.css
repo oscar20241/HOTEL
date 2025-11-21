@@ -385,3 +385,21 @@
   border-color: var(--morado) !important;
   color: var(--blanco) !important;
 }
+
+/* ==== FIX para el modal de Bootstrap ==== */
+
+.modal-backdrop {
+  /* que el fondo gris quede debajo del modal, no encima */
+  z-index: 1050 !important;
+}
+
+.modal {
+  /* que el modal quede por encima del fondo gris y del resto del layout */
+  z-index: 1060 !important;
+}
+
+/* Asegura que se pueda interactuar con el contenido del modal */
+.modal-dialog,
+.modal-content {
+  pointer-events: auto !important;
+}
