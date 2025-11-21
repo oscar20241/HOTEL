@@ -266,6 +266,50 @@
             </div>
           </div>
         </div>
+
+        <div class="card shadow-sm mt-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h5 class="mb-0"><i class="fas fa-history text-primary"></i> Historial de reservaciones</h5>
+              <small class="text-muted">Busca por nombre o correo del huésped</small>
+            </div>
+
+            <form id="formHistorial" class="row g-2 align-items-end">
+              <div class="col-md-9">
+                <label for="inputHistorialCliente" class="form-label">Huésped</label>
+                <input type="text" id="inputHistorialCliente" class="form-control" placeholder="Ej. cliente@correo.com o nombre completo" />
+              </div>
+              <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="fas fa-search"></i> Buscar historial
+                </button>
+              </div>
+            </form>
+
+            <div class="table-responsive mt-3">
+              <table class="table table-bordered align-middle" id="tablaHistorial">
+                <thead class="table-light">
+                  <tr>
+                    <th>Reserva</th>
+                    <th>Huésped</th>
+                    <th>Habitación</th>
+                    <th>Estancia</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Pendiente</th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpoHistorial">
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-3">
+                      Ingresa el nombre o correo del huésped para consultar su historial.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="cerrar" class="seccion">
@@ -316,8 +360,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
- <script>
+  <script>
   const csrfToken = '{{ csrf_token() }}';
+  const historialEndpoint = "{{ route('recepcion.reservas.historial') }}";
 
   // ---------------- NAVEGACIÓN ENTRE SECCIONES ----------------
   const links = document.querySelectorAll('.nav-link');
@@ -522,15 +567,72 @@
 
     reservas.forEach(reserva => {
       const codigo = reserva.codigo ?? reserva.id ?? '';
-      const badgeClass = ['Confirmada', 'Activa'].includes(reserva.estado)
-        ? 'bg-success'
-        : 'bg-warning';
-
+      const estado = (reserva.estado || 'pendiente').toLowerCase();
       const saldoPendiente = Number(reserva.saldo_pendiente ?? 0);
       const precioTotal = Number(reserva.precio_total ?? 0);
+
+      const badgeClass = {
+        pendiente: 'bg-warning text-dark',
+        confirmada: 'bg-primary',
+        activa: 'bg-success',
+        completada: 'bg-success',
+        cancelada: 'bg-secondary'
+      }[estado] || 'bg-secondary';
+
       const saldoBadge = saldoPendiente > 0
         ? `<span class="badge bg-warning text-dark">Pendiente ${formatearMoneda(saldoPendiente)}</span>`
         : '<span class="badge bg-success">Pagado</span>';
+
+      const acciones = [];
+
+      if (['pendiente', 'confirmada'].includes(estado)) {
+        acciones.push(`
+          <button type="button" class="btn btn-outline-success"
+                  title="Check-In"
+                  data-action="checkin"
+                  data-codigo="${codigo}">
+            <i class="fas fa-sign-in-alt"></i>
+          </button>
+        `);
+
+        acciones.push(`
+          <button type="button" class="btn btn-outline-danger"
+                  title="Cancelar reservación"
+                  data-action="cancelar"
+                  data-codigo="${codigo}">
+            <i class="fas fa-ban"></i>
+          </button>
+        `);
+      }
+
+      if (estado === 'activa') {
+        acciones.push(`
+          <button type="button" class="btn btn-outline-danger"
+                  title="Check-Out"
+                  data-action="checkout"
+                  data-codigo="${codigo}">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        `);
+      }
+
+      if (saldoPendiente > 0 && estado !== 'cancelada') {
+        acciones.push(`
+          <button type="button" class="btn btn-outline-warning"
+                  title="Registrar pago en efectivo"
+                  data-action="pago-efectivo"
+                  data-codigo="${codigo}"
+                  data-huesped="${reserva.huesped ?? ''}"
+                  data-saldo="${saldoPendiente}"
+                  data-total="${precioTotal}">
+            <i class="fas fa-money-bill-wave"></i>
+          </button>
+        `);
+      }
+
+      const accionesHtml = acciones.length
+        ? `<div class="btn-group btn-group-sm" role="group">${acciones.join('')}</div>`
+        : '<span class="text-muted">Sin acciones</span>';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -541,34 +643,7 @@
         <td>${reserva.checkout}</td>
         <td>${saldoBadge}<div class="text-muted small">Total ${formatearMoneda(precioTotal)}</div></td>
         <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
-        <td>
-          <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-primary" title="Ver detalles">
-              <i class="fas fa-eye"></i>
-            </button>
-            <button type="button" class="btn btn-outline-warning"
-                    title="Registrar pago en efectivo"
-                    data-action="pago-efectivo"
-                    data-codigo="${codigo}"
-                    data-huesped="${reserva.huesped ?? ''}"
-                    data-saldo="${saldoPendiente}"
-                    data-total="${precioTotal}">
-              <i class="fas fa-money-bill-wave"></i>
-            </button>
-            <button type="button" class="btn btn-outline-success"
-                    title="Check-In"
-                    data-action="checkin"
-                    data-codigo="${codigo}">
-              <i class="fas fa-sign-in-alt"></i>
-            </button>
-            <button type="button" class="btn btn-outline-danger"
-                    title="Check-Out"
-                    data-action="checkout"
-                    data-codigo="${codigo}">
-              <i class="fas fa-sign-out-alt"></i>
-            </button>
-          </div>
-        </td>
+        <td>${accionesHtml}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -692,6 +767,88 @@
     });
   }
 
+  // ---------------- HISTORIAL DE RESERVAS ----------------
+  const formHistorial = document.getElementById('formHistorial');
+  const cuerpoHistorial = document.getElementById('cuerpoHistorial');
+
+  formHistorial?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const criterio = document.getElementById('inputHistorialCliente')?.value.trim();
+
+    if (!criterio) {
+      mostrarToast('Ingresa el nombre o correo del huésped para buscar.', 'warning');
+      return;
+    }
+
+    cuerpoHistorial.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center text-muted py-3">
+          <i class="fas fa-spinner fa-spin me-2"></i>Buscando historial...
+        </td>
+      </tr>
+    `;
+
+    try {
+      const res = await fetch(`${historialEndpoint}?cliente=${encodeURIComponent(criterio)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'No se pudo obtener el historial.');
+      }
+
+      mostrarHistorialReservas(data.reservas || [], criterio);
+    } catch (error) {
+      cuerpoHistorial.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center text-danger py-3">
+            ${error.message || 'Error al consultar el historial.'}
+          </td>
+        </tr>
+      `;
+    }
+  });
+
+  function mostrarHistorialReservas(reservas, criterio) {
+    cuerpoHistorial.innerHTML = '';
+
+    if (!reservas.length) {
+      cuerpoHistorial.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center text-muted py-3">
+            No se encontraron reservaciones para "${criterio}".
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    reservas.forEach(reserva => {
+      const estado = (reserva.estado || 'Pendiente').toLowerCase();
+      const badgeClass = {
+        pendiente: 'bg-warning text-dark',
+        confirmada: 'bg-primary',
+        activa: 'bg-success',
+        completada: 'bg-success',
+        cancelada: 'bg-secondary'
+      }[estado] || 'bg-secondary';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${reserva.codigo}</strong></td>
+        <td>${reserva.huesped}<div class="small text-muted">${reserva.email ?? ''}</div></td>
+        <td>${reserva.habitacion ?? 'N/A'}<div class="small text-muted">${reserva.tipo ?? ''}</div></td>
+        <td><div>${reserva.entrada}</div><div class="text-muted small">al ${reserva.salida}</div></td>
+        <td><span class="badge ${badgeClass}">${reserva.estado}</span></td>
+        <td>${formatearMoneda(reserva.total ?? 0)}</td>
+        <td>${formatearMoneda(reserva.pendiente ?? 0)}</td>
+      `;
+      cuerpoHistorial.appendChild(tr);
+    });
+  }
+
   // ---------------- OTROS (opcional liberar habitación) ----------------
   document.querySelector('.btn-liberar')?.addEventListener('click', function () {
     const roomNumber = document.getElementById('roomNumber').value;
@@ -720,7 +877,8 @@
   // ---------------- ACCIONES CHECKIN / CHECKOUT (GLOBAL) ----------------
   const actionEndpoints = {
     checkin: "{{ route('recepcion.checkin') }}",
-    checkout: "{{ route('recepcion.checkout') }}"
+    checkout: "{{ route('recepcion.checkout') }}",
+    cancelar: "{{ route('recepcion.reservas.cancelar') }}"
   };
 
   document.getElementById('btnConfirmarPagoEfectivo')?.addEventListener('click', registrarPagoEfectivo);

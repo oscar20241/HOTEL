@@ -164,25 +164,79 @@ class RecepcionistaController extends Controller
     // ========================
     public function cancelarReservacion(Request $request)
     {
-        try {
-            $reservacion = Reservacion::findOrFail($request->reservacion_id);
-            $reservacion->update(['estado' => 'cancelada']);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservación cancelada correctamente'
-            ]);
-        } catch (\Exception $e) {
+        $data = $request->validate([
+            'codigo_reserva' => 'required|string',
+        ]);
+
+        $reservacion = Reservacion::with('habitacion')
+            ->where('codigo_reserva', $data['codigo_reserva'])
+            ->first();
+
+        if (!$reservacion) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al cancelar reservación'
-            ], 500);
+                'message' => 'No se encontró una reservación con ese código.',
+            ], 404);
         }
+
+        if (!$reservacion->puedeCancelarse()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solo se pueden cancelar reservaciones pendientes o confirmadas.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($reservacion) {
+            $reservacion->update([
+                'estado' => 'cancelada',
+            ]);
+
+            if ($reservacion->habitacion) {
+                $reservacion->habitacion->update(['estado' => 'disponible']);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservación cancelada correctamente.',
+        ]);
     }
-    
+
     public function buscarHistorial(Request $request)
     {
-        // Aquí luego lo adaptamos a tu estructura final (User + Reservacion)
+        $data = $request->validate([
+            'cliente' => 'required|string|min:3',
+        ]);
+
+        $cliente = $data['cliente'];
+
+        $reservas = Reservacion::with(['habitacion.tipoHabitacion', 'user'])
+            ->whereHas('user', function ($query) use ($cliente) {
+                $query->where('email', 'like', "%{$cliente}%")
+                    ->orWhere('name', 'like', "%{$cliente}%");
+            })
+            ->orderByDesc('fecha_entrada')
+            ->get()
+            ->map(function ($reserva) {
+                return [
+                    'codigo'      => $reserva->codigo_reserva,
+                    'huesped'     => optional($reserva->user)->name ?? 'Huésped',
+                    'email'       => optional($reserva->user)->email,
+                    'habitacion'  => optional($reserva->habitacion)->numero ?? 'N/A',
+                    'tipo'        => optional(optional($reserva->habitacion)->tipoHabitacion)->nombre,
+                    'estado'      => ucfirst($reserva->estado ?? 'pendiente'),
+                    'entrada'     => optional($reserva->fecha_entrada)->format('Y-m-d'),
+                    'salida'      => optional($reserva->fecha_salida)->format('Y-m-d'),
+                    'total'       => (float) $reserva->precio_total,
+                    'pendiente'   => (float) $reserva->saldo_pendiente,
+                ];
+            });
+
+        return response()->json([
+            'success'  => true,
+            'cliente'  => $cliente,
+            'reservas' => $reservas,
+        ]);
     }
     
 

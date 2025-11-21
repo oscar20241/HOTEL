@@ -165,6 +165,14 @@ Route::middleware(['auth', 'empleado.activo', 'es.recepcionista'])
         Route::get('/reservas-dia', [RecepcionistaController::class, 'reservasDelDia'])
             ->name('reservas-dia');
 
+        // Cancelar reservación
+        Route::post('/reservas/cancelar', [RecepcionistaController::class, 'cancelarReservacion'])
+            ->name('reservas.cancelar');
+
+        // Historial de reservaciones por huésped
+        Route::get('/reservas/historial', [RecepcionistaController::class, 'buscarHistorial'])
+            ->name('reservas.historial');
+
         // Check-in / Check-out (AJAX)
         Route::post('/checkin',  [RecepcionistaController::class, 'hacerCheckin'])
             ->name('checkin');
