@@ -8,6 +8,7 @@ use App\Models\Habitacion;
 use App\Models\TipoHabitacion;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -231,7 +232,7 @@ class RecepcionistaController extends Controller
     {
         $hoy = Carbon::today();
 
-        $reservas = Reservacion::with(['user', 'habitacion.tipoHabitacion'])
+        $reservas = Reservacion::with(['user', 'habitacion.tipoHabitacion', 'pagos'])
             ->whereDate('fecha_entrada', '<=', $hoy)
             ->whereDate('fecha_salida', '>=', $hoy)
             ->orderBy('fecha_entrada')
@@ -246,10 +247,75 @@ class RecepcionistaController extends Controller
                     'checkin'   => optional($reserva->fecha_entrada)->format('Y-m-d'),
                     'checkout'  => optional($reserva->fecha_salida)->format('Y-m-d'),
                     'estado'    => ucfirst($reserva->estado ?? 'pendiente'),
+                    'precio_total' => (float) $reserva->precio_total,
+                    'saldo_pendiente' => (float) $reserva->saldo_pendiente,
                 ];
             });
 
         return response()->json($reservas);
+    }
+
+    public function registrarPagoEfectivo(Request $request)
+    {
+        $data = $request->validate([
+            'codigo_reserva' => 'required|string',
+            'monto'          => 'required|numeric|min:0.01',
+        ]);
+
+        $reservacion = Reservacion::with(['pagos', 'habitacion'])
+            ->where('codigo_reserva', $data['codigo_reserva'])
+            ->first();
+
+        if (!$reservacion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró una reservación con ese código.',
+            ], 404);
+        }
+
+        if ($reservacion->estado === 'cancelada') {
+            return response()->json([
+                'success' => false,
+                'message' => 'La reservación cancelada no puede recibir pagos.',
+            ], 422);
+        }
+
+        $saldoPendiente = (float) $reservacion->saldo_pendiente;
+
+        if ($saldoPendiente <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta reservación ya está pagada.',
+            ], 422);
+        }
+
+        $monto = min((float) $data['monto'], $saldoPendiente);
+
+        DB::transaction(function () use ($reservacion, $monto) {
+            $reservacion->pagos()->create([
+                'monto'        => $monto,
+                'metodo_pago'  => 'efectivo',
+                'estado'       => 'completado',
+                'referencia'   => 'Pago registrado en recepción',
+                'fecha_pago'   => now(),
+            ]);
+
+            $reservacion->refresh();
+
+            $reservacion->update([
+                'estado'      => $reservacion->saldo_pendiente <= 0 ? 'confirmada' : $reservacion->estado,
+                'metodo_pago' => 'efectivo',
+            ]);
+        });
+
+        $reservacion->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pago en efectivo registrado correctamente.',
+            'saldo_restante' => (float) $reservacion->saldo_pendiente,
+            'estado' => $reservacion->estado,
+        ]);
     }
 
     public function filtrarOcupacion(Request $request)
