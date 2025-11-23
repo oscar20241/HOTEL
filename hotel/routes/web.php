@@ -107,6 +107,7 @@ Route::middleware(['auth', 'empleado.activo'])->group(function () {
     Route::put('/gerente/habitaciones/{id}', [AdminUserController::class, 'updateHabitacion'])->name('gerente.habitaciones.update');
     Route::delete('/gerente/habitaciones/{id}', [AdminUserController::class, 'destroyHabitacion'])->name('gerente.habitaciones.destroy');
     Route::post('/gerente/habitaciones/{id}/mantenimientos', [AdminUserController::class, 'programarMantenimiento'])->name('gerente.habitaciones.mantenimientos.store');
+    Route::patch('/gerente/habitaciones/{habitacionId}/mantenimientos/{mantenimientoId}/cancelar', [AdminUserController::class, 'cancelarMantenimiento'])->name('gerente.habitaciones.mantenimientos.cancelar');
 
     // 🆕 RUTAS PARA GESTIÓN DE TIPOS DE HABITACIÓN
     Route::get('/gerente/tipos-habitacion/{id}', [AdminUserController::class, 'showTipoHabitacion'])->name('gerente.tipos-habitacion.show');

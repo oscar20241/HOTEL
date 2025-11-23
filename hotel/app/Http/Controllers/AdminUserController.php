@@ -787,6 +787,33 @@ public function storeHabitacion(Request $request)
         ]);
     }
 
+    public function cancelarMantenimiento($habitacionId, $mantenimientoId)
+    {
+        $habitacion = Habitacion::findOrFail($habitacionId);
+
+        $mantenimiento = HabitacionMantenimiento::where('habitacion_id', $habitacion->id)
+            ->where('id', $mantenimientoId)
+            ->firstOrFail();
+
+        if ($mantenimiento->estado === 'cancelado') {
+            return response()->json([
+                'success' => true,
+                'message' => 'El mantenimiento ya estaba cancelado.',
+            ]);
+        }
+
+        $mantenimiento->update(['estado' => 'cancelado']);
+
+        if ($habitacion->estado === 'mantenimiento' && $mantenimiento->fecha_fin->isFuture()) {
+            $habitacion->update(['estado' => 'disponible']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mantenimiento cancelado correctamente.',
+        ]);
+    }
+
     // =============================================
     // GESTIÓN DE TARIFAS DINÁMICAS
     // =============================================
