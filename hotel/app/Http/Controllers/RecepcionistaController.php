@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Mail\ReservacionConfirmada;
 use Carbon\Carbon;
+use App\Mail\CheckinConfirmado;
+use App\Mail\CheckoutConfirmado;
+
 
 class RecepcionistaController extends Controller
 {

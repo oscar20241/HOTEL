@@ -86,7 +86,7 @@
         <p>Esperamos volver a verte pronto. Si tienes comentarios sobre tu estancia, no dudes en responder a este correo.</p>
 
         <div class="footer">
-            {{ config('app.name') }}<br>
+            PASA EL EXTRA INN<br>
             Este mensaje se generó automáticamente, por favor no respondas si no es necesario.
         </div>
     </div>
