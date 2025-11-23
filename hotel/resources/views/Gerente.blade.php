@@ -490,282 +490,7 @@
         </div>
       </div>
 
-      <!-- Modal para Habitaciones CORREGIDO -->
-<div id="modalHabitacion" class="modal">
-  <div class="modal-contenido">
-    <span class="cerrar" onclick="cerrarModalHabitacion()">&times;</span>
-    <h2 id="modalHabitacionTitulo">Nueva Habitación</h2>
-    
-    <form id="formHabitacion" enctype="multipart/form-data">
-      @csrf
-      <div id="method-field"></div>
-      
-      <div class="mb-3">
-        <label for="numero" class="form-label">Número de Habitación *</label>
-        <input type="text" class="form-control" id="numero" name="numero" required 
-               placeholder="Ej: 101, 202, 305">
-      </div>
-
-      <div class="mb-3">
-        <label for="tipo_habitacion_id" class="form-label">Tipo de Habitación *</label>
-        <select class="form-select" id="tipo_habitacion_id" name="tipo_habitacion_id" required>
-          <option value="">Seleccionar tipo</option>
-          @foreach($tiposHabitacion as $tipo)
-            <option value="{{ $tipo->id }}">
-              {{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}
-            </option>
-          @endforeach
-        </select>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="capacidad" class="form-label">Capacidad *</label>
-            <input type="number" class="form-control" id="capacidad" name="capacidad" 
-                   min="1" max="10" value="2" required>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="estado" class="form-label">Estado *</label>
-            <select class="form-select" id="estado" name="estado" required>
-              <option value="disponible">Disponible</option>
-              <option value="ocupada">Ocupada</option>
-              <option value="mantenimiento">Mantenimiento</option>
-              <option value="limpieza">Limpieza</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="caracteristicas" class="form-label">Características</label>
-        <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3" 
-                  placeholder="Descripción de la habitación, comodidades, vista..."></textarea>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Amenidades</label>
-        <div class="row">
-          @php
-            $amenidades = ['TV', 'Aire Acondicionado', 'WiFi', 'Minibar', 'Caja Fuerte', 'Jacuzzi', 'Balcón', 'Vista al Mar'];
-          @endphp
-          @foreach($amenidades as $amenidad)
-          <div class="col-md-6">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="amenidades[]" 
-                     value="{{ $amenidad }}" id="amenidad{{ $loop->index }}">
-              <label class="form-check-label" for="amenidad{{ $loop->index }}">
-                {{ $amenidad }}
-              </label>
-            </div>
-          </div>
-          @endforeach
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="imagenes" class="form-label">Imágenes de la habitación</label>
-        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
-        <small class="text-muted d-block mt-1">Puedes seleccionar varias imágenes; la primera será marcada como principal.</small>
-      </div>
-
-      <div class="mb-3 d-none" id="nuevasImagenesWrapper">
-        <label class="form-label">Vista previa de nuevas imágenes</label>
-        <div id="nuevasImagenesPreview" class="row g-2"></div>
-      </div>
-
-      <div class="mb-3 d-none" id="imagenesActualesWrapper">
-        <label class="form-label">Imágenes registradas</label>
-        <div id="imagenesActuales" class="row g-2"></div>
-      </div>
-
-      <div class="text-center">
-        <button type="submit" class="btn-confirmar">
-          <i class="fas fa-save"></i> Guardar Habitación
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal para Tipos de Habitación -->
-<div id="modalTipoHabitacion" class="modal">
-  <div class="modal-contenido">
-    <span class="cerrar" onclick="cerrarModalTipoHabitacion()">&times;</span>
-    <h2 id="modalTipoHabitacionTitulo">Nuevo Tipo de Habitación</h2>
-
-    <form id="formTipoHabitacion" enctype="multipart/form-data">
-      @csrf
-      <div id="tipo-method-field"></div>
-
-      <div class="mb-3">
-        <label for="tipo_nombre" class="form-label">Nombre *</label>
-        <input type="text" class="form-control" id="tipo_nombre" name="nombre" required>
-      </div>
-
-      <div class="mb-3">
-        <label for="tipo_descripcion" class="form-label">Descripción</label>
-        <textarea class="form-control" id="tipo_descripcion" name="descripcion" rows="3" placeholder="Resumen visible en la página pública"></textarea>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="tipo_capacidad" class="form-label">Capacidad *</label>
-            <input type="number" class="form-control" id="tipo_capacidad" name="capacidad" min="1" max="10" required>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="tipo_precio_base" class="form-label">Precio base (MXN) *</label>
-            <input type="number" step="0.01" min="0" class="form-control" id="tipo_precio_base" name="precio_base" required>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="tipo_imagenes" class="form-label">Imágenes (mínimo 1, máximo 3)</label>
-        <input type="file" class="form-control" id="tipo_imagenes" name="imagenes[]" accept="image/*" multiple>
-        <small class="text-muted d-block mt-1">La primera imagen marcada será la principal.</small>
-      </div>
-
-      <div class="mb-3 d-none" id="tipoImagenesActualesWrapper">
-        <label class="form-label">Imágenes actuales</label>
-        <div id="tipoImagenesActuales" class="row g-3"></div>
-      </div>
-
-      <div class="mb-3 d-none" id="tipoNuevasImagenesWrapper">
-        <label class="form-label">Vista previa nuevas imágenes</label>
-        <div id="tipoNuevasImagenesPreview" class="row g-2"></div>
-      </div>
-
-      <div class="text-end">
-        <button type="button" class="btn btn-secondary" onclick="cerrarModalTipoHabitacion()">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar tipo</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal para programar mantenimiento -->
-<div id="modalMantenimiento" class="modal">
-  <div class="modal-contenido">
-    <span class="cerrar" onclick="cerrarModalMantenimiento()">&times;</span>
-    <h2>Programar mantenimiento</h2>
-
-    <form id="formMantenimiento">
-      @csrf
-      <input type="hidden" id="mantenimiento_habitacion_id" name="habitacion_id">
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="fecha_mantenimiento_inicio" class="form-label">Fecha de inicio *</label>
-            <input type="date" class="form-control" id="fecha_mantenimiento_inicio" name="fecha_inicio" required>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="fecha_mantenimiento_fin" class="form-label">Fecha de fin *</label>
-            <input type="date" class="form-control" id="fecha_mantenimiento_fin" name="fecha_fin" required>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="motivo_mantenimiento" class="form-label">Motivo</label>
-        <input type="text" class="form-control" id="motivo_mantenimiento" name="motivo" placeholder="Ej. Pintura, revisión de aire acondicionado">
-      </div>
-
-      <div id="mantenimiento-messages" class="mb-3"></div>
-
-      <div class="mb-3">
-        <label class="form-label">Mantenimientos programados</label>
-        <div id="listaMantenimientos" class="border rounded p-2" style="min-height: 60px;">
-          <small class="text-muted">Se mostrarán los próximos mantenimientos de la habitación.</small>
-        </div>
-      </div>
-
-      <div class="text-end">
-        <button type="button" class="btn btn-secondary" onclick="cerrarModalMantenimiento()">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar fechas</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal para Tarifa dinámica -->
-<div id="modalTarifa" class="modal">
-  <div class="modal-contenido modal-md">
-    <span class="cerrar" onclick="cerrarModalTarifa()">&times;</span>
-    <h2 id="modalTarifaTitulo">Nueva tarifa</h2>
-
-    <form id="formTarifa">
-      @csrf
-      <div id="tarifa-method-field"></div>
-
-      <div class="mb-3">
-        <label for="tarifa_tipo_habitacion_id" class="form-label">Tipo de habitación *</label>
-        <select class="form-select" id="tarifa_tipo_habitacion_id" name="tipo_habitacion_id" required>
-          <option value="">Seleccionar tipo</option>
-          @foreach($tiposHabitacion as $tipo)
-            <option value="{{ $tipo->id }}">{{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}</option>
-          @endforeach
-        </select>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="tarifa_fecha_inicio" class="form-label">Fecha de inicio *</label>
-            <input type="date" class="form-control" id="tarifa_fecha_inicio" name="fecha_inicio" required>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="tarifa_fecha_fin" class="form-label">Fecha de fin *</label>
-            <input type="date" class="form-control" id="tarifa_fecha_fin" name="fecha_fin" required>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="tarifa_tipo_temporada" class="form-label">Temporada *</label>
-            <select class="form-select" id="tarifa_tipo_temporada" name="tipo_temporada" required>
-              <option value="alta">Temporada alta</option>
-              <option value="baja">Temporada baja</option>
-              <option value="especial">Temporada especial</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="tarifa_precio_modificado" class="form-label">Precio por noche *</label>
-            <div class="input-group">
-              <span class="input-group-text">$</span>
-              <input type="number" min="0" step="0.01" class="form-control" id="tarifa_precio_modificado" name="precio_modificado" required>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="tarifa_descripcion" class="form-label">Descripción</label>
-        <textarea class="form-control" id="tarifa_descripcion" name="descripcion" rows="3" placeholder="Notas internas, por ejemplo: Evento local, vacaciones..." maxlength="500"></textarea>
-      </div>
-
-      <div class="text-center">
-        <button type="submit" class="btn-confirmar">
-          <i class="fas fa-save"></i> Guardar tarifa
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+ 
 
       <!-- Sección: Usuarios -->
       <!-- Sección: Usuarios -->
@@ -2636,7 +2361,282 @@ cardsInicio.forEach(card => {
 </script>
 
 
+     <!-- Modal para Habitaciones CORREGIDO -->
+<div id="modalHabitacion" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModalHabitacion()">&times;</span>
+    <h2 id="modalHabitacionTitulo">Nueva Habitación</h2>
+    
+    <form id="formHabitacion" enctype="multipart/form-data">
+      @csrf
+      <div id="method-field"></div>
+      
+      <div class="mb-3">
+        <label for="numero" class="form-label">Número de Habitación *</label>
+        <input type="text" class="form-control" id="numero" name="numero" required 
+               placeholder="Ej: 101, 202, 305">
+      </div>
 
+      <div class="mb-3">
+        <label for="tipo_habitacion_id" class="form-label">Tipo de Habitación *</label>
+        <select class="form-select" id="tipo_habitacion_id" name="tipo_habitacion_id" required>
+          <option value="">Seleccionar tipo</option>
+          @foreach($tiposHabitacion as $tipo)
+            <option value="{{ $tipo->id }}">
+              {{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}
+            </option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="capacidad" class="form-label">Capacidad *</label>
+            <input type="number" class="form-control" id="capacidad" name="capacidad" 
+                   min="1" max="10" value="2" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="estado" class="form-label">Estado *</label>
+            <select class="form-select" id="estado" name="estado" required>
+              <option value="disponible">Disponible</option>
+              <option value="ocupada">Ocupada</option>
+              <option value="mantenimiento">Mantenimiento</option>
+              <option value="limpieza">Limpieza</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="caracteristicas" class="form-label">Características</label>
+        <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3" 
+                  placeholder="Descripción de la habitación, comodidades, vista..."></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Amenidades</label>
+        <div class="row">
+          @php
+            $amenidades = ['TV', 'Aire Acondicionado', 'WiFi', 'Minibar', 'Caja Fuerte', 'Jacuzzi', 'Balcón', 'Vista al Mar'];
+          @endphp
+          @foreach($amenidades as $amenidad)
+          <div class="col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="amenidades[]" 
+                     value="{{ $amenidad }}" id="amenidad{{ $loop->index }}">
+              <label class="form-check-label" for="amenidad{{ $loop->index }}">
+                {{ $amenidad }}
+              </label>
+            </div>
+          </div>
+          @endforeach
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="imagenes" class="form-label">Imágenes de la habitación</label>
+        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
+        <small class="text-muted d-block mt-1">Puedes seleccionar varias imágenes; la primera será marcada como principal.</small>
+      </div>
+
+      <div class="mb-3 d-none" id="nuevasImagenesWrapper">
+        <label class="form-label">Vista previa de nuevas imágenes</label>
+        <div id="nuevasImagenesPreview" class="row g-2"></div>
+      </div>
+
+      <div class="mb-3 d-none" id="imagenesActualesWrapper">
+        <label class="form-label">Imágenes registradas</label>
+        <div id="imagenesActuales" class="row g-2"></div>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn-confirmar">
+          <i class="fas fa-save"></i> Guardar Habitación
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para Tipos de Habitación -->
+<div id="modalTipoHabitacion" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModalTipoHabitacion()">&times;</span>
+    <h2 id="modalTipoHabitacionTitulo">Nuevo Tipo de Habitación</h2>
+
+    <form id="formTipoHabitacion" enctype="multipart/form-data">
+      @csrf
+      <div id="tipo-method-field"></div>
+
+      <div class="mb-3">
+        <label for="tipo_nombre" class="form-label">Nombre *</label>
+        <input type="text" class="form-control" id="tipo_nombre" name="nombre" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="tipo_descripcion" class="form-label">Descripción</label>
+        <textarea class="form-control" id="tipo_descripcion" name="descripcion" rows="3" placeholder="Resumen visible en la página pública"></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tipo_capacidad" class="form-label">Capacidad *</label>
+            <input type="number" class="form-control" id="tipo_capacidad" name="capacidad" min="1" max="10" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tipo_precio_base" class="form-label">Precio base (MXN) *</label>
+            <input type="number" step="0.01" min="0" class="form-control" id="tipo_precio_base" name="precio_base" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="tipo_imagenes" class="form-label">Imágenes (mínimo 1, máximo 3)</label>
+        <input type="file" class="form-control" id="tipo_imagenes" name="imagenes[]" accept="image/*" multiple>
+        <small class="text-muted d-block mt-1">La primera imagen marcada será la principal.</small>
+      </div>
+
+      <div class="mb-3 d-none" id="tipoImagenesActualesWrapper">
+        <label class="form-label">Imágenes actuales</label>
+        <div id="tipoImagenesActuales" class="row g-3"></div>
+      </div>
+
+      <div class="mb-3 d-none" id="tipoNuevasImagenesWrapper">
+        <label class="form-label">Vista previa nuevas imágenes</label>
+        <div id="tipoNuevasImagenesPreview" class="row g-2"></div>
+      </div>
+
+      <div class="text-end">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalTipoHabitacion()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar tipo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para programar mantenimiento -->
+<div id="modalMantenimiento" class="modal">
+  <div class="modal-contenido">
+    <span class="cerrar" onclick="cerrarModalMantenimiento()">&times;</span>
+    <h2>Programar mantenimiento</h2>
+
+    <form id="formMantenimiento">
+      @csrf
+      <input type="hidden" id="mantenimiento_habitacion_id" name="habitacion_id">
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="fecha_mantenimiento_inicio" class="form-label">Fecha de inicio *</label>
+            <input type="date" class="form-control" id="fecha_mantenimiento_inicio" name="fecha_inicio" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="fecha_mantenimiento_fin" class="form-label">Fecha de fin *</label>
+            <input type="date" class="form-control" id="fecha_mantenimiento_fin" name="fecha_fin" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="motivo_mantenimiento" class="form-label">Motivo</label>
+        <input type="text" class="form-control" id="motivo_mantenimiento" name="motivo" placeholder="Ej. Pintura, revisión de aire acondicionado">
+      </div>
+
+      <div id="mantenimiento-messages" class="mb-3"></div>
+
+      <div class="mb-3">
+        <label class="form-label">Mantenimientos programados</label>
+        <div id="listaMantenimientos" class="border rounded p-2" style="min-height: 60px;">
+          <small class="text-muted">Se mostrarán los próximos mantenimientos de la habitación.</small>
+        </div>
+      </div>
+
+      <div class="text-end">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalMantenimiento()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar fechas</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para Tarifa dinámica -->
+<div id="modalTarifa" class="modal">
+  <div class="modal-contenido modal-md">
+    <span class="cerrar" onclick="cerrarModalTarifa()">&times;</span>
+    <h2 id="modalTarifaTitulo">Nueva tarifa</h2>
+
+    <form id="formTarifa">
+      @csrf
+      <div id="tarifa-method-field"></div>
+
+      <div class="mb-3">
+        <label for="tarifa_tipo_habitacion_id" class="form-label">Tipo de habitación *</label>
+        <select class="form-select" id="tarifa_tipo_habitacion_id" name="tipo_habitacion_id" required>
+          <option value="">Seleccionar tipo</option>
+          @foreach($tiposHabitacion as $tipo)
+            <option value="{{ $tipo->id }}">{{ $tipo->nombre }} - ${{ number_format($tipo->precio_base, 2) }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_fecha_inicio" class="form-label">Fecha de inicio *</label>
+            <input type="date" class="form-control" id="tarifa_fecha_inicio" name="fecha_inicio" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_fecha_fin" class="form-label">Fecha de fin *</label>
+            <input type="date" class="form-control" id="tarifa_fecha_fin" name="fecha_fin" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_tipo_temporada" class="form-label">Temporada *</label>
+            <select class="form-select" id="tarifa_tipo_temporada" name="tipo_temporada" required>
+              <option value="alta">Temporada alta</option>
+              <option value="baja">Temporada baja</option>
+              <option value="especial">Temporada especial</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="tarifa_precio_modificado" class="form-label">Precio por noche *</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="number" min="0" step="0.01" class="form-control" id="tarifa_precio_modificado" name="precio_modificado" required>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="tarifa_descripcion" class="form-label">Descripción</label>
+        <textarea class="form-control" id="tarifa_descripcion" name="descripcion" rows="3" placeholder="Notas internas, por ejemplo: Evento local, vacaciones..." maxlength="500"></textarea>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn-confirmar">
+          <i class="fas fa-save"></i> Guardar tarifa
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 
 </body>
