@@ -24,10 +24,13 @@
                     </span>
                     Regresar al inicio
                 </a>
-               <h1 class="text-4xl font-bold text-white">Tu estadía comienza aquí</h1>
-                <img src="{{ asset('img/logo.png') }}" alt="Imagen" class="w-40 h-40 object-cover">
-                <p class="text-base text-white/70 max-w-md">
-                    Accede a tu cuenta para gestionar reservaciones, actualizar tus datos y descubrir experiencias diseñadas para ti en Hotel PASA EL EXTRA Inn.
+               <h1 class="text-4xl font-bold text-white text-center">Tu estadía comienza aquí</h1>
+                <div class="flex justify-center">
+                  <img src="{{ asset('img/logo.png') }}" alt="Suite principal" class="h-64 w-64 object-cover">
+                </div>
+
+               <p class="text-base text-white/70 max-w-md text-center mx-auto">
+                  Accede a tu cuenta para gestionar reservaciones, actualizar tus datos y descubrir experiencias diseñadas para ti en Hotel PASA EL EXTRA Inn.
                 </p>
 
             </div>
