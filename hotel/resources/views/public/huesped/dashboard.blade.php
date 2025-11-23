@@ -150,8 +150,9 @@
                         @else
                             <div class="space-y-3">
                                 <span class="block text-sm font-semibold text-slate-600">Tipo de habitación</span>
-                                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" id="tipos-habitacion-grid">
-                                    @foreach ($tiposHabitacion as $tipo)
+                              <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 items-stretch" id="tipos-habitacion-grid">
+
+        @foreach ($tiposHabitacion as $tipo)
                                         @php
                                             $habitacionConImagen = $tipo->habitaciones->firstWhere('imagenPrincipal')
                                                 ?? $tipo->habitaciones->first(function ($habitacion) {
@@ -170,34 +171,46 @@
                                             $precioTipo = number_format($tipo->precio_actual, 2, '.', '');
                                             $checked = old('tipo_habitacion_id', $tipoSeleccionado?->id) == $tipo->id;
                                         @endphp
-                                        <label class="group relative block cursor-pointer" data-tipo-card>
-                                            <input type="radio" name="tipo_habitacion_id" value="{{ $tipo->id }}"
-                                                class="sr-only peer"
-                                                data-capacidad="{{ $tipo->capacidad }}"
-                                                data-precio="{{ $precioTipo }}"
-                                                data-availability="{{ route('tipos-habitacion.disponibilidad', $tipo) }}"
-                                                {{ $checked ? 'checked' : '' }}>
-                                            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-400">
-                                                <div class="h-40 w-full overflow-hidden">
-                                                    <img src="{{ $imagenUrl }}" alt="{{ $tipo->nombre }}"
-                                                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                                                </div>
-                                                <div class="p-5 space-y-2">
-                                                    <div class="flex items-center justify-between">
-                                                        <h3 class="text-lg font-semibold text-slate-800">{{ $tipo->nombre }}</h3>
-                                                        <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
-                                                            Hasta {{ $tipo->capacidad }} huéspedes
-                                                        </span>
-                                                    </div>
-                                                    @if ($tipo->descripcion)
-                                                        <p class="text-sm text-slate-500 leading-relaxed">{{ Str::limit($tipo->descripcion, 110) }}</p>
-                                                    @endif
-                                                    <p class="text-sm font-semibold text-indigo-600">Desde ${{ number_format($tipo->precio_actual, 2) }} MXN / noche</p>
-                                                </div>
-                                            </div>
-                                        </label>
-                                    @endforeach
-                                </div>
+        <label class="group relative block cursor-pointer h-full" data-tipo-card>
+            <input type="radio" name="tipo_habitacion_id" value="{{ $tipo->id }}"
+                class="sr-only peer"
+                data-capacidad="{{ $tipo->capacidad }}"
+                data-precio="{{ $precioTipo }}"
+                data-availability="{{ route('tipos-habitacion.disponibilidad', $tipo) }}"
+                {{ $checked ? 'checked' : '' }}>
+
+            {{-- CARD: ahora ocupa toda la altura disponible --}}
+            <div class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-400">
+                <div class="h-40 w-full overflow-hidden flex-shrink-0">
+                    <img src="{{ $imagenUrl }}" alt="{{ $tipo->nombre }}"
+                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                </div>
+
+                {{-- El texto se reparte y empuja el botón de precio hacia abajo --}}
+                <div class="p-5 flex-1 flex flex-col space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-slate-800">{{ $tipo->nombre }}</h3>
+                        <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
+                            Hasta {{ $tipo->capacidad }} huéspedes
+                        </span>
+                    </div>
+
+                    @if ($tipo->descripcion)
+                        <p class="text-sm text-slate-500 leading-relaxed">
+                            {{ Str::limit($tipo->descripcion, 110) }}
+                        </p>
+                    @endif
+
+                    <p class="mt-auto text-sm font-semibold text-indigo-600">
+                        Desde ${{ number_format($tipo->precio_actual, 2) }} MXN / noche
+                    </p>
+                </div>
+            </div>
+        </label>
+    @endforeach
+</div>
+
+                                
                                 @error('tipo_habitacion_id')
                                     <div class="text-sm text-rose-600">{{ $message }}</div>
                                 @enderror
