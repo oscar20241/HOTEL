@@ -377,32 +377,46 @@
 
                 let current = 0;
                 const updateSlides = () => {
-                    slides.forEach((slide, index) => {
-                        if (index === current) {
-                            slide.classList.remove('hidden');
-                            requestAnimationFrame(() => {
-                                slide.classList.add('opacity-100');
-                                slide.classList.remove('opacity-0');
-                            });
-                        } else {
-                            slide.classList.add('opacity-0');
-                            slide.classList.remove('opacity-100');
-                            slide.addEventListener('transitionend', function handler() {
-                                slide.classList.add('hidden');
-                                slide.removeEventListener('transitionend', handler);
-                            }, { once: true });
-                        }
-                    });
+    slides.forEach((slide, index) => {
+        const isActive = index === current;
 
-                    const thumbs = carousel.querySelectorAll('[data-carousel-thumb]');
-                    thumbs.forEach((thumb, index) => {
-                        if (index === current) {
-                            thumb.classList.add('is-active', 'border-indigo-500');
-                        } else {
-                            thumb.classList.remove('is-active', 'border-indigo-500');
-                        }
-                    });
-                };
+        if (isActive) {
+            // Slide ACTIVA
+            slide.classList.remove('hidden', 'opacity-0');
+            requestAnimationFrame(() => {
+                slide.classList.add('opacity-100');
+            });
+        } else {
+            // Slide INACTIVA
+            slide.classList.remove('opacity-100');
+            slide.classList.add('opacity-0');
+
+            const handler = (e) => {
+                // Nos aseguramos de que sea la transición de opacity
+                if (e.propertyName !== 'opacity') return;
+
+                // Solo ocultamos si sigue inactiva
+                if (!slide.classList.contains('opacity-100')) {
+                    slide.classList.add('hidden');
+                }
+
+                slide.removeEventListener('transitionend', handler);
+            };
+
+            slide.addEventListener('transitionend', handler);
+        }
+    });
+
+    const thumbs = carousel.querySelectorAll('[data-carousel-thumb]');
+    thumbs.forEach((thumb, index) => {
+        if (index === current) {
+            thumb.classList.add('is-active', 'border-indigo-500');
+        } else {
+            thumb.classList.remove('is-active', 'border-indigo-500');
+        }
+    });
+};
+
 
                 carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
                     current = (current + 1) % slides.length;

@@ -398,13 +398,14 @@ public function index(Request $request)
     }
 
    // 🆕 Guardar nueva habitación (para el modal)
+// 🆕 Guardar nueva habitación (para el modal)
 public function storeHabitacion(Request $request)
 {
     $validator = Validator::make($request->all(), [
         'numero' => 'required|string|unique:habitaciones|max:10',
         'tipo_habitacion_id' => 'required|exists:tipos_habitacion,id',
         'estado' => 'required|in:disponible,ocupada,mantenimiento,limpieza',
-        'capacidad' => 'required|integer|min:1|max:10',
+        // 👇 ya NO pedimos capacidad en el formulario
         'caracteristicas' => 'nullable|string|max:500',
         'amenidades' => 'nullable|array',
         'imagenes' => 'nullable|array',
@@ -418,12 +419,15 @@ public function storeHabitacion(Request $request)
         ], 422);
     }
 
+    // 🚀 Tomar capacidad directamente del tipo de habitación
+    $tipo = TipoHabitacion::findOrFail($request->tipo_habitacion_id);
+
     // Crear habitación
     $habitacion = Habitacion::create([
         'numero' => $request->numero,
         'tipo_habitacion_id' => $request->tipo_habitacion_id,
         'estado' => $request->estado,
-        'capacidad' => $request->capacidad,
+        'capacidad' => $tipo->capacidad, // 👈 automático
         'caracteristicas' => $request->caracteristicas,
         'amenidades' => $request->amenidades ?? []
     ]);
@@ -449,67 +453,72 @@ public function storeHabitacion(Request $request)
     ]);
 }
 
+
     // 🆕 Actualizar habitación
-    public function updateHabitacion(Request $request, $id)
-    {
-        $habitacion = Habitacion::findOrFail($id);
+   public function updateHabitacion(Request $request, $id)
+{
+    $habitacion = Habitacion::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
-            'numero' => 'required|string|max:10|unique:habitaciones,numero,' . $habitacion->id,
-            'tipo_habitacion_id' => 'required|exists:tipos_habitacion,id',
-            'estado' => 'required|in:disponible,ocupada,mantenimiento,limpieza',
-            'capacidad' => 'required|integer|min:1|max:10',
-            'caracteristicas' => 'nullable|string|max:500',
-            'amenidades' => 'nullable|array',
-            'imagenes' => 'nullable|array',
-            'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096'
-        ]);
+    $validator = Validator::make($request->all(), [
+        'numero' => 'required|string|max:10|unique:habitaciones,numero,' . $habitacion->id,
+        'tipo_habitacion_id' => 'required|exists:tipos_habitacion,id',
+        'estado' => 'required|in:disponible,ocupada,mantenimiento,limpieza',
+        // 👇 ya no validamos capacidad
+        'caracteristicas' => 'nullable|string|max:500',
+        'amenidades' => 'nullable|array',
+        'imagenes' => 'nullable|array',
+        'imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $habitacion->update([
-            'numero' => $request->numero,
-            'tipo_habitacion_id' => $request->tipo_habitacion_id,
-            'estado' => $request->estado,
-            'capacidad' => $request->capacidad,
-            'caracteristicas' => $request->caracteristicas,
-            'amenidades' => $request->amenidades ?? []
-        ]);
-
-        if ($request->hasFile('imagenes')) {
-            $ordenBase = $habitacion->imagenes()->count();
-
-            foreach ($request->file('imagenes') as $index => $imagen) {
-                $path = $imagen->store('habitaciones', 'public');
-
-                HabitacionImagen::create([
-                    'habitacion_id' => $habitacion->id,
-                    'ruta_imagen' => $path,
-                    'nombre_original' => $imagen->getClientOriginalName(),
-                    'es_principal' => $habitacion->imagenes()->where('es_principal', true)->exists() ? false : $index === 0,
-                    'orden' => $ordenBase + $index
-                ]);
-            }
-        }
-
-        if (!$habitacion->imagenes()->where('es_principal', true)->exists()) {
-            $primeraImagen = $habitacion->imagenes()->orderBy('orden')->first();
-            if ($primeraImagen) {
-                $primeraImagen->update(['es_principal' => true]);
-            }
-        }
-
+    if ($validator->fails()) {
         return response()->json([
-            'success' => true,
-            'message' => 'Habitación actualizada exitosamente.',
-            'habitacion' => $habitacion->load(['tipoHabitacion.tarifasDinamicas', 'imagenes'])
-        ]);
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    // 🚀 vuelves a tomar la capacidad desde el tipo elegido
+    $tipo = TipoHabitacion::findOrFail($request->tipo_habitacion_id);
+
+    $habitacion->update([
+        'numero' => $request->numero,
+        'tipo_habitacion_id' => $request->tipo_habitacion_id,
+        'estado' => $request->estado,
+        'capacidad' => $tipo->capacidad, // 👈 siempre sincronizada
+        'caracteristicas' => $request->caracteristicas,
+        'amenidades' => $request->amenidades ?? []
+    ]);
+
+    if ($request->hasFile('imagenes')) {
+        $ordenBase = $habitacion->imagenes()->count();
+
+        foreach ($request->file('imagenes') as $index => $imagen) {
+            $path = $imagen->store('habitaciones', 'public');
+
+            HabitacionImagen::create([
+                'habitacion_id' => $habitacion->id,
+                'ruta_imagen' => $path,
+                'nombre_original' => $imagen->getClientOriginalName(),
+                'es_principal' => $habitacion->imagenes()->where('es_principal', true)->exists() ? false : $index === 0,
+                'orden' => $ordenBase + $index
+            ]);
+        }
+    }
+
+    if (!$habitacion->imagenes()->where('es_principal', true)->exists()) {
+        $primeraImagen = $habitacion->imagenes()->orderBy('orden')->first();
+        if ($primeraImagen) {
+            $primeraImagen->update(['es_principal' => true]);
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Habitación actualizada exitosamente.',
+        'habitacion' => $habitacion->load(['tipoHabitacion.tarifasDinamicas', 'imagenes'])
+    ]);
+}
+
 
     // 🆕 Eliminar habitación
     // 🆕 Eliminar habitación

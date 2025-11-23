@@ -122,7 +122,6 @@
                   <select class="form-select" id="puesto" name="puesto" required onchange="validateSelect(this)">
                     <option value="">Seleccionar puesto</option>
                     <option value="recepcionista" {{ old('puesto') == 'recepcionista' ? 'selected' : '' }}>Recepcionista</option>
-                    <option value="limpieza" {{ old('puesto') == 'limpieza' ? 'selected' : '' }}>Limpieza</option>
                     <option value="administrador" {{ old('puesto') == 'administrador' ? 'selected' : '' }}>Administrador</option>
                     <option value="gerente" {{ old('puesto') == 'gerente' ? 'selected' : '' }}>Gerente</option>
                   </select>

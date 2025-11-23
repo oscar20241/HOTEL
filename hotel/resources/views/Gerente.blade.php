@@ -1162,7 +1162,6 @@ function mostrarModalHabitacion(habitacionId = null) {
     methodField.innerHTML = '';
 
     // Establecer valores por defecto
-    document.getElementById('capacidad').value = '2';
     document.getElementById('estado').value = 'disponible';
   }
 
@@ -1226,9 +1225,11 @@ function cargarDatosHabitacion(habitacionId) {
         // Cargar datos en el formulario
         document.getElementById('numero').value = data.numero || '';
         document.getElementById('tipo_habitacion_id').value = data.tipo_habitacion_id || '';
-        document.getElementById('capacidad').value = data.capacidad || '2';
-        document.getElementById('estado').value = data.estado || 'disponible';
-        document.getElementById('caracteristicas').value = data.caracteristicas || '';
+        const estadoInput = document.getElementById('estado');
+if (estadoInput) {
+  estadoInput.value = data.estado || 'disponible';
+}
+
 
         // Cargar amenidades
         console.log('🏷️ Amenidades recibidas:', data.amenidades);
@@ -2404,65 +2405,16 @@ cardsInicio.forEach(card => {
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
-            <label for="capacidad" class="form-label">Capacidad *</label>
-            <input type="number" class="form-control" id="capacidad" name="capacidad" 
-                   min="1" max="10" value="2" required>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3">
             <label for="estado" class="form-label">Estado *</label>
             <select class="form-select" id="estado" name="estado" required>
               <option value="disponible">Disponible</option>
               <option value="ocupada">Ocupada</option>
               <option value="mantenimiento">Mantenimiento</option>
-              <option value="limpieza">Limpieza</option>
             </select>
           </div>
         </div>
       </div>
 
-      <div class="mb-3">
-        <label for="caracteristicas" class="form-label">Características</label>
-        <textarea class="form-control" id="caracteristicas" name="caracteristicas" rows="3" 
-                  placeholder="Descripción de la habitación, comodidades, vista..."></textarea>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Amenidades</label>
-        <div class="row">
-          @php
-            $amenidades = ['TV', 'Aire Acondicionado', 'WiFi', 'Minibar', 'Caja Fuerte', 'Jacuzzi', 'Balcón', 'Vista al Mar'];
-          @endphp
-          @foreach($amenidades as $amenidad)
-          <div class="col-md-6">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="amenidades[]" 
-                     value="{{ $amenidad }}" id="amenidad{{ $loop->index }}">
-              <label class="form-check-label" for="amenidad{{ $loop->index }}">
-                {{ $amenidad }}
-              </label>
-            </div>
-          </div>
-          @endforeach
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="imagenes" class="form-label">Imágenes de la habitación</label>
-        <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
-        <small class="text-muted d-block mt-1">Puedes seleccionar varias imágenes; la primera será marcada como principal.</small>
-      </div>
-
-      <div class="mb-3 d-none" id="nuevasImagenesWrapper">
-        <label class="form-label">Vista previa de nuevas imágenes</label>
-        <div id="nuevasImagenesPreview" class="row g-2"></div>
-      </div>
-
-      <div class="mb-3 d-none" id="imagenesActualesWrapper">
-        <label class="form-label">Imágenes registradas</label>
-        <div id="imagenesActuales" class="row g-2"></div>
-      </div>
 
       <div class="text-center">
         <button type="submit" class="btn-confirmar">
