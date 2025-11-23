@@ -33,8 +33,8 @@
             <p class="uppercase text-sm tracking-[0.3em] text-white/60">Reservación {{ $reservacion->codigo_reserva }}</p>
             <h1 class="text-4xl sm:text-5xl font-semibold">Edita tu estancia</h1>
             <p class="max-w-2xl text-white/75">
-                Ajusta fechas, cambia de habitación o actualiza tus notas. Comprobamos la disponibilidad al instante para que solo
-                elijas noches libres o sin mantenimiento.
+                Ajusta fechas, cambia el tipo de habitación o actualiza tus notas. Comprobamos la disponibilidad al instante para
+                que solo elijas noches libres o sin mantenimiento.
             </p>
         </div>
     </section>
@@ -45,7 +45,7 @@
                 <div class="flex items-center justify-between flex-wrap gap-3">
                     <div>
                         <h2 class="text-2xl font-semibold text-slate-900">Actualizar reservación</h2>
-                        <p class="text-sm text-slate-500">Selecciona una nueva habitación o modifica tus fechas.</p>
+                        <p class="text-sm text-slate-500">Selecciona un tipo de habitación o modifica tus fechas.</p>
                     </div>
                     <a href="{{ route('huesped.dashboard') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700">
                         &larr; Regresar a mi panel
@@ -67,33 +67,32 @@
                     @csrf
                     @method('PUT')
                     <div>
-                        <label for="habitacion_id" class="block text-sm font-semibold text-slate-700">Habitación</label>
-                        <select id="habitacion_id" name="habitacion_id" class="mt-1 w-full rounded-xl border border-slate-200 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500" required>
-                            <option value="" disabled {{ old('habitacion_id', $reservacion->habitacion_id) ? '' : 'selected' }}>Selecciona una habitación</option>
-                            @foreach ($habitacionesData as $habitacion)
-                                <option value="{{ $habitacion['id'] }}"
-                                    data-capacidad="{{ $habitacion['capacidad'] }}"
-                                    data-precio="{{ $habitacion['precio'] }}"
-                                    data-estado="{{ $habitacion['estado'] }}"
-                                    data-availability="{{ $habitacion['disponibilidad'] }}"
-                                    data-imagen="{{ $habitacion['imagen'] }}"
-                                    data-numero="{{ $habitacion['numero'] }}"
-                                    data-tipo="{{ $habitacion['tipo'] }}"
-                                    @selected(old('habitacion_id', $reservacion->habitacion_id) == $habitacion['id'])>
-                                    {{ $habitacion['numero'] }} · {{ $habitacion['tipo'] }} · Capacidad {{ $habitacion['capacidad'] }} huéspedes
+                        <label for="tipo_habitacion_id" class="block text-sm font-semibold text-slate-700">Tipo de habitación</label>
+                        <select id="tipo_habitacion_id" name="tipo_habitacion_id" class="mt-1 w-full rounded-xl border border-slate-200 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <option value="" disabled {{ old('tipo_habitacion_id', $reservacion->habitacion->tipo_habitacion_id) ? '' : 'selected' }}>Selecciona un tipo</option>
+                            @foreach ($tiposData as $tipo)
+                                <option value="{{ $tipo['id'] }}"
+                                    data-capacidad="{{ $tipo['capacidad'] }}"
+                                    data-precio="{{ $tipo['precio'] }}"
+                                    data-availability="{{ $tipo['disponibilidad'] }}"
+                                    data-imagen="{{ $tipo['imagen'] }}"
+                                    data-nombre="{{ $tipo['nombre'] }}"
+                                    @selected(old('tipo_habitacion_id', $reservacion->habitacion->tipo_habitacion_id) == $tipo['id'])>
+                                    {{ $tipo['nombre'] }} · Capacidad {{ $tipo['capacidad'] }} huéspedes
                                 </option>
                             @endforeach
                         </select>
-                        @error('habitacion_id') <div class="text-sm text-rose-600 mt-1">{{ $message }}</div> @enderror
+                        @error('tipo_habitacion_id') <div class="text-sm text-rose-600 mt-1">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Personas</label>
                             <input type="number" id="numero_huespedes" name="numero_huespedes"
-                                min="1" value="{{ old('numero_huespedes', $reservacion->numero_huespedes) }}"
+                                min="1" max="{{ $reservacion->habitacion->tipoHabitacion->capacidad }}"
+                                value="{{ old('numero_huespedes', $reservacion->numero_huespedes) }}"
                                 class="w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500" required>
-                            <small class="text-slate-500">Capacidad máx: <span id="texto-capacidad">{{ $reservacion->habitacion->capacidad }}</span></small>
+                            <small class="text-slate-500">Capacidad máx: <span id="texto-capacidad">{{ $reservacion->habitacion->tipoHabitacion->capacidad ?? $reservacion->habitacion->capacidad }}</span></small>
                             @error('numero_huespedes') <div class="text-sm text-rose-600 mt-1">{{ $message }}</div> @enderror
                         </div>
                         <div>
@@ -118,7 +117,7 @@
                         </div>
                         <div class="rounded-2xl bg-slate-50 p-4">
                             <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Tarifa por noche</p>
-                            <p class="mt-1 text-xl font-semibold text-slate-800">$<span id="tarifa_noche">{{ number_format(old('habitacion_id') ? optional($habitaciones->firstWhere('id', old('habitacion_id')))->precio_actual ?? $reservacion->habitacion->precio_actual : $reservacion->habitacion->precio_actual, 2) }}</span> MXN</p>
+                            <p class="mt-1 text-xl font-semibold text-slate-800">$<span id="tarifa_noche">{{ number_format(old('tipo_habitacion_id') ? optional($tiposHabitacion->firstWhere('id', old('tipo_habitacion_id')))->precio_actual ?? $reservacion->habitacion->tipoHabitacion->precio_actual : $reservacion->habitacion->tipoHabitacion->precio_actual, 2) }}</span> MXN</p>
                         </div>
                         <div class="rounded-2xl bg-slate-50 p-4">
                             <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Total estimado</p>
@@ -153,18 +152,18 @@
                     </div>
                     <div class="p-6 space-y-4">
                         <div>
-                            <p class="text-xs uppercase tracking-[0.3em] text-white/60">Habitación seleccionada</p>
-                            <h3 class="text-2xl font-semibold" id="preview-titulo">Habitación {{ $reservacion->habitacion->numero }}</h3>
-                            <p class="text-sm text-white/70" id="preview-tipo">{{ $reservacion->habitacion->tipoHabitacion->nombre ?? 'Habitación' }}</p>
+                            <p class="text-xs uppercase tracking-[0.3em] text-white/60">Tipo seleccionado</p>
+                            <h3 class="text-2xl font-semibold" id="preview-titulo">{{ $reservacion->habitacion->tipoHabitacion->nombre ?? 'Habitación' }}</h3>
+                            <p class="text-sm text-white/70" id="preview-tipo">Asignaremos la mejor opción disponible dentro de esta categoría.</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div class="bg-white/10 rounded-2xl p-4">
                                 <p class="text-white/60 uppercase tracking-[0.25em] text-xs">Capacidad</p>
-                                <p class="text-white font-semibold" id="preview-capacidad">{{ $reservacion->habitacion->capacidad }} huéspedes</p>
+                                <p class="text-white font-semibold" id="preview-capacidad">{{ $reservacion->habitacion->tipoHabitacion->capacidad ?? $reservacion->habitacion->capacidad }} huéspedes</p>
                             </div>
                             <div class="bg-white/10 rounded-2xl p-4">
-                                <p class="text-white/60 uppercase tracking-[0.25em] text-xs">Estado</p>
-                                <p class="text-white font-semibold capitalize" id="preview-estado">{{ $reservacion->habitacion->estado }}</p>
+                                <p class="text-white/60 uppercase tracking-[0.25em] text-xs">Asignación</p>
+                                <p class="text-white font-semibold capitalize" id="preview-estado">Automática</p>
                             </div>
                         </div>
                         <div class="bg-white/10 rounded-2xl p-4 text-sm">
@@ -225,7 +224,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const selectHabitacion = document.getElementById('habitacion_id');
+            const selectTipo = document.getElementById('tipo_habitacion_id');
             const inpPersonas = document.getElementById('numero_huespedes');
             const textoCapacidad = document.getElementById('texto-capacidad');
             const tarifaNocheSpan = document.getElementById('tarifa_noche');
@@ -241,7 +240,7 @@
 
             const disponibilidadActual = { bloques: [] };
             let fpInstance = null;
-            let nightlyRate = parseFloat(selectHabitacion.selectedOptions[0]?.dataset.precio || '{{ number_format($reservacion->habitacion->precio_actual, 2, '.', '') }}');
+            let nightlyRate = parseFloat(selectTipo.selectedOptions[0]?.dataset.precio || '{{ number_format($reservacion->habitacion->tipoHabitacion->precio_actual, 2, '.', '') }}');
 
             const updateResumen = (startDate, endDate) => {
                 if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
@@ -346,16 +345,14 @@
                 }
 
                 const capacidad = option.dataset.capacidad;
-                const estado = option.dataset.estado;
                 const imagen = option.dataset.imagen;
-                const tipo = option.dataset.tipo;
-                const numero = option.dataset.numero;
+                const nombre = option.dataset.nombre;
 
                 previewImagen.src = imagen;
-                previewTitulo.textContent = numero ? `Habitación ${numero}` : option.textContent.split('·')[0].trim();
-                previewTipo.textContent = tipo || previewTipo.textContent;
+                previewTitulo.textContent = nombre || option.textContent.split('·')[0].trim();
+                previewTipo.textContent = 'Asignaremos la mejor opción disponible dentro de esta categoría.';
                 previewCapacidad.textContent = `${capacidad} huéspedes`;
-                previewEstado.textContent = estado;
+                previewEstado.textContent = 'Automática';
 
                 inpPersonas.max = capacidad;
                 textoCapacidad.textContent = capacidad;
@@ -378,14 +375,14 @@
                 }
             };
 
-            const opcionInicial = selectHabitacion.selectedOptions[0];
+            const opcionInicial = selectTipo.selectedOptions[0];
             actualizarPreview(opcionInicial);
             inicializarCalendario([], [fechaEntradaInput.value, fechaSalidaInput.value]);
             cargarDisponibilidad(opcionInicial);
             actualizarTarifa(opcionInicial);
 
-            selectHabitacion.addEventListener('change', () => {
-                const option = selectHabitacion.selectedOptions[0];
+            selectTipo.addEventListener('change', () => {
+                const option = selectTipo.selectedOptions[0];
                 actualizarPreview(option);
                 actualizarTarifa(option);
                 cargarDisponibilidad(option);
