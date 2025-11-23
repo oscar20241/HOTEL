@@ -1,92 +1,83 @@
+@php
+    $reservacion->loadMissing(['habitacion.tipoHabitacion', 'user']);
+    $habitacion = $reservacion->habitacion;
+    $tipo = optional($habitacion)->tipoHabitacion;
+@endphp
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirmación de reservación</title>
-    <style>
-        body { font-family: Arial, sans-serif; color: #0f172a; }
-        h1 { color: #0f172a; }
-        .container { max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 12px; }
-        .section { margin-bottom: 18px; }
-        .section-title { font-weight: 600; margin-bottom: 8px; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 6px 0; vertical-align: top; }
-        .label { color: #475569; width: 45%; }
-        .value { color: #0f172a; }
-        .footer { margin-top: 32px; font-size: 0.875rem; color: #475569; }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <h1>¡Reservación confirmada!</h1>
-        <p>Hola {{ $reservacion->user->name }},</p>
-        <p>
-            Hemos confirmado tu reservación <strong>{{ $reservacion->codigo_reserva }}</strong> después de recibir tu pago por PayPal.
-            A continuación encontrarás los detalles principales de tu estancia.
-        </p>
-
-        <div class="section">
-            <div class="section-title">Detalles de la reservación</div>
-            <table>
-                <tr>
-                    <td class="label">Código de reservación</td>
-                    <td class="value">{{ $reservacion->codigo_reserva }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Habitación</td>
-                    <td class="value">
-                        @php($habitacion = $reservacion->habitacion)
-                        @php($tipo = optional($habitacion)->tipoHabitacion)
-                        {{ $tipo?->nombre ?? 'Habitación asignada' }}
-                        @if($habitacion?->numero)
-                            &mdash; Hab. {{ $habitacion->numero }}
-                        @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">Fechas</td>
-                    <td class="value">
-                        Entrada: {{ $reservacion->fecha_entrada->format('d/m/Y') }}<br>
-                        Salida: {{ $reservacion->fecha_salida->format('d/m/Y') }}<br>
-                        Noches: {{ $reservacion->noches }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">Número de huéspedes</td>
-                    <td class="value">{{ $reservacion->numero_huespedes }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <div class="section-title">Resumen de pago</div>
-            <table>
-                <tr>
-                    <td class="label">Total pagado</td>
-                    <td class="value">${{ number_format($reservacion->total_pagado, 2) }} MXN</td>
-                </tr>
-                <tr>
-                    <td class="label">Saldo pendiente</td>
-                    <td class="value">${{ number_format($reservacion->saldo_pendiente, 2) }} MXN</td>
-                </tr>
-            </table>
-        </div>
-
-        @if(!empty($reservacion->notas))
-            <div class="section">
-                <div class="section-title">Notas</div>
-                <p class="value">{{ $reservacion->notas }}</p>
-            </div>
-        @endif
-
-        <p>Si necesitas realizar algún cambio o tienes dudas, responde a este correo o contáctanos por los canales habituales.</p>
-
-        <p>¡Te esperamos pronto!</p>
-
-        <div class="footer">
-            PASA EL EXTRA INN<br>
-            Este mensaje se generó automáticamente, por favor no respondas si no es necesario.
-        </div>
-    </div>
+<body style="font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; padding: 24px;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(15,23,42,0.08);">
+                    <tr>
+                        <td style="background: linear-gradient(90deg, #312e81, #4338ca); padding: 24px; color: #fff;">
+                            <p style="margin: 0; text-transform: uppercase; letter-spacing: 3px; font-size: 12px; opacity: 0.8;">Reservación {{ $reservacion->codigo_reserva }}</p>
+                            <h1 style="margin: 8px 0 0; font-size: 24px;">¡Tu reservación está confirmada!</h1>
+                            <p style="margin: 6px 0 0; font-size: 14px; opacity: 0.9;">Recibimos tu pago y asignaremos una habitación disponible del tipo elegido.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 24px;">
+                            <p style="font-size: 15px; line-height: 1.6; margin-top: 0;">Hola {{ $reservacion->user->name ?? 'Huésped' }},</p>
+                            <p style="font-size: 15px; line-height: 1.6;">Estos son los detalles principales de tu estancia:</p>
+                            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top: 16px;">
+                                <tr>
+                                    <td style="padding: 12px; background: #f1f5f9; border-radius: 10px;">
+                                        <strong style="display: block; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #475569;">Tipo de habitación</strong>
+                                        <span style="font-size: 15px; color: #0f172a;">{{ $tipo?->nombre ?? 'Habitación asignada' }}@if($habitacion?->numero) &mdash; Hab. {{ $habitacion->numero }}@endif</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px;">
+                                        <strong style="display: block; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #475569;">Fechas</strong>
+                                        <span style="font-size: 15px; color: #0f172a;">{{ $reservacion->fecha_entrada->format('d M Y') }} - {{ $reservacion->fecha_salida->format('d M Y') }} ({{ $reservacion->noches }} noche(s))</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px; background: #f1f5f9; border-radius: 10px;">
+                                        <strong style="display: block; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #475569;">Huéspedes</strong>
+                                        <span style="font-size: 15px; color: #0f172a;">{{ $reservacion->numero_huespedes }} persona(s)</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px;">
+                                        <strong style="display: block; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #475569;">Total pagado</strong>
+                                        <span style="font-size: 15px; color: #0f172a;">${{ number_format($reservacion->total_pagado, 2) }} MXN</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px; background: #f1f5f9; border-radius: 10px;">
+                                        <strong style="display: block; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #475569;">Saldo pendiente</strong>
+                                        <span style="font-size: 15px; color: #0f172a;">${{ number_format($reservacion->saldo_pendiente, 2) }} MXN</span>
+                                    </td>
+                                </tr>
+                                @if(!empty($reservacion->notas))
+                                    <tr>
+                                        <td style="padding: 12px;">
+                                            <strong style="display: block; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #475569;">Notas</strong>
+                                            <span style="font-size: 15px; color: #0f172a;">{{ $reservacion->notas }}</span>
+                                        </td>
+                                    </tr>
+                                @endif
+                            </table>
+                            <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-top: 20px;">Si necesitas hacer algún cambio o tienes dudas, responde a este correo y con gusto te ayudaremos.</p>
+                            <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-top: 20px;">Gracias por elegirnos.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 16px 24px; background: #0f172a; color: #e2e8f0; text-align: center; font-size: 12px;">
+                            © {{ date('Y') }} Hotel PASA EL EXTRA Inn. Todos los derechos reservados.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
