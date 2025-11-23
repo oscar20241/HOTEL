@@ -9,7 +9,9 @@ use App\Models\TipoHabitacion;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Mail\ReservacionConfirmada;
 use Carbon\Carbon;
 
 class RecepcionistaController extends Controller
@@ -345,6 +347,7 @@ class RecepcionistaController extends Controller
             ], 422);
         }
 
+        $estadoInicial = $reservacion->estado;
         $saldoPendiente = (float) $reservacion->saldo_pendiente;
 
         if ($saldoPendiente <= 0) {
@@ -374,6 +377,19 @@ class RecepcionistaController extends Controller
         });
 
         $reservacion->refresh();
+
+        $debeEnviarConfirmacion = $estadoInicial !== 'confirmada'
+            && $reservacion->estado === 'confirmada'
+            && (float) $reservacion->saldo_pendiente <= 0;
+
+        if ($debeEnviarConfirmacion) {
+            $reservacion->loadMissing(['user', 'habitacion.tipoHabitacion']);
+
+            if ($reservacion->user && $reservacion->user->email) {
+                Mail::to($reservacion->user->email)
+                    ->send(new ReservacionConfirmada($reservacion));
+            }
+        }
 
         return response()->json([
             'success' => true,
