@@ -86,7 +86,7 @@
                 <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Contacto</h4>
                 <ul class="space-y-1 text-sm text-slate-300">
                     <li>Teléfono: (55) 1234 5678</li>
-                    <li>Email: reservas@pasaelextrainn.com</li>
+                    <li>Correo electrónico: reservas@pasaelextrainn.com</li>
                     <li>Dirección: Av. Reforma 123, Ciudad de México</li>
                 </ul>
             </div>
