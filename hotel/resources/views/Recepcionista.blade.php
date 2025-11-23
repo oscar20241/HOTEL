@@ -166,9 +166,19 @@
     </div>
 
     <div class="col-md-4">
-      <label class="form-label">Teléfono:</label>
-      <input type="tel" name="nuevo_telefono" id="nuevoTelefono" class="form-control" value="{{ old('nuevo_telefono') }}" placeholder="Ej. 322-555-1234" disabled>
-    </div>
+    <label class="form-label">Teléfono:</label>
+    <input type="tel"
+           name="nuevo_telefono"
+           id="nuevoTelefono"
+           class="form-control"
+           value="{{ old('nuevo_telefono') }}"
+           placeholder="Ej. 322-555-1234"
+           maxlength="10"
+           pattern="[0-9]{10}"
+           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+           disabled>
+</div>
+
 
     {{-- Fecha de entrada --}}
     <div class="col-md-3">
