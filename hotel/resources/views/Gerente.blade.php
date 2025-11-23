@@ -897,6 +897,10 @@
       </div>
     </main>
   </div>
+
+
+
+
 <script>
   window.datosReportes = @json($reportes);
 </script>
@@ -2190,7 +2194,8 @@ window.addEventListener('click', function(e) {
 
 <!-- FullCalendar + ES locale -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
 
 <script>
@@ -2266,12 +2271,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicial
   cargarLista();
 
+
   // --- CALENDARIO (FullCalendar)
   const calendarEl = document.getElementById('calendarioReservas');
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     height: 'auto',
     locale: 'es',       // << español
+
+     buttonText: {
+    today:  'Hoy',
+    month:  'Mes',
+    week:   'Semana',
+    day:    'Día',
+    list:   'Lista'
+     },
+
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
