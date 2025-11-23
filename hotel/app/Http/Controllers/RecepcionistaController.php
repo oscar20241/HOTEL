@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use App\Mail\CheckinConfirmado;
-use App\Mail\CheckoutConfirmado;
 use App\Mail\ReservacionConfirmada;
 use Carbon\Carbon;
 
