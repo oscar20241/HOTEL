@@ -539,15 +539,15 @@
   <div id="tab-huespedes" class="tab-content active">
     <div class="table-responsive">
       <table class="table table-white table-hover">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Registro</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo electrónico</th>
+              <th>Teléfono</th>
+              <th>Registro</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
         <tbody>
           @foreach($huespedes as $huesped)
           <tr>
@@ -670,7 +670,7 @@
           <tr>
             <th># Empleado</th>
             <th>Nombre</th>
-            <th>Email</th>
+            <th>Correo electrónico</th>
             <th>Turno</th>
             <th>Estado</th>
             <th>Salario</th>
@@ -747,7 +747,7 @@
           <tr>
             <th># Empleado</th>
             <th>Nombre</th>
-            <th>Email</th>
+            <th>Correo electrónico</th>
             <th>Turno</th>
             <th>Estado</th>
             <th>Salario</th>
