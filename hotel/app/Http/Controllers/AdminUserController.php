@@ -804,7 +804,14 @@ public function storeHabitacion(Request $request)
 
         $mantenimiento->update(['estado' => 'cancelado']);
 
-        if ($habitacion->estado === 'mantenimiento' && $mantenimiento->fecha_fin->isFuture()) {
+        $otroActivo = $habitacion->mantenimientos()
+            ->where('id', '!=', $mantenimiento->id)
+            ->whereIn('estado', ['programado', 'en_curso'])
+            ->whereDate('fecha_inicio', '<=', now())
+            ->whereDate('fecha_fin', '>=', now())
+            ->exists();
+
+        if ($habitacion->estado === 'mantenimiento' && !$otroActivo) {
             $habitacion->update(['estado' => 'disponible']);
         }
 
