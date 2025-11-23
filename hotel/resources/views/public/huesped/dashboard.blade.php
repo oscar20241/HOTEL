@@ -115,7 +115,8 @@
                 <div class="p-8 rounded-3xl bg-white shadow-xl">
                     <h2 class="text-2xl font-semibold text-slate-800">Generar una nueva reservación</h2>
                     <p class="mt-2 text-sm text-slate-500">Selecciona fechas y la habitación ideal para tu estancia. Nuestro equipo confirmará la disponibilidad.</p>
-                            @php
+                      <form action="{{ route('reservaciones.store') }}" method="POST" class="space-y-6">       
+                    @php
                                 $tipoSeleccionado = $tiposHabitacion->firstWhere('id', old('tipo_habitacion_id')) ?? $tiposHabitacion->first();
                                 $capacidadInicial = $tipoSeleccionado?->capacidad;
                                 $tarifaInicial = $tipoSeleccionado ? number_format($tipoSeleccionado->precio_actual, 2, '.', '') : '0.00';
