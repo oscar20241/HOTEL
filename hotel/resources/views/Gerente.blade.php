@@ -679,6 +679,8 @@
         <input type="text" class="form-control" id="motivo_mantenimiento" name="motivo" placeholder="Ej. Pintura, revisión de aire acondicionado">
       </div>
 
+      <div id="mantenimiento-messages" class="mb-3"></div>
+
       <div class="mb-3">
         <label class="form-label">Mantenimientos programados</label>
         <div id="listaMantenimientos" class="border rounded p-2" style="min-height: 60px;">
@@ -1935,7 +1937,6 @@ function eliminarTipoHabitacion(tipoId) {
 function abrirMantenimiento(habitacionId) {
   habitacionMantenimientoId = habitacionId;
   const modal = document.getElementById('modalMantenimiento');
-  const lista = document.getElementById('listaMantenimientos');
   const form = document.getElementById('formMantenimiento');
 
   if (form) {
@@ -1944,9 +1945,17 @@ function abrirMantenimiento(habitacionId) {
     document.getElementById('fecha_mantenimiento_inicio').value = new Date().toISOString().slice(0, 10);
   }
 
+  cargarMantenimientosProgramados();
+  modal.style.display = 'flex';
+}
+
+function cargarMantenimientosProgramados() {
+  if (!habitacionMantenimientoId) return;
+
+  const lista = document.getElementById('listaMantenimientos');
   lista.innerHTML = '<small class="text-muted">Cargando programación...</small>';
 
-  fetch(`/gerente/habitaciones/${habitacionId}`, {
+  fetch(`/gerente/habitaciones/${habitacionMantenimientoId}`, {
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
       'Accept': 'application/json'
@@ -1959,8 +1968,6 @@ function abrirMantenimiento(habitacionId) {
     .catch(() => {
       renderListaMantenimientos([]);
     });
-
-  modal.style.display = 'flex';
 }
 
 function renderListaMantenimientos(mantenimientos) {
@@ -1976,16 +1983,56 @@ function renderListaMantenimientos(mantenimientos) {
 
   mantenimientos.forEach(item => {
     const div = document.createElement('div');
-    div.className = 'd-flex justify-content-between align-items-center border rounded p-2 mb-2';
+    div.className = 'd-flex justify-content-between align-items-center border rounded p-2 mb-2 gap-2 flex-wrap';
+
+    const badgeClass = item.estado === 'en_curso' ? 'bg-warning text-dark' : item.estado === 'cancelado' ? 'bg-secondary' : 'bg-info text-dark';
+
     div.innerHTML = `
       <div>
         <strong>${item.fecha_inicio}</strong> al <strong>${item.fecha_fin}</strong><br>
         <small class="text-muted">${item.motivo || 'Sin motivo'}</small>
       </div>
-      <span class="badge bg-secondary">${item.estado}</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge ${badgeClass} text-uppercase">${item.estado}</span>
+        ${item.estado !== 'cancelado' ? `<button class="btn btn-sm btn-outline-danger" data-cancelar="${item.id}"><i class="fas fa-ban"></i> Cancelar</button>` : ''}
+      </div>
     `;
     lista.appendChild(div);
   });
+
+  lista.querySelectorAll('button[data-cancelar]').forEach(btn => {
+    btn.addEventListener('click', () => cancelarMantenimiento(btn.getAttribute('data-cancelar')));
+  });
+}
+
+function cancelarMantenimiento(mantenimientoId) {
+  if (!habitacionMantenimientoId) return;
+
+  fetch(`/gerente/habitaciones/${habitacionMantenimientoId}/mantenimientos/${mantenimientoId}/cancelar`, {
+    method: 'PATCH',
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+    .then(async response => {
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        let message = 'No se pudo cancelar el mantenimiento.';
+        if (data && data.message) {
+          message = data.message;
+        }
+        throw new Error(message);
+      }
+      return data;
+    })
+    .then(data => {
+      mostrarMensajeMantenimiento(data.message || 'Mantenimiento cancelado.', 'success');
+      cargarMantenimientosProgramados();
+    })
+    .catch(error => {
+      mostrarMensajeMantenimiento(error.message, 'danger');
+    });
 }
 
 function cerrarModalMantenimiento() {
@@ -2031,19 +2078,44 @@ if (formMantenimiento) {
         return data;
       })
       .then(data => {
-        mostrarMensaje(data.message || 'Mantenimiento guardado.', 'success');
-        cerrarModalMantenimiento();
-        setTimeout(() => location.reload(), 1000);
+        mostrarMensajeMantenimiento(data.message || 'Mantenimiento guardado.', 'success');
+        cargarMantenimientosProgramados();
       })
       .catch(error => {
         console.error(error);
-        mostrarMensaje(error.message, 'danger');
+        mostrarMensajeMantenimiento(error.message, 'danger');
       })
       .finally(() => {
         submitBtn.innerHTML = originalHtml;
         submitBtn.disabled = false;
       });
   });
+}
+
+function mostrarMensajeMantenimiento(mensaje, tipo) {
+  const container = document.getElementById('mantenimiento-messages');
+  if (!container) return;
+
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${tipo} alert-dismissible fade show`;
+  alert.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  container.innerHTML = '';
+  container.appendChild(alert);
+
+  alert.querySelector('.btn-close').addEventListener('click', () => {
+    alert.remove();
+  });
+
+  setTimeout(() => {
+    if (alert.parentNode) {
+      alert.remove();
+    }
+  }, 5000);
+
+  alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function mostrarMensajeTarifas(mensaje, tipo) {
