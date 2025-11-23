@@ -2,8 +2,11 @@
 
 @php
     use Illuminate\Support\Facades\Storage;
+    
+    $habitacionReserva = $reservacion->habitacion ?? null;
+    $tipoHabitacion = $habitacionReserva?->tipoHabitacion->nombre ?? 'habitacion';
+    $placeholderImage = asset('img/habitacion_' . strtolower($tipoHabitacion) . '.jpg');
 
-    $placeholderImage = 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
     $habitacionesData = $habitaciones->map(function ($habitacion) use ($placeholderImage) {
         return [
             'id' => $habitacion->id,
@@ -13,16 +16,15 @@
             'estado' => $habitacion->estado,
             'precio' => number_format($habitacion->precio_actual, 2, '.', ''),
             'disponibilidad' => route('habitaciones.disponibilidad', $habitacion),
-            'imagen' => $habitacion->imagenPrincipal
+            'imagen' => $habitacion->imagenPrincipal?->ruta_imagen
                 ? Storage::url($habitacion->imagenPrincipal->ruta_imagen)
                 : $placeholderImage,
         ];
     });
 
-    $imagenesReserva = $reservacion->habitacion->imagenes;
+    $imagenesReserva = $habitacionReserva?->imagenes ?? collect();
     $imagenActiva = $imagenesReserva->first();
 @endphp
-
 @section('content')
     <section class="relative bg-slate-900 text-white">
         <div class="absolute inset-0 opacity-40" style="background-image: url('{{ $imagenActiva ? Storage::url($imagenActiva->ruta_imagen) : $placeholderImage }}'); background-size: cover; background-position: center;"></div>
@@ -52,7 +54,7 @@
 
                 @if ($errors->any())
                     <div class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 px-4 py-3 text-sm">
-                        <p class="font-semibold">Revisa la información proporcionada:</p>
+                        <p class="font-semibold">Revisa la información proporcionada</p>
                         <ul class="list-disc list-inside space-y-1 mt-2">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -176,9 +178,12 @@
                     <div class="bg-white rounded-3xl shadow-lg p-5">
                         <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.3em] mb-3">Galería actual</h4>
                         <div class="grid grid-cols-4 gap-3">
-                            @foreach ($imagenesReserva as $imagen)
-                                <img src="{{ Storage::url($imagen->ruta_imagen) }}" alt="Imagen de la habitación" class="h-20 w-full object-cover rounded-2xl">
-                            @endforeach
+                           @foreach ($reservacion->habitacion->imagenes as $imagen)
+                            <img 
+                                src="{{ $imagen->ruta_imagen  ? Storage::url($imagen->ruta_imagen) : asset('img/habitacion_' . strtolower($reservacion->habitacion->tipoHabitacion->nombre ?? 'habitacion') . '.jpg') }}" 
+                                alt="Imagen de la habitación"
+                                class="h-20 w-full object-cover rounded-2xl">
+                        @endforeach
                         </div>
                     </div>
                 @endif
@@ -273,7 +278,7 @@
 
             const inicializarCalendario = (bloques, defaultRange = null) => {
                 disponibilidadActual.bloques = bloques || [];
-                const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
+                const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, a: b.to }));
 
                 if (!fpInstance) {
                     fpInstance = flatpickr('#rango-fechas', {
@@ -282,6 +287,7 @@
                         minDate: 'today',
                         disable: disabled,
                         defaultDate: defaultRange,
+                         locale: {  rangeSeparator: ' a '},
                         onReady: (selectedDates, dateStr, instance) => {
                             if (defaultRange && defaultRange.length === 2) {
                                 updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
