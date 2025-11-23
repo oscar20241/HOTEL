@@ -31,6 +31,8 @@ class Reservacion extends Model
     protected $casts = [
         'fecha_entrada' => 'date',
         'fecha_salida' => 'date',
+        'fecha_checkin' => 'datetime',
+        'fecha_checkout' => 'datetime',
         'precio_total' => 'decimal:2',
     ];
 
