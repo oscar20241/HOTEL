@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use App\Mail\CheckinConfirmado as CheckinConfirmadoMailable;
-use App\Mail\CheckoutConfirmado as CheckoutConfirmadoMailable;
 use App\Mail\ReservacionConfirmada;
 use Carbon\Carbon;
 
@@ -293,7 +291,7 @@ class RecepcionistaController extends Controller
 
         if ($reservacion->user && $reservacion->user->email) {
             Mail::to($reservacion->user->email)
-                ->send(new CheckoutConfirmadoMailable($reservacion));
+                ->send(new CheckoutConfirmado($reservacion));
         }
 
         return response()->json([
@@ -476,12 +474,12 @@ class RecepcionistaController extends Controller
             $reservacion->habitacion->update(['estado' => 'ocupada']);
         }
 
-            $reservacion->loadMissing(['user', 'habitacion.tipoHabitacion']);
+        $reservacion->loadMissing(['user', 'habitacion.tipoHabitacion']);
 
-            if ($reservacion->user && $reservacion->user->email) {
-                Mail::to($reservacion->user->email)
-                    ->send(new CheckinConfirmadoMailable($reservacion));
-            }
+        if ($reservacion->user && $reservacion->user->email) {
+            Mail::to($reservacion->user->email)
+                ->send(new CheckinConfirmado($reservacion));
+        }
 
         return response()->json([
             'success' => true,
