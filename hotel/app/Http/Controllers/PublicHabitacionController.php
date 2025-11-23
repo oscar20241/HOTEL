@@ -107,6 +107,7 @@ class PublicHabitacionController extends Controller
     {
         $inicio = Carbon::today();
         $fin = (clone $inicio)->addDays(180);
+        $reservacionIgnorada = $request->query('exclude_reservacion');
 
         $tipoHabitacion->load(['habitaciones' => function ($query) use ($fin, $inicio) {
             $query->with(['reservaciones' => function ($reservaQuery) use ($fin, $inicio) {
@@ -134,7 +135,13 @@ class PublicHabitacionController extends Controller
 
                 foreach ($operativas as $habitacion) {
                     $ocupada = $habitacion->reservaciones
-                        ->contains(fn ($reserva) => $fecha->gte($reserva->fecha_entrada) && $fecha->lt($reserva->fecha_salida));
+                        ->contains(function ($reserva) use ($fecha, $reservacionIgnorada) {
+                            if ($reservacionIgnorada && (int) $reservacionIgnorada === (int) $reserva->id) {
+                                return false;
+                            }
+
+                            return $fecha->gte($reserva->fecha_entrada) && $fecha->lt($reserva->fecha_salida);
+                        });
 
                     if (!$ocupada) {
                         $hayDisponible = true;
