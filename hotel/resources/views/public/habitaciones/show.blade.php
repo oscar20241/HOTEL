@@ -515,6 +515,9 @@
                         dateFormat: 'Y-m-d',
                         minDate: 'today',
                         disable: disabled,
+                                locale: {
+        rangeSeparator: ' a '
+    },
                         defaultDate: defaultRange,
                         onReady: (selectedDates, dateStr, instance) => {
                             instance.calendarContainer.classList.add('rounded-xl');

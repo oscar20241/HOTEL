@@ -2,29 +2,38 @@
 
 @php
     use Illuminate\Support\Facades\Storage;
-    
-    $habitacionReserva = $reservacion->habitacion ?? null;
-    $tipoHabitacion = $habitacionReserva?->tipoHabitacion->nombre ?? 'habitacion';
-    $placeholderImage = asset('img/habitacion_' . strtolower($tipoHabitacion) . '.jpg');
+    use Illuminate\Support\Str;
 
-    $habitacionesData = $habitaciones->map(function ($habitacion) use ($placeholderImage) {
+    $placeholderImage = 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
+
+    $tiposData = $tiposHabitacion->map(function ($tipo) use ($placeholderImage) {
+        $habitacionConImagen = $tipo->habitaciones->firstWhere('imagenPrincipal')
+            ?? $tipo->habitaciones->first(fn($habitacion) => $habitacion->imagenes->isNotEmpty())
+            ?? $tipo->habitaciones->first();
+
+        if ($habitacionConImagen?->imagenPrincipal) {
+            $imagenUrl = Storage::url($habitacionConImagen->imagenPrincipal->ruta_imagen);
+        } elseif ($habitacionConImagen?->imagenes->first()) {
+            $imagenUrl = Storage::url($habitacionConImagen->imagenes->first()->ruta_imagen);
+        } else {
+            $imagenUrl = $placeholderImage;
+        }
+
         return [
-            'id' => $habitacion->id,
-            'numero' => $habitacion->numero,
-            'tipo' => $habitacion->tipoHabitacion->nombre ?? 'Habitación',
-            'capacidad' => $habitacion->capacidad,
-            'estado' => $habitacion->estado,
-            'precio' => number_format($habitacion->precio_actual, 2, '.', ''),
-            'disponibilidad' => route('habitaciones.disponibilidad', $habitacion),
-            'imagen' => $habitacion->imagenPrincipal?->ruta_imagen
-                ? Storage::url($habitacion->imagenPrincipal->ruta_imagen)
-                : $placeholderImage,
+            'id' => $tipo->id,
+            'nombre' => $tipo->nombre,
+            'capacidad' => $tipo->capacidad,
+            'precio' => number_format($tipo->precio_actual, 2, '.', ''),
+            'disponibilidad' => route('tipos-habitacion.disponibilidad', $tipo),
+            'imagen' => $imagenUrl,
+            'descripcion' => Str::limit($tipo->descripcion, 110),
         ];
     });
 
-    $imagenesReserva = $habitacionReserva?->imagenes ?? collect();
+    $imagenesReserva = $reservacion->habitacion->imagenes;
     $imagenActiva = $imagenesReserva->first();
 @endphp
+
 @section('content')
     <section class="relative bg-slate-900 text-white">
         <div class="absolute inset-0 opacity-40" style="background-image: url('{{ $imagenActiva ? Storage::url($imagenActiva->ruta_imagen) : $placeholderImage }}'); background-size: cover; background-position: center;"></div>
@@ -54,7 +63,7 @@
 
                 @if ($errors->any())
                     <div class="rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 px-4 py-3 text-sm">
-                        <p class="font-semibold">Revisa la información proporcionada</p>
+                        <p class="font-semibold">Revisa la información proporcionada:</p>
                         <ul class="list-disc list-inside space-y-1 mt-2">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -177,12 +186,9 @@
                     <div class="bg-white rounded-3xl shadow-lg p-5">
                         <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.3em] mb-3">Galería actual</h4>
                         <div class="grid grid-cols-4 gap-3">
-                           @foreach ($reservacion->habitacion->imagenes as $imagen)
-                            <img 
-                                src="{{ $imagen->ruta_imagen  ? Storage::url($imagen->ruta_imagen) : asset('img/habitacion_' . strtolower($reservacion->habitacion->tipoHabitacion->nombre ?? 'habitacion') . '.jpg') }}" 
-                                alt="Imagen de la habitación"
-                                class="h-20 w-full object-cover rounded-2xl">
-                        @endforeach
+                            @foreach ($imagenesReserva as $imagen)
+                                <img src="{{ Storage::url($imagen->ruta_imagen) }}" alt="Imagen de la habitación" class="h-20 w-full object-cover rounded-2xl">
+                            @endforeach
                         </div>
                     </div>
                 @endif
@@ -277,7 +283,7 @@
 
             const inicializarCalendario = (bloques, defaultRange = null) => {
                 disponibilidadActual.bloques = bloques || [];
-                const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, a: b.to }));
+                const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
 
                 if (!fpInstance) {
                     fpInstance = flatpickr('#rango-fechas', {
@@ -285,8 +291,10 @@
                         dateFormat: 'Y-m-d',
                         minDate: 'today',
                         disable: disabled,
+                        locale: {
+        rangeSeparator: ' a '
+    },
                         defaultDate: defaultRange,
-                         locale: {  rangeSeparator: ' a '},
                         onReady: (selectedDates, dateStr, instance) => {
                             if (defaultRange && defaultRange.length === 2) {
                                 updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
