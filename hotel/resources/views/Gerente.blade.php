@@ -1261,77 +1261,7 @@ function cargarDatosHabitacion(habitacionId) {
         console.log('🔚 Finalizado proceso de carga');
     });
 }
-// Enviar formulario de habitación
-// =============================================
-// FORMULARIO HABITACIONES - VERSIÓN CORREGIDA
-// =============================================
-
-document.getElementById('formHabitacion').addEventListener('submit', function(e) {
-  e.preventDefault();
-
-  const formElement = e.target;
-  const submitBtn = formElement.querySelector('button[type="submit"]');
-  const originalHtml = submitBtn.innerHTML;
-
-  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-  submitBtn.disabled = true;
-
-  const formData = new FormData(formElement);
-
-  if (habitacionEditando) {
-    formData.append('_method', 'PUT');
-  }
-
-  const url = habitacionEditando
-    ? `/gerente/habitaciones/${habitacionEditando}`
-    : '/gerente/habitaciones';
-
-  fetch(url, {
-    method: 'POST',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/json'
-    },
-    body: formData
-  })
-  .then(async response => {
-    const data = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      let message = 'Error al procesar la solicitud.';
-
-      if (data && data.errors) {
-        const errores = Object.values(data.errors).flat();
-        message = errores.join(' ');
-      } else if (data && data.message) {
-        message = data.message;
-      }
-
-      throw new Error(message);
-    }
-
-    return data;
-  })
-  .then(data => {
-    if (data && data.success) {
-      mostrarMensaje(data.message, 'success');
-      cerrarModalHabitacion();
-      setTimeout(() => location.reload(), 1200);
-    } else {
-      const message = (data && (data.message || data.error)) || 'Error desconocido.';
-      mostrarMensaje(message, 'danger');
-    }
-  })
-  .catch(error => {
-    console.error('❌ Error en fetch:', error);
-    mostrarMensaje('Error al procesar la solicitud: ' + error.message, 'danger');
-  })
-  .finally(() => {
-    submitBtn.innerHTML = originalHtml;
-    submitBtn.disabled = false;
-  });
-});
+// El listener de envío de formulario se adjunta una vez que el DOM está listo
 
 // Eliminar habitación - VERSIÓN MEJORADA
 function eliminarHabitacion(habitacionId) {
@@ -1553,66 +1483,7 @@ function mostrarPreviewNuevasTipo(filesList) {
   });
 }
 
-const inputImagenesTipo = document.getElementById('tipo_imagenes');
-if (inputImagenesTipo) {
-  inputImagenesTipo.addEventListener('change', event => mostrarPreviewNuevasTipo(event.target.files));
-}
-
-const formTipoHabitacion = document.getElementById('formTipoHabitacion');
-if (formTipoHabitacion) {
-  formTipoHabitacion.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const submitBtn = formTipoHabitacion.querySelector('button[type="submit"]');
-    const originalHtml = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-    submitBtn.disabled = true;
-
-    const formData = new FormData(formTipoHabitacion);
-    const url = tipoHabitacionEditando
-      ? `/gerente/tipos-habitacion/${tipoHabitacionEditando}`
-      : '/gerente/tipos-habitacion';
-
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: formData
-    })
-      .then(async response => {
-        const data = await response.json().catch(() => null);
-        if (!response.ok) {
-          let message = 'No se pudo guardar el tipo.';
-          if (data && data.errors) {
-            message = Object.values(data.errors).flat().join(' ');
-          } else if (data && data.message) {
-            message = data.message;
-          }
-          throw new Error(message);
-        }
-        return data;
-      })
-      .then(data => {
-        if (data && data.success) {
-          mostrarMensajeTipos(data.message, 'success');
-          cerrarModalTipoHabitacion();
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          mostrarMensajeTipos(data.message || 'No se pudo guardar el tipo.', 'danger');
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        mostrarMensajeTipos(error.message, 'danger');
-      })
-      .finally(() => {
-        submitBtn.innerHTML = originalHtml;
-        submitBtn.disabled = false;
-      });
-  });
-}
+// Los listeners para tipos de habitación se adjuntarán tras cargar el DOM
 
 function editarTipoHabitacion(tipoId) {
   mostrarModalTipoHabitacion(tipoId);
@@ -1768,54 +1639,7 @@ function cerrarModalMantenimiento() {
   modal.style.display = 'none';
 }
 
-const formMantenimiento = document.getElementById('formMantenimiento');
-if (formMantenimiento) {
-  formMantenimiento.addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (!habitacionMantenimientoId) return;
-
-    const submitBtn = formMantenimiento.querySelector('button[type="submit"]');
-    const originalHtml = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-    submitBtn.disabled = true;
-
-    const formData = new FormData(formMantenimiento);
-
-    fetch(`/gerente/habitaciones/${habitacionMantenimientoId}/mantenimientos`, {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: formData
-    })
-      .then(async response => {
-        const data = await response.json().catch(() => null);
-        if (!response.ok) {
-          let message = 'No se pudo programar el mantenimiento.';
-          if (data && data.errors) {
-            message = Object.values(data.errors).flat().join(' ');
-          } else if (data && data.message) {
-            message = data.message;
-          }
-          throw new Error(message);
-        }
-        return data;
-      })
-      .then(data => {
-        mostrarMensajeMantenimiento(data.message || 'Mantenimiento guardado.', 'success');
-        cargarMantenimientosProgramados();
-      })
-      .catch(error => {
-        console.error(error);
-        mostrarMensajeMantenimiento(error.message, 'danger');
-      })
-      .finally(() => {
-        submitBtn.innerHTML = originalHtml;
-        submitBtn.disabled = false;
-      });
-  });
-}
+// Los listeners para mantenimiento se adjuntarán tras cargar el DOM
 
 function mostrarMensajeMantenimiento(mensaje, tipo) {
   const container = document.getElementById('mantenimiento-messages');
@@ -1934,77 +1758,7 @@ function cerrarModalTarifa() {
   tarifaEditando = null;
 }
 
-const formTarifa = document.getElementById('formTarifa');
-if (formTarifa) {
-  formTarifa.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const submitBtn = formTarifa.querySelector('button[type="submit"]');
-    const originalHtml = submitBtn.innerHTML;
-
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-    submitBtn.disabled = true;
-
-    const payload = {
-      tipo_habitacion_id: document.getElementById('tarifa_tipo_habitacion_id').value,
-      fecha_inicio: document.getElementById('tarifa_fecha_inicio').value,
-      fecha_fin: document.getElementById('tarifa_fecha_fin').value,
-      tipo_temporada: document.getElementById('tarifa_tipo_temporada').value,
-      precio_modificado: document.getElementById('tarifa_precio_modificado').value,
-      descripcion: document.getElementById('tarifa_descripcion').value
-    };
-
-    const url = tarifaEditando ? `/gerente/tarifas/${tarifaEditando}` : '/gerente/tarifas';
-    const method = tarifaEditando ? 'PUT' : 'POST';
-
-    fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-TOKEN': csrfToken
-      },
-      body: JSON.stringify(payload)
-    })
-      .then(async response => {
-        const data = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          let message = 'Error al guardar la tarifa.';
-
-          if (data && data.errors) {
-            const errores = Object.values(data.errors).flat();
-            message = errores.join(' ');
-          } else if (data && data.message) {
-            message = data.message;
-          }
-
-          throw new Error(message);
-        }
-
-        return data;
-      })
-      .then(data => {
-        if (data && data.success) {
-          mostrarMensajeTarifas(data.message, 'success');
-          cerrarModalTarifa();
-          setTimeout(() => location.reload(), 1200);
-        } else {
-          const message = (data && (data.message || data.error)) || 'Error desconocido.';
-          mostrarMensajeTarifas(message, 'danger');
-        }
-      })
-      .catch(error => {
-        console.error('Error al guardar tarifa:', error);
-        mostrarMensajeTarifas(error.message, 'danger');
-      })
-      .finally(() => {
-        submitBtn.innerHTML = originalHtml;
-        submitBtn.disabled = false;
-      });
-  });
-}
+// Los listeners de tarifas se adjuntarán tras cargar el DOM
 
 function editarTarifa(tarifaId) {
   mostrarModalTarifa(tarifaId);
@@ -2135,12 +1889,7 @@ function mostrarPreviewNuevas(filesList) {
   });
 }
 
-const inputImagenesHabitacion = document.getElementById('imagenes');
-if (inputImagenesHabitacion) {
-  inputImagenesHabitacion.addEventListener('change', event => {
-    mostrarPreviewNuevas(event.target.files);
-  });
-}
+// Los listeners de imágenes y búsqueda se adjuntarán tras cargar el DOM
 
 // Actualizar estadísticas
 function actualizarEstadisticas() {
@@ -2148,15 +1897,278 @@ function actualizarEstadisticas() {
   setTimeout(() => location.reload(), 1000);
 }
 
-// Búsqueda en tiempo real
-document.getElementById('buscarHabitacion').addEventListener('input', function(e) {
-  const searchTerm = e.target.value.toLowerCase();
-  const rows = document.querySelectorAll('#listaHabitaciones tr');
-  
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(searchTerm) ? '' : 'none';
-  });
+// Adjuntar listeners una vez que el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+  const formHabitacion = document.getElementById('formHabitacion');
+  if (formHabitacion) {
+    formHabitacion.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const submitBtn = formHabitacion.querySelector('button[type="submit"]');
+      const originalHtml = submitBtn.innerHTML;
+
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(formHabitacion);
+
+      if (habitacionEditando) {
+        formData.append('_method', 'PUT');
+      }
+
+      const url = habitacionEditando
+        ? `/gerente/habitaciones/${habitacionEditando}`
+        : '/gerente/habitaciones';
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: formData
+      })
+        .then(async response => {
+          const data = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            let message = 'Error al procesar la solicitud.';
+
+            if (data && data.errors) {
+              const errores = Object.values(data.errors).flat();
+              message = errores.join(' ');
+            } else if (data && data.message) {
+              message = data.message;
+            }
+
+            throw new Error(message);
+          }
+
+          return data;
+        })
+        .then(data => {
+          if (data && data.success) {
+            mostrarMensaje(data.message, 'success');
+            cerrarModalHabitacion();
+            setTimeout(() => location.reload(), 1200);
+          } else {
+            const message = (data && (data.message || data.error)) || 'Error desconocido.';
+            mostrarMensaje(message, 'danger');
+          }
+        })
+        .catch(error => {
+          console.error('❌ Error en fetch:', error);
+          mostrarMensaje('Error al procesar la solicitud: ' + error.message, 'danger');
+        })
+        .finally(() => {
+          submitBtn.innerHTML = originalHtml;
+          submitBtn.disabled = false;
+        });
+    });
+  }
+
+  const formMantenimiento = document.getElementById('formMantenimiento');
+  if (formMantenimiento) {
+    formMantenimiento.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!habitacionMantenimientoId) return;
+
+      const submitBtn = formMantenimiento.querySelector('button[type="submit"]');
+      const originalHtml = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(formMantenimiento);
+
+      fetch(`/gerente/habitaciones/${habitacionMantenimientoId}/mantenimientos`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+        .then(async response => {
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            let message = 'No se pudo programar el mantenimiento.';
+            if (data && data.errors) {
+              message = Object.values(data.errors).flat().join(' ');
+            } else if (data && data.message) {
+              message = data.message;
+            }
+            throw new Error(message);
+          }
+          return data;
+        })
+        .then(data => {
+          mostrarMensajeMantenimiento(data.message || 'Mantenimiento guardado.', 'success');
+          cargarMantenimientosProgramados();
+        })
+        .catch(error => {
+          console.error(error);
+          mostrarMensajeMantenimiento(error.message, 'danger');
+        })
+        .finally(() => {
+          submitBtn.innerHTML = originalHtml;
+          submitBtn.disabled = false;
+        });
+    });
+  }
+
+  const formTipoHabitacion = document.getElementById('formTipoHabitacion');
+  if (formTipoHabitacion) {
+    formTipoHabitacion.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const submitBtn = formTipoHabitacion.querySelector('button[type="submit"]');
+      const originalHtml = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(formTipoHabitacion);
+      const url = tipoHabitacionEditando
+        ? `/gerente/tipos-habitacion/${tipoHabitacionEditando}`
+        : '/gerente/tipos-habitacion';
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+        .then(async response => {
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            let message = 'No se pudo guardar el tipo.';
+            if (data && data.errors) {
+              message = Object.values(data.errors).flat().join(' ');
+            } else if (data && data.message) {
+              message = data.message;
+            }
+            throw new Error(message);
+          }
+          return data;
+        })
+        .then(data => {
+          if (data && data.success) {
+            mostrarMensajeTipos(data.message, 'success');
+            cerrarModalTipoHabitacion();
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            mostrarMensajeTipos(data.message || 'No se pudo guardar el tipo.', 'danger');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          mostrarMensajeTipos(error.message, 'danger');
+        })
+        .finally(() => {
+          submitBtn.innerHTML = originalHtml;
+          submitBtn.disabled = false;
+        });
+    });
+  }
+
+  const formTarifa = document.getElementById('formTarifa');
+  if (formTarifa) {
+    formTarifa.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const submitBtn = formTarifa.querySelector('button[type="submit"]');
+      const originalHtml = submitBtn.innerHTML;
+
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+      submitBtn.disabled = true;
+
+      const payload = {
+        tipo_habitacion_id: document.getElementById('tarifa_tipo_habitacion_id').value,
+        fecha_inicio: document.getElementById('tarifa_fecha_inicio').value,
+        fecha_fin: document.getElementById('tarifa_fecha_fin').value,
+        tipo_temporada: document.getElementById('tarifa_tipo_temporada').value,
+        precio_modificado: document.getElementById('tarifa_precio_modificado').value,
+        descripcion: document.getElementById('tarifa_descripcion').value
+      };
+
+      const url = tarifaEditando ? `/gerente/tarifas/${tarifaEditando}` : '/gerente/tarifas';
+      const method = tarifaEditando ? 'PUT' : 'POST';
+
+      fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(payload)
+      })
+        .then(async response => {
+          const data = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            let message = 'Error al guardar la tarifa.';
+
+            if (data && data.errors) {
+              const errores = Object.values(data.errors).flat();
+              message = errores.join(' ');
+            } else if (data && data.message) {
+              message = data.message;
+            }
+
+            throw new Error(message);
+          }
+
+          return data;
+        })
+        .then(data => {
+          if (data && data.success) {
+            mostrarMensajeTarifas(data.message, 'success');
+            cerrarModalTarifa();
+            setTimeout(() => location.reload(), 1200);
+          } else {
+            const message = (data && (data.message || data.error)) || 'Error desconocido.';
+            mostrarMensajeTarifas(message, 'danger');
+          }
+        })
+        .catch(error => {
+          console.error('Error al guardar tarifa:', error);
+          mostrarMensajeTarifas(error.message, 'danger');
+        })
+        .finally(() => {
+          submitBtn.innerHTML = originalHtml;
+          submitBtn.disabled = false;
+        });
+    });
+  }
+
+  const inputImagenesTipo = document.getElementById('tipo_imagenes');
+  if (inputImagenesTipo) {
+    inputImagenesTipo.addEventListener('change', event => mostrarPreviewNuevasTipo(event.target.files));
+  }
+
+  const inputImagenesHabitacion = document.getElementById('imagenes');
+  if (inputImagenesHabitacion) {
+    inputImagenesHabitacion.addEventListener('change', event => {
+      mostrarPreviewNuevas(event.target.files);
+    });
+  }
+
+  const buscarHabitacionInput = document.getElementById('buscarHabitacion');
+  if (buscarHabitacionInput) {
+    buscarHabitacionInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#listaHabitaciones tr');
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+  }
 });
 
 // Cerrar modal al hacer clic fuera
