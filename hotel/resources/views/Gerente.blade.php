@@ -204,7 +204,7 @@
             <h5 class="mb-0">Tipos de habitación</h5>
             <small class="text-muted">Administra las categorías que se muestran en la página pública.</small>
           </div>
-          <button class="btn btn-primary" onclick="mostrarModalTipoHabitacion()">
+          <button class="btn btn-primary" id="modal-habitacion" onclick="mostrarModalTipoHabitacion()">
             <i class="fas fa-layer-group"></i> Nuevo tipo
           </button>
         </div>

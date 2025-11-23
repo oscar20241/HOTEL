@@ -12,6 +12,7 @@
             <div class="lg:w-1/2 space-y-6">
                 <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a HOTEL PASA EL EXTRA INN</p>
                 <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">Elige la categoría perfecta para tu estancia</h1>
+                 <img src="{{ asset('img/logo.png') }}" alt="Suite principal" class="h-56 w-56 object-cover">
                 <p class="text-white/80 text-lg">Descubre nuestras suites, habitaciones dobles y opciones ejecutivas. Tú seleccionas el tipo de habitación y nosotros asignamos la mejor opción disponible para tus fechas.</p>
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="#categorias" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-indigo-700 font-semibold shadow-lg shadow-indigo-900/30 hover:bg-slate-100 transition">
@@ -76,7 +77,7 @@
                     } elseif ($habitacionReferencia?->imagenes->first()) {
                         $imagenUrl = Storage::url($habitacionReferencia->imagenes->first()->ruta_imagen);
                     } else {
-                        $imagenUrl = 'https://images.unsplash.com/photo-1551888419-7ab9470cb3a7?auto=format&fit=crop&w=900&q=80';
+                        $imagenUrl = asset('img/habitacion_' . strtolower($tipo->nombre) . '.jpg');
                     }
 
                     $operativas = $tipo->habitaciones->filter(fn($habitacion) => $habitacion->estaOperativa());

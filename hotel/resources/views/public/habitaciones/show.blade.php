@@ -7,7 +7,7 @@
     $imagenesTipo = $tipo?->imagenes ?? collect();
     $imagenes = $imagenesTipo->isNotEmpty() ? $imagenesTipo->take(3) : $habitacion->imagenes->take(3);
     $imagenPrincipal = $imagenes->firstWhere('es_principal', true) ?? $imagenes->first();
-    $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen) : 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
+   $heroImage = $imagenPrincipal ? Storage::url($imagenPrincipal->ruta_imagen): asset('img/habitacion_' . strtolower($tipo->nombre) . '.jpg');
 
     $habitacionesTipo = collect($tipo?->habitaciones ?? [$habitacion]);
     $operativasTipo = $habitacionesTipo->filter(fn ($habitacionTipo) => $habitacionTipo->estado !== 'mantenimiento');
@@ -79,7 +79,7 @@
                             </div>
                         @empty
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <img src="{{ asset('img/suite_principal.png') }}" alt="Habitación de hotel" class="w-full h-full object-cover">
+                             <img src="{{ asset('img/habitacion_' . strtolower($tipo->nombre) . '.jpg') }}" alt="Habitación {{ $tipo->nombre }}" class="w-full h-full object-cover rounded-lg">
                             </div>
                         @endforelse
                     </div>
