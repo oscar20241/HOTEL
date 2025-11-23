@@ -7,12 +7,12 @@
 
 @section('content')
     <section class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 text-white">
-        <div class="absolute inset-0 opacity-40" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'); background-size: cover; background-position: center;"></div>
+        <div class="absolute inset-0 opacity-40" style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'); background-size: cover; background-position: center;  opacity: 0.99;"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col lg:flex-row gap-10 items-center">
             <div class="lg:w-1/2 space-y-6">
                 <p class="uppercase text-sm tracking-[0.3em] text-white/70">Bienvenido a HOTEL PASA EL EXTRA INN</p>
                 <h1 class="text-4xl sm:text-5xl font-semibold leading-tight">Elige la categoría perfecta para tu estancia</h1>
-                 <img src="{{ asset('img/logo.png') }}" alt="Suite principal" class="h-56 w-56 object-cover">
+                 <img src="{{ asset('img/logo.png') }}" alt="Suite principal" class="h-64 w-64 object-cover">
                 <p class="text-white/80 text-lg">Descubre nuestras suites, habitaciones dobles y opciones ejecutivas. Tú seleccionas el tipo de habitación y nosotros asignamos la mejor opción disponible para tus fechas.</p>
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="#categorias" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-indigo-700 font-semibold shadow-lg shadow-indigo-900/30 hover:bg-slate-100 transition">
@@ -21,12 +21,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                         </svg>
                     </a>
-                    <a href="#cta-reservar" class="inline-flex items-center gap-2 text-white/80 hover:text-white transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                        </svg>
-                        Atención 24/7
-                    </a>
                 </div>
             </div>
             <div class="lg:w-1/2 grid grid-cols-2 gap-4">
@@ -34,10 +28,10 @@
                     <img src="{{ asset('img/habitacion_suite.jpg') }}" alt="Suite principal" class="h-full w-full object-cover">
                 </div>
                 <div class="rounded-3xl overflow-hidden shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80" alt="Lobby" class="h-full w-full object-cover">
+                    <img src="https://i.pinimg.com/originals/c4/8b/f4/c48bf455cba36fe5c187ff9abbe6c833.jpg" alt="Lobby" class="h-full w-full object-cover">
                 </div>
                 <div class="rounded-3xl overflow-hidden shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80" alt="Área lounge" class="h-full w-full object-cover">
+                    <img src="https://www.expedia.mx/stories/wp-content/uploads/2022/05/albercas-de-hotel-mexico-viceroy-los-cabos.jpg" alt="Área lounge" class="h-full w-full object-cover">
                 </div>
             </div>
         </div>

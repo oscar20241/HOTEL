@@ -88,12 +88,6 @@
                             </svg>
                             Crear una cuenta
                         </a>
-                        <div class="pt-4 border-t border-white/10 text-xs text-white/60">
-                            <p class="uppercase tracking-[0.4em] text-white/40 mb-2">Accesos de prueba</p>
-                            <p><span class="font-semibold text-white/80">Admin:</span> admin@hotel.com / password</p>
-                            <p><span class="font-semibold text-white/80">Recepción:</span> recepcion@hotel.com / password</p>
-                            <p><span class="font-semibold text-white/80">Huésped:</span> huesped@ejemplo.com / password</p>
-                        </div>
                     </div>
                 </div>
             </div>

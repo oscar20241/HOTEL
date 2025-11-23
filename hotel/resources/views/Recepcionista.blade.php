@@ -64,7 +64,7 @@
               <h6>Resultados de Ocupación:</h6>
               <div class="table-responsive">
                 <table class="table table-striped table-hover" id="tablaOcupacion">
-                  <thead class="table-dark">
+                  <thead class="table-white">
                     <tr>
                       <th>Habitación</th>
                       <th>Estado</th>

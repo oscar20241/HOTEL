@@ -106,7 +106,7 @@
                     <div class="grid sm:grid-cols-2 gap-4">
                         <div>
                             <label for="telefono" class="block text-sm font-semibold text-white/70">Teléfono</label>
-                            <input type="tel" id="telefono" name="telefono" value="{{ old('telefono') }}" required placeholder="55 1234 5678" class="mt-2 w-full rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-indigo-400">
+                            <input type="tel" id="telefono" name="telefono" value="{{ old('telefono') }}" required placeholder="55 1234 5678"  maxlength="10"  pattern="[0-9]{10}"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="mt-2 w-full rounded-xl border border-white/20 bg-white/10 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-indigo-400">
                         </div>
                         <div>
                             <label for="fecha_nacimiento" class="block text-sm font-semibold text-white/70">Fecha de nacimiento</label>

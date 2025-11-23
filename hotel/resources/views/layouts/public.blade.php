@@ -85,30 +85,11 @@
             <div>
                 <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Contacto</h4>
                 <ul class="space-y-1 text-sm text-slate-300">
-                    <li>Teléfono: (55) 1234 5678</li>
+                    <li>Teléfono: (329) 322-4850</li>
                     <li>Correo electrónico: reservas@pasaelextrainn.com</li>
-                    <li>Dirección: Av. Reforma 123, Ciudad de México</li>
+                   <li>Dirección: Av. Paseo de los cocoteros, Nuevo Vallarta, Nayarit, C.P. 63735, México</li>
                 </ul>
             </div>
-            <div>
-                <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Síguenos</h4>
-                <div class="flex items-center gap-3">
-                    <a href="#" class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition" aria-label="Instagram">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3h9A4.5 4.5 0 0121 7.5v9A4.5 4.5 0 0116.5 21h-9A4.5 4.5 0 013 16.5v-9A4.5 4.5 0 017.5 3zm9 4.5h.008v.008H16.5V7.5zM12 9.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
-                        </svg>
-                    </a>
-                    <a href="#" class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition" aria-label="Facebook">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
-                            <path d="M22 12.073C22 5.943 17.303 1 12 1S2 5.943 2 12.073c0 5.026 3.657 9.204 8.438 9.876v-6.987H7.898V12.07h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.774-1.63 1.562v1.846h2.773l-.443 2.892h-2.33v6.987C18.343 21.277 22 17.099 22 12.073z" />
-                        </svg>
-                    </a>
-                    <a href="#" class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition" aria-label="Twitter">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
-                            <path d="M20.135 7.55c.013.176.013.353.013.53 0 5.386-4.099 11.6-11.6 11.6-2.307 0-4.456-.676-6.26-1.84.33.04.648.053.99.053a8.2 8.2 0 005.086-1.75 4.1 4.1 0 01-3.83-2.846c.254.04.508.066.775.066.368 0 .736-.053 1.078-.14a4.092 4.092 0 01-3.282-4.013v-.053a4.14 4.14 0 001.854.516 4.094 4.094 0 01-1.821-3.41c0-.763.204-1.45.56-2.055a11.62 11.62 0 008.431 4.28 4.62 4.62 0 01-.102-.94 4.093 4.093 0 017.084-2.8 8.087 8.087 0 002.598-.99 4.096 4.096 0 01-1.8 2.257 8.18 8.18 0 002.35-.63 8.817 8.817 0 01-2.048 2.12z" />
-                        </svg>
-                    </a>
-                </div>
             </div>
         </div>
         <div class="border-t border-white/10 py-4 text-center text-xs text-slate-500">

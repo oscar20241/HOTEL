@@ -4,9 +4,10 @@
     use Illuminate\Support\Facades\Storage;
     use Illuminate\Support\Str;
 
-    $placeholderImage = 'https://images.unsplash.com/photo-1551776235-dde6d4829808?auto=format&fit=crop&w=1600&q=80';
+    // placeholder según el tipo REAL de la reservación
+    $placeholderImage = asset('img/habitacion_' . Str::slug($reservacion->habitacion->tipoHabitacion->nombre ?? 'sencilla') . '.jpg');
 
-    $tiposData = $tiposHabitacion->map(function ($tipo) use ($placeholderImage) {
+    $tiposData = $tiposHabitacion->map(function ($tipo) {
         $habitacionConImagen = $tipo->habitaciones->firstWhere('imagenPrincipal')
             ?? $tipo->habitaciones->first(fn($habitacion) => $habitacion->imagenes->isNotEmpty())
             ?? $tipo->habitaciones->first();
@@ -16,7 +17,8 @@
         } elseif ($habitacionConImagen?->imagenes->first()) {
             $imagenUrl = Storage::url($habitacionConImagen->imagenes->first()->ruta_imagen);
         } else {
-            $imagenUrl = $placeholderImage;
+            // busca por tipo (sencilla, doble, suite)
+            $imagenUrl = asset('img/habitacion_' . Str::slug($tipo->nombre) . '.jpg');
         }
 
         return [
@@ -33,6 +35,7 @@
     $imagenesReserva = $reservacion->habitacion->imagenes;
     $imagenActiva = $imagenesReserva->first();
 @endphp
+
 
 @section('content')
     <section class="relative bg-slate-900 text-white">
