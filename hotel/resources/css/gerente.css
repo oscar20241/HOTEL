@@ -344,30 +344,6 @@
 .filtro-input {
   backdrop-filter: blur(12px);
 }
-.fas.fa-home-user,
-.fas.fa-plus-circle,
-.fas.fa-calendar-day,
-.fas.fa-sign-in-alt,
-.fas.fa-sign-out-alt,
-.fas.fa-concierge-bell,
-.fas.fa-door-open,
-.fas.fa-filter,
-.fas.fa-search,
-.fas.fa-calendar-day,
-.fas.fa-bed,
-.fas.fa-edit,
-.fas.fa-save,
-.fas.fa-sync-alt,
-.fas.fa-hashtag,
-.fas.fa-home-user,
-.fas.fa-calendar-check,
-.fas.fa-calendar-times,
-.fas.fa-tag,
-.fas.fa-cog,
-.fas.fa-check,
-.fas.fa-eye,
-.fas.fa-sign-in-alt,
-.fas.fa-spinner,
 .fas.fa-exclamation-triangle,
 .fas.fa-calendar-times,
 .fas.fa-concierge-bell,
@@ -375,7 +351,8 @@
 .fas.fa-dollar-sign,
 .fas.fa-id-badge,
 .fas.fa-house-user,
-.fas.fa-door-closed {
+.fas.fa-door-closed,
+.fas.fa-calendar-check {
   color: rgb(214, 67, 240) !important;
 }
 

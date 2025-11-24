@@ -392,7 +392,8 @@
                                                 @endif
                                             @endif
                                             @if ($reservacion->puedeCancelarse())
-                                                <form method="POST" action="{{ route('reservaciones.destroy', $reservacion) }}" onsubmit="return confirm('¿Cancelar la reservación {{ $reservacion->codigo_reserva }}?');">
+                                                <!-- FORMULARIO MODIFICADO: Se eliminó el confirm() -->
+                                                <form method="POST" action="{{ route('reservaciones.destroy', $reservacion) }}" class="inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700">
