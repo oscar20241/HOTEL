@@ -64,6 +64,7 @@ class PublicHabitacionController extends Controller
     public function disponibilidad(Request $request, Habitacion $habitacion)
     {
         $bloques = [];
+        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
 
         if ($habitacion->estaEnMantenimiento()) {
             $bloques[] = [
@@ -76,7 +77,13 @@ class PublicHabitacionController extends Controller
         $reservacionIgnorada = $request->query('exclude_reservacion');
 
         $reservas = $habitacion->reservaciones()
-            ->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
+            ->where(function ($query) use ($pendienteReciente) {
+                $query->whereIn('estado', ['confirmada', 'activa'])
+                    ->orWhere(function ($q) use ($pendienteReciente) {
+                        $q->where('estado', 'pendiente')
+                            ->where('created_at', '>=', $pendienteReciente);
+                    });
+            })
             ->when($reservacionIgnorada, function ($query) use ($reservacionIgnorada) {
                 $query->where('id', '!=', $reservacionIgnorada);
             })
@@ -108,10 +115,17 @@ class PublicHabitacionController extends Controller
         $inicio = Carbon::today();
         $fin = (clone $inicio)->addDays(180);
         $reservacionIgnorada = $request->query('exclude_reservacion');
+        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
 
-        $tipoHabitacion->load(['habitaciones' => function ($query) use ($fin, $inicio) {
-            $query->with(['reservaciones' => function ($reservaQuery) use ($fin, $inicio) {
-                $reservaQuery->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
+        $tipoHabitacion->load(['habitaciones' => function ($query) use ($fin, $inicio, $pendienteReciente) {
+            $query->with(['reservaciones' => function ($reservaQuery) use ($fin, $inicio, $pendienteReciente) {
+                $reservaQuery->where(function ($query) use ($pendienteReciente) {
+                        $query->whereIn('estado', ['confirmada', 'activa'])
+                            ->orWhere(function ($q) use ($pendienteReciente) {
+                                $q->where('estado', 'pendiente')
+                                    ->where('created_at', '>=', $pendienteReciente);
+                            });
+                    })
                     ->where('fecha_entrada', '<', $fin->copy()->addDay())
                     ->where('fecha_salida', '>', $inicio);
             }]);
