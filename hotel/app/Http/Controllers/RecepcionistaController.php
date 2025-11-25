@@ -409,40 +409,54 @@ class RecepcionistaController extends Controller
         ]);
     }
 
+
+
     public function filtrarOcupacion(Request $request)
-    {
-        $data = $request->validate([
-            'inicio' => 'required|date',
-            'fin'    => 'required|date|after_or_equal:inicio',
-        ]);
+{
+    $data = $request->validate([
+        'inicio' => 'required|date',
+        'fin'    => 'required|date|after_or_equal:inicio',
+    ]);
 
-        $inicio = Carbon::parse($data['inicio']);
-        $fin    = Carbon::parse($data['fin']);
+    $inicio = Carbon::parse($data['inicio'])->startOfDay();
+    $fin    = Carbon::parse($data['fin'])->endOfDay();
 
-        $reservas = Reservacion::with(['user', 'habitacion'])
-            ->where(function ($query) use ($inicio, $fin) {
-                $query->where('fecha_entrada', '<=', $fin)
-                      ->where('fecha_salida', '>=', $inicio);
-            })
-            ->orderBy('fecha_entrada')
-            ->get();
+    // 👇 Solo contamos estados "vivos" para ocupación, NO cancelada
+    $estadosConsiderados = ['pendiente', 'confirmada', 'activa', 'completada'];
 
-        $resultados = $reservas->map(function ($reserva) {
-            $estadoOcupacion = in_array($reserva->estado, ['activa', 'confirmada'])
-                ? 'Ocupada'
-                : 'Reservada';
+    $reservas = Reservacion::with(['user', 'habitacion'])
+        ->whereIn('estado', $estadosConsiderados)
+        ->where(function ($query) use ($inicio, $fin) {
+            $query->where('fecha_entrada', '<=', $fin)
+                  ->where('fecha_salida', '>=', $inicio);
+        })
+        ->orderBy('fecha_entrada')
+        ->get();
 
-            return [
-                'habitacion' => optional($reserva->habitacion)->numero ?? 'N/A',
-                'estado'     => $estadoOcupacion,
-                'huesped'    => optional($reserva->user)->name ?? 'Huésped',
-                'entrada'    => optional($reserva->fecha_entrada)->format('Y-m-d'),
-                'salida'     => optional($reserva->fecha_salida)->format('Y-m-d'),
-            ];
-        });
+    $resultados = $reservas->map(function ($reserva) {
+        // 🔹 Cómo quieres mostrarlo en la tabla:
+        if (in_array($reserva->estado, ['activa', 'completada'])) {
+            $estadoOcupacion = 'Ocupada';
+        } elseif (in_array($reserva->estado, ['pendiente', 'confirmada'])) {
+            $estadoOcupacion = 'Reservada';
+        } else {
+            $estadoOcupacion = ucfirst($reserva->estado); // por si acaso
+        }
 
-        return response()->json($resultados);
-    }
+        return [
+            'habitacion' => optional($reserva->habitacion)->numero ?? 'N/A',
+            'estado'     => $estadoOcupacion,
+            'huesped'    => optional($reserva->user)->name ?? 'Huésped',
+            'entrada'    => optional($reserva->fecha_entrada)->format('Y-m-d'),
+            'salida'     => optional($reserva->fecha_salida)->format('Y-m-d'),
+        ];
+    });
+
+    return response()->json($resultados);
+}
+
+
+
 
     public function hacerCheckin(Request $request)
     {
