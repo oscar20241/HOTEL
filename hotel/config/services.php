@@ -42,5 +42,9 @@ return [
     'webhook_id' => env('PAYPAL_WEBHOOK_ID'), // opcional
 ],
 
+'brevo' => [
+    'api_key' => env('BREVO_API_KEY'),
+],
+
 
 ];
