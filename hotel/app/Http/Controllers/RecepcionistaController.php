@@ -40,7 +40,7 @@ class RecepcionistaController extends Controller
             ->get();
 
         // ⚠️ Asegúrate que la vista se llame resources/views/recepcionista.blade.php
-        return view('recepcionista', compact(
+        return view('Recepcionista', compact(
             'reservasPendientes',
             'habitacionesDisponibles',
             'tiposHabitacion',
