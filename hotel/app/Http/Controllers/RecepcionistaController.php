@@ -411,7 +411,7 @@ class RecepcionistaController extends Controller
 
 
 
-    public function filtrarOcupacion(Request $request)
+public function filtrarOcupacion(Request $request)
 {
     $data = $request->validate([
         'inicio' => 'required|date',
@@ -424,37 +424,57 @@ class RecepcionistaController extends Controller
     // Estados que SÍ cuentan para ocupación / reserva
     $estadosConsiderados = ['pendiente', 'confirmada', 'activa'];
 
-    $reservas = Reservacion::with(['user', 'habitacion'])
-        ->whereIn('estado', $estadosConsiderados)
-        ->where(function ($query) use ($inicio, $fin) {
-            // Cualquier reserva que se cruce con el rango [inicio, fin]
-            $query->where('fecha_entrada', '<=', $fin)
-                  ->where('fecha_salida', '>=', $inicio);
-        })
-        ->orderBy('fecha_entrada')
-        ->get();
+    // Traemos TODAS las habitaciones con SUS reservaciones en el rango
+    $habitaciones = Habitacion::with(['reservaciones' => function ($q) use ($inicio, $fin, $estadosConsiderados) {
+        $q->whereIn('estado', $estadosConsiderados)
+          ->where('fecha_entrada', '<=', $fin)
+          ->where('fecha_salida', '>=', $inicio)
+          ->with('user');
+    }])
+    ->orderBy('numero') // o por id si no tienes "numero"
+    ->get();
 
-    $resultados = $reservas->map(function ($reserva) {
+    $resultados = $habitaciones->map(function ($habitacion) {
+        // Por defecto la habitación está libre
+        $estadoOcupacion = 'Libre';
+        $huesped = '—';
+        $entrada = '—';
+        $salida  = '—';
 
-        // Traducción de estado interno → etiqueta para recepcionista
-        if ($reserva->estado === 'activa') {
-            $estadoOcupacion = 'Ocupada';      // ya hicieron check-in
-        } else {
-            // pendiente o confirmada dentro del rango
-            $estadoOcupacion = 'Reservada';
+        // Si tiene alguna reservación en el rango, decidimos el estado
+        if ($habitacion->reservaciones->isNotEmpty()) {
+
+            // Si hay alguna ACTIVA, esa es la importante
+            $reservaActiva = $habitacion->reservaciones
+                ->firstWhere('estado', 'activa');
+
+            // Si no hay activa, tomamos la primera (pendiente/confirmada)
+            $reserva = $reservaActiva ?? $habitacion->reservaciones->first();
+
+            if ($reserva->estado === 'activa') {
+                $estadoOcupacion = 'Ocupada';
+            } else {
+                // pendiente / confirmada
+                $estadoOcupacion = 'Reservada';
+            }
+
+            $huesped = optional($reserva->user)->name ?? 'Huésped';
+            $entrada = optional($reserva->fecha_entrada)->format('Y-m-d');
+            $salida  = optional($reserva->fecha_salida)->format('Y-m-d');
         }
 
         return [
-            'habitacion' => optional($reserva->habitacion)->numero ?? 'N/A',
+            'habitacion' => $habitacion->numero ?? $habitacion->id,
             'estado'     => $estadoOcupacion,
-            'huesped'    => optional($reserva->user)->name ?? 'Huésped',
-            'entrada'    => optional($reserva->fecha_entrada)->format('Y-m-d'),
-            'salida'     => optional($reserva->fecha_salida)->format('Y-m-d'),
+            'huesped'    => $huesped,
+            'entrada'    => $entrada,
+            'salida'     => $salida,
         ];
     });
 
     return response()->json($resultados);
 }
+
 
 
 
