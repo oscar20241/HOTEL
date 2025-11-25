@@ -64,7 +64,7 @@ class PublicHabitacionController extends Controller
     public function disponibilidad(Request $request, Habitacion $habitacion)
     {
         $bloques = [];
-        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
+        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 5));
 
         if ($habitacion->estaEnMantenimiento()) {
             $bloques[] = [
