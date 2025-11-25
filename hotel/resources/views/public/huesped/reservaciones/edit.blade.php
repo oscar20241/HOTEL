@@ -230,174 +230,170 @@
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const selectTipo = document.getElementById('tipo_habitacion_id');
-            const inpPersonas = document.getElementById('numero_huespedes');
-            const textoCapacidad = document.getElementById('texto-capacidad');
-            const tarifaNocheSpan = document.getElementById('tarifa_noche');
-            const nochesSpan = document.getElementById('noches');
-            const totalSpan = document.getElementById('precio_estimado');
-            const fechaEntradaInput = document.getElementById('fecha_entrada');
-            const fechaSalidaInput = document.getElementById('fecha_salida');
-            const previewImagen = document.getElementById('preview-imagen');
-            const previewTitulo = document.getElementById('preview-titulo');
-            const previewTipo = document.getElementById('preview-tipo');
-            const previewCapacidad = document.getElementById('preview-capacidad');
-            const previewEstado = document.getElementById('preview-estado');
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const selectTipo = document.getElementById('tipo_habitacion_id');
+        const inpPersonas = document.getElementById('numero_huespedes');
+        const textoCapacidad = document.getElementById('texto-capacidad');
+        const tarifaNocheSpan = document.getElementById('tarifa_noche');
+        const nochesSpan = document.getElementById('noches');
+        const totalSpan = document.getElementById('precio_estimado');
+        const fechaEntradaInput = document.getElementById('fecha_entrada');
+        const fechaSalidaInput = document.getElementById('fecha_salida');
+        const previewImagen = document.getElementById('preview-imagen');
+        const previewTitulo = document.getElementById('preview-titulo');
+        const previewTipo = document.getElementById('preview-tipo');
+        const previewCapacidad = document.getElementById('preview-capacidad');
+        const previewEstado = document.getElementById('preview-estado');
 
-            const disponibilidadActual = { bloques: [] };
-            let fpInstance = null;
-            let nightlyRate = parseFloat(selectTipo.selectedOptions[0]?.dataset.precio || '{{ number_format($reservacion->habitacion->tipoHabitacion->precio_actual, 2, '.', '') }}');
+        const disponibilidadActual = { bloques: [] };
+        let fpInstance = null;
+        let nightlyRate = parseFloat(selectTipo.selectedOptions[0]?.dataset.precio || '{{ number_format($reservacion->habitacion->tipoHabitacion->precio_actual, 2, '.', '') }}');
 
-            const updateResumen = (startDate, endDate) => {
-                if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
-                    nochesSpan.textContent = '0';
-                    totalSpan.textContent = '0.00';
-                    return;
-                }
+        const updateResumen = (startDate, endDate) => {
+            if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+                nochesSpan.textContent = '0';
+                totalSpan.textContent = '0.00';
+                return;
+            }
 
-                const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
-                nochesSpan.textContent = diff;
-                const total = diff > 0 ? diff * nightlyRate : 0;
-                totalSpan.textContent = total.toFixed(2);
-            };
+            const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+            nochesSpan.textContent = diff;
+            const total = diff > 0 ? diff * nightlyRate : 0;
+            totalSpan.textContent = total.toFixed(2);
+        };
 
-            const decorateDay = (dayElem) => {
-                const date = dayElem.dateObj.toISOString().slice(0, 10);
-                const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
+        const decorateDay = (dayElem) => {
+            const date = dayElem.dateObj.toISOString().slice(0, 10);
+            const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
 
-                dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
-                dayElem.style.borderRadius = '6px';
+            dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
+            dayElem.style.borderRadius = '6px';
 
-                const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
-                dayElem.dataset.baseLabel = baseLabel;
+            const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
+            dayElem.dataset.baseLabel = baseLabel;
 
-                if (bloque) {
-                    dayElem.classList.add(`is-${bloque.estado}`);
-                    const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
-                    dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
-                } else {
-                    dayElem.classList.add('is-disponible');
-                    dayElem.setAttribute('aria-label', baseLabel);
-                }
-            };
+            if (bloque) {
+                dayElem.classList.add(`is-${bloque.estado}`);
+                const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
+                dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
+            } else {
+                dayElem.classList.add('is-disponible');
+                dayElem.setAttribute('aria-label', baseLabel);
+            }
+        };
 
-            const inicializarCalendario = (bloques, defaultRange = null) => {
-                disponibilidadActual.bloques = bloques || [];
-                const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
+        const inicializarCalendario = (bloques, defaultRange = null) => {
+            disponibilidadActual.bloques = bloques || [];
+            const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
 
-                if (!fpInstance) {
-                    fpInstance = flatpickr('#rango-fechas', {
-                        mode: 'range',
-                        dateFormat: 'Y-m-d',
-                        minDate: 'today',
-                        disable: disabled,
-                        locale: {
-        rangeSeparator: ' a '
-    },
-                        defaultDate: defaultRange,
-                        onReady: (selectedDates, dateStr, instance) => {
-                            if (defaultRange && defaultRange.length === 2) {
-                                updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
-                            }
-                            instance.calendarContainer.classList.add('rounded-xl');
-                        },
-                        onChange: (dates) => {
-                            if (dates.length === 2) {
-                                const [start, end] = dates;
-                                fechaEntradaInput.value = start.toISOString().slice(0, 10);
-                                fechaSalidaInput.value = end.toISOString().slice(0, 10);
-                                updateResumen(start, end);
-                            } else {
-                                fechaEntradaInput.value = '';
-                                fechaSalidaInput.value = '';
-                                updateResumen(null, null);
-                            }
-                        },
-                        onDayCreate: function (_, __, ___, dayElem) {
-                            decorateDay(dayElem);
+            if (!fpInstance) {
+                fpInstance = flatpickr('#rango-fechas', {
+                    mode: 'range',
+                    dateFormat: 'Y-m-d',
+                    minDate: 'today',
+                    disable: disabled,
+                    locale: 'es',
+
+                    defaultDate: defaultRange,
+                    onReady: (selectedDates, dateStr, instance) => {
+                        if (defaultRange && defaultRange.length === 2) {
+                            updateResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
                         }
-                    });
-                } else {
-                    fpInstance.set('disable', disabled);
-                    fpInstance.redraw();
-                    const selectedDates = fpInstance.selectedDates;
-                    if (selectedDates.length === 2) {
-                        updateResumen(selectedDates[0], selectedDates[1]);
-                    } else {
-                        updateResumen(null, null);
+                        instance.calendarContainer.classList.add('rounded-xl');
+                    },
+                    onChange: (dates) => {
+                        if (dates.length === 2) {
+                            const [start, end] = dates;
+                            fechaEntradaInput.value = start.toISOString().slice(0, 10);
+                            fechaSalidaInput.value = end.toISOString().slice(0, 10);
+                            updateResumen(start, end);
+                        } else {
+                            fechaEntradaInput.value = '';
+                            fechaSalidaInput.value = '';
+                            updateResumen(null, null);
+                        }
+                    },
+                    onDayCreate: function (_, __, ___, dayElem) {
+                        decorateDay(dayElem);
                     }
-                }
-            };
-
-            const cargarDisponibilidad = (option) => {
-                if (!option) {
-                    inicializarCalendario([]);
-                    return;
-                }
-
-                const url = `${option.dataset.availability}?exclude_reservacion={{ $reservacion->id }}`;
-
-                fetch(url)
-                    .then((response) => response.ok ? response.json() : Promise.reject())
-                    .then((data) => {
-                        inicializarCalendario(data.bloques || [], [fechaEntradaInput.value, fechaSalidaInput.value]);
-                    })
-                    .catch(() => {
-                        inicializarCalendario([], [fechaEntradaInput.value, fechaSalidaInput.value]);
-                    });
-            };
-
-            const actualizarPreview = (option) => {
-                if (!option) {
-                    return;
-                }
-
-                const capacidad = option.dataset.capacidad;
-                const imagen = option.dataset.imagen;
-                const nombre = option.dataset.nombre;
-
-                previewImagen.src = imagen;
-                previewTitulo.textContent = nombre || option.textContent.split('·')[0].trim();
-                previewTipo.textContent = 'Asignaremos la mejor opción disponible dentro de esta categoría.';
-                previewCapacidad.textContent = `${capacidad} huéspedes`;
-                previewEstado.textContent = 'Automática';
-
-                inpPersonas.max = capacidad;
-                textoCapacidad.textContent = capacidad;
-                if (parseInt(inpPersonas.value, 10) > parseInt(capacidad, 10)) {
-                    inpPersonas.value = capacidad;
-                }
-            };
-
-            const actualizarTarifa = (option) => {
-                if (!option) {
-                    return;
-                }
-
-                nightlyRate = parseFloat(option.dataset.precio || nightlyRate);
-                tarifaNocheSpan.textContent = parseFloat(nightlyRate).toFixed(2);
-
-                const selectedDates = fpInstance ? fpInstance.selectedDates : [];
-                if (selectedDates && selectedDates.length === 2) {
+                });
+            } else {
+                fpInstance.set('disable', disabled);
+                fpInstance.redraw();
+                const selectedDates = fpInstance.selectedDates;
+                if (selectedDates.length === 2) {
                     updateResumen(selectedDates[0], selectedDates[1]);
+                } else {
+                    updateResumen(null, null);
                 }
-            };
+            }
+        };
 
-            const opcionInicial = selectTipo.selectedOptions[0];
-            actualizarPreview(opcionInicial);
-            inicializarCalendario([], [fechaEntradaInput.value, fechaSalidaInput.value]);
-            cargarDisponibilidad(opcionInicial);
-            actualizarTarifa(opcionInicial);
+        const cargarDisponibilidad = (option) => {
+            if (!option) {
+                inicializarCalendario([]);
+                return;
+            }
 
-            selectTipo.addEventListener('change', () => {
-                const option = selectTipo.selectedOptions[0];
-                actualizarPreview(option);
-                actualizarTarifa(option);
-                cargarDisponibilidad(option);
-            });
+            const url = `${option.dataset.availability}?exclude_reservacion={{ $reservacion->id }}`;
+
+            fetch(url)
+                .then((response) => response.ok ? response.json() : Promise.reject())
+                .then((data) => {
+                    inicializarCalendario(data.bloques || [], [fechaEntradaInput.value, fechaSalidaInput.value]);
+                })
+                .catch(() => {
+                    inicializarCalendario([], [fechaEntradaInput.value, fechaSalidaInput.value]);
+                });
+        };
+
+        const actualizarPreview = (option) => {
+            if (!option) return;
+
+            const capacidad = option.dataset.capacidad;
+            const imagen = option.dataset.imagen;
+            const nombre = option.dataset.nombre;
+
+            previewImagen.src = imagen;
+            previewTitulo.textContent = nombre || option.textContent.split('·')[0].trim();
+            previewTipo.textContent = 'Asignaremos la mejor opción disponible dentro de esta categoría.';
+            previewCapacidad.textContent = `${capacidad} huéspedes`;
+            previewEstado.textContent = 'Automática';
+
+            inpPersonas.max = capacidad;
+            textoCapacidad.textContent = capacidad;
+            if (parseInt(inpPersonas.value, 10) > parseInt(capacidad, 10)) {
+                inpPersonas.value = capacidad;
+            }
+        };
+
+        const actualizarTarifa = (option) => {
+            if (!option) return;
+
+            nightlyRate = parseFloat(option.dataset.precio || nightlyRate);
+            tarifaNocheSpan.textContent = parseFloat(nightlyRate).toFixed(2);
+
+            const selectedDates = fpInstance ? fpInstance.selectedDates : [];
+            if (selectedDates && selectedDates.length === 2) {
+                updateResumen(selectedDates[0], selectedDates[1]);
+            }
+        };
+
+        const opcionInicial = selectTipo.selectedOptions[0];
+        actualizarPreview(opcionInicial);
+        inicializarCalendario([], [fechaEntradaInput.value, fechaSalidaInput.value]);
+        cargarDisponibilidad(opcionInicial);
+        actualizarTarifa(opcionInicial);
+
+        selectTipo.addEventListener('change', () => {
+            const option = selectTipo.selectedOptions[0];
+            actualizarPreview(option);
+            actualizarTarifa(option);
+            cargarDisponibilidad(option);
         });
-    </script>
+    });
+</script>
 @endpush
