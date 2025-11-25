@@ -48,10 +48,17 @@ class StoreReservacionRequest extends FormRequest
             // ✅ Fechas válidas y sin traslapes
             $in  = Carbon::parse($this->fecha_entrada)->startOfDay();
             $out = Carbon::parse($this->fecha_salida)->startOfDay();
+            $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
 
             // Reglas de traslape (intervalos [in, out)):
             $solapa = $habitacion->reservaciones()
-                ->whereIn('estado', ['pendiente','confirmada','activa'])
+                ->where(function ($q) use ($pendienteReciente) {
+                    $q->whereIn('estado', ['confirmada', 'activa'])
+                      ->orWhere(function ($q2) use ($pendienteReciente) {
+                          $q2->where('estado', 'pendiente')
+                             ->where('created_at', '>=', $pendienteReciente);
+                      });
+                })
                 ->where(function($q) use ($in, $out) {
                     $q->whereBetween('fecha_entrada', [$in, $out->copy()->subDay()])
                       ->orWhereBetween('fecha_salida', [$in->copy()->addDay(), $out])
