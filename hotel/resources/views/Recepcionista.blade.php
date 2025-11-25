@@ -776,19 +776,25 @@
       return;
     }
 
-    resultados.forEach(r => {
-      const badgeClass = r.estado === 'Ocupada' ? 'bg-danger' : 'bg-success';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${r.habitacion}</td>
-        <td><span class="badge ${badgeClass}">${r.estado}</span></td>
-        <td>${r.huesped}</td>
-        <td>${r.entrada}</td>
-        <td>${r.salida}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+  resultados.forEach(r => {
+  const badgeClass =
+    r.estado === 'Ocupada'
+      ? 'bg-danger'
+      : r.estado === 'Reservada'
+        ? 'bg-warning text-dark'
+        : 'bg-success'; // Libre
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${r.habitacion}</td>
+    <td><span class="badge ${badgeClass}">${r.estado}</span></td>
+    <td>${r.huesped}</td>
+    <td>${r.entrada}</td>
+    <td>${r.salida}</td>
+  `;
+  tbody.appendChild(tr);
+});}
+  
 
   // ---------------- HISTORIAL DE RESERVAS ----------------
   const formHistorial = document.getElementById('formHistorial');
