@@ -1145,6 +1145,9 @@ let tipoHabitacionEditando = null;
 let habitacionMantenimientoId = null;
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+// Variables para el modal de confirmación de tarifas
+let tarifaAEliminar = null;
+
 // Mostrar modal para nueva/editar habitación
 function mostrarModalHabitacion(habitacionId = null) {
   habitacionEditando = habitacionId;
@@ -1769,12 +1772,38 @@ function editarTarifa(tarifaId) {
   mostrarModalTarifa(tarifaId);
 }
 
+// =============================================
+// NUEVO: FUNCIONES PARA MODAL DE CONFIRMACIÓN DE TARIFAS
+// =============================================
+
 function eliminarTarifa(tarifaId) {
-  if (!confirm('¿Eliminar esta tarifa dinámica?')) {
+  tarifaAEliminar = tarifaId;
+  mostrarModalConfirmacion();
+}
+
+function mostrarModalConfirmacion() {
+  const modal = document.getElementById('modalConfirmarEliminarTarifa');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function cerrarModalConfirmacion() {
+  const modal = document.getElementById('modalConfirmarEliminarTarifa');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  tarifaAEliminar = null;
+}
+
+// Esta función se ejecuta cuando confirman la eliminación
+function confirmarEliminacionTarifa() {
+  if (!tarifaAEliminar) {
+    cerrarModalConfirmacion();
     return;
   }
 
-  const deleteBtn = document.querySelector(`button[onclick="eliminarTarifa(${tarifaId})"]`);
+  const deleteBtn = document.querySelector(`button[onclick="eliminarTarifa(${tarifaAEliminar})"]`);
   const originalHtml = deleteBtn ? deleteBtn.innerHTML : null;
 
   if (deleteBtn) {
@@ -1782,7 +1811,7 @@ function eliminarTarifa(tarifaId) {
     deleteBtn.disabled = true;
   }
 
-  fetch(`/gerente/tarifas/${tarifaId}`, {
+  fetch(`/gerente/tarifas/${tarifaAEliminar}`, {
     method: 'DELETE',
     headers: {
       'Accept': 'application/json',
@@ -1799,7 +1828,7 @@ function eliminarTarifa(tarifaId) {
     .then(data => {
       if (data.success) {
         mostrarMensajeTarifas(data.message, 'success');
-        const fila = document.querySelector(`tr[data-tarifa-id="${tarifaId}"]`);
+        const fila = document.querySelector(`tr[data-tarifa-id="${tarifaAEliminar}"]`);
         if (fila) {
           fila.remove();
         }
@@ -1817,6 +1846,7 @@ function eliminarTarifa(tarifaId) {
         deleteBtn.innerHTML = originalHtml;
         deleteBtn.disabled = false;
       }
+      cerrarModalConfirmacion();
     });
 }
 
@@ -2172,6 +2202,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(searchTerm) ? '' : 'none';
       });
+    });
+  }
+
+  // =============================================
+  // NUEVO: LISTENERS PARA MODAL DE CONFIRMACIÓN DE TARIFAS
+  // =============================================
+  const btnConfirmar = document.getElementById('btnConfirmarEliminarTarifa');
+  if (btnConfirmar) {
+    btnConfirmar.addEventListener('click', confirmarEliminacionTarifa);
+  }
+
+  // Cerrar modal al hacer clic fuera
+  const modalConfirmacion = document.getElementById('modalConfirmarEliminarTarifa');
+  if (modalConfirmacion) {
+    modalConfirmacion.addEventListener('click', function(e) {
+      if (e.target === modalConfirmacion) {
+        cerrarModalConfirmacion();
+      }
     });
   }
 });
@@ -2617,6 +2665,27 @@ cardsInicio.forEach(card => {
   </div>
 </div>
 
+<!-- Modal de Confirmación para Eliminar Tarifa -->
+<div id="modalConfirmarEliminarTarifa" class="modal">
+  <div class="modal-contenido modal-sm">
+    <div class="text-center">
+      <div class="mb-3">
+        <i class="fas fa-exclamation-triangle fa-3x text-warning"></i>
+      </div>
+      <h4>Confirmar Eliminación</h4>
+      <p class="mb-4">¿Estás seguro de que deseas eliminar esta tarifa dinámica?</p>
+      
+      <div class="d-flex gap-3 justify-content-center">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalConfirmacion()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" id="btnConfirmarEliminarTarifa">
+          <i class="fas fa-trash"></i> Sí, Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
