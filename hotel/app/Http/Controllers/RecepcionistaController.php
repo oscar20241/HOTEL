@@ -435,13 +435,16 @@ class RecepcionistaController extends Controller
 
     $resultados = $reservas->map(function ($reserva) {
         // 🔹 Cómo quieres mostrarlo en la tabla:
-        if (in_array($reserva->estado, ['activa', 'completada'])) {
-            $estadoOcupacion = 'Ocupada';
-        } elseif (in_array($reserva->estado, ['pendiente', 'confirmada'])) {
-            $estadoOcupacion = 'Reservada';
-        } else {
-            $estadoOcupacion = ucfirst($reserva->estado); // por si acaso
-        }
+        if (in_array($reserva->estado, ['activa', 'confirmada'])) {
+    $estadoOcupacion = 'Ocupada';
+}
+elseif ($reserva->estado === 'pendiente') {
+    $estadoOcupacion = 'Reservada';
+}
+else {
+    // completada o cancelada → no ocupa
+    $estadoOcupacion = 'Libre';
+}
 
         return [
             'habitacion' => optional($reserva->habitacion)->numero ?? 'N/A',
