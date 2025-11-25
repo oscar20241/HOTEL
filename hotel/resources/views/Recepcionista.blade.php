@@ -205,13 +205,15 @@
     <div class="col-md-6">
       <label class="form-label">Tipo de Habitación:</label>
       <select name="tipo_habitacion_id" class="form-select" id="selectTipoHabitacion" required>
-        <option value="">Seleccione...</option>
-        @foreach($tiposHabitacion as $tipo)
-          <option value="{{ $tipo->id }}" data-capacidad="{{ $tipo->capacidad }}" {{ old('tipo_habitacion_id') == $tipo->id ? 'selected' : '' }}>
-            {{ $tipo->nombre }} - Capacidad: {{ $tipo->capacidad }} - ${{ number_format($tipo->precio_base, 2) }}
-          </option>
-        @endforeach
-      </select>
+  <option value="">Seleccione...</option>
+  @foreach($tiposHabitacion as $tipo)
+    <option value="{{ $tipo->id }}" data-capacidad="{{ $tipo->capacidad }}" {{ old('tipo_habitacion_id') == $tipo->id ? 'selected' : '' }}>
+      {{ $tipo->nombre }} - Capacidad: {{ $tipo->capacidad }} - 
+      ${{ number_format($tipo->precio_actual, 2) }}
+    </option>
+  @endforeach
+</select>
+
     </div>
 
     {{-- Personas --}}
