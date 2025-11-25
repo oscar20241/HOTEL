@@ -24,7 +24,8 @@ class RecepcionistaController extends Controller
         $hoy = Carbon::today();
 
         // ✅ Tu tabla tiene fecha_entrada / fecha_salida, NO fecha_checkin
-        $reservasPendientes = Reservacion::whereDate('fecha_entrada', $hoy)
+        $reservasPendientes = Reservacion::sinPendientesExpiradas()
+            ->whereDate('fecha_entrada', $hoy)
             ->whereIn('estado', ['pendiente', 'confirmada'])
             ->count();
 
@@ -309,7 +310,8 @@ class RecepcionistaController extends Controller
     {
         $hoy = Carbon::today();
 
-        $reservas = Reservacion::with(['user', 'habitacion.tipoHabitacion', 'pagos'])
+        $reservas = Reservacion::sinPendientesExpiradas()
+            ->with(['user', 'habitacion.tipoHabitacion', 'pagos'])
             ->whereDate('fecha_entrada', '<=', $hoy)
             ->whereDate('fecha_salida', '>=', $hoy)
             ->orderBy('fecha_entrada')
@@ -426,7 +428,8 @@ public function filtrarOcupacion(Request $request)
 
     // Traemos TODAS las habitaciones con SUS reservaciones en el rango
     $habitaciones = Habitacion::with(['reservaciones' => function ($q) use ($inicio, $fin, $estadosConsiderados) {
-        $q->whereIn('estado', $estadosConsiderados)
+        $q->sinPendientesExpiradas()
+          ->whereIn('estado', $estadosConsiderados)
           ->where('fecha_entrada', '<=', $fin)
           ->where('fecha_salida', '>=', $inicio)
           ->with('user');

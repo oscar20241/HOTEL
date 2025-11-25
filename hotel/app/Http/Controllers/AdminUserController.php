@@ -107,7 +107,8 @@ public function index(Request $request)
     }
 
     // Reservas del día (para tu tarjeta en "Inicio")
-    $reservasHoy = Reservacion::whereDate('fecha_entrada', $hoy)
+    $reservasHoy = Reservacion::sinPendientesExpiradas()
+        ->whereDate('fecha_entrada', $hoy)
         ->orWhereDate('fecha_salida', $hoy)
         ->count();
 
@@ -751,6 +752,7 @@ public function storeHabitacion(Request $request)
         $fin = Carbon::parse($request->fecha_fin);
 
         $conflictoReservas = $habitacion->reservaciones()
+            ->sinPendientesExpiradas()
             ->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
             ->where('fecha_entrada', '<', $fin->copy()->addDay())
             ->where('fecha_salida', '>', $inicio)
