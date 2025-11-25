@@ -4,34 +4,28 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Mail\MailManager;
-use App\Mail\BrevoTransport;
-
-
-
+use Carbon\Carbon;
+use Carbon\CarbonInterval;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
+    public function register()
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(MailManager $mailManager)
-{
-    $mailManager->extend('brevo', function ($config) {
-        $apiKey = config('services.brevo.api_key');
+    {
+        // Registrar driver Brevo
+        $mailManager->extend('brevo', function ($config) {
+            $apiKey = config('services.brevo.api_key');
 
-        // 👇 Esto es lo importante: regresar el TRANSPORT, no un Mailer completo
-        return new BrevoTransport($apiKey);
-    });
-}
+            // Este return debe estar SOLO
+            return new BrevoTransport($apiKey);
+        });
 
-
-
+        // ESTE CÓDIGO NO VA ADENTRO DEL MAIL, VA AQUÍ
+        Carbon::setLocale('es');
+        CarbonInterval::setLocale('es');
+    }
 }

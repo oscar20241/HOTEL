@@ -96,7 +96,7 @@ class Habitacion extends Model
 
     public function estaDisponible($fechaEntrada, $fechaSalida, ?int $reservacionIgnorarId = null)
     {
-        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
+        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 5));
 
         // No disponible si está en mantenimiento
         if ($this->estaEnMantenimiento()) {
