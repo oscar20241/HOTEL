@@ -29,8 +29,8 @@ class GuestPortalController extends Controller
         }
 
         $tiposHabitacion = TipoHabitacion::with(['habitaciones' => function ($query) {
-                $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
-            }, 'tarifasDinamicas'])
+            $query->with(['imagenPrincipal', 'imagenes'])->orderBy('numero');
+        }, 'tarifasDinamicas'])
             ->orderBy('precio_base')
             ->get();
 
@@ -39,21 +39,28 @@ class GuestPortalController extends Controller
             ->get();
 
         $tipoPreferidoId = null;
+        $porPagina = (int) $request->input('por_pagina', 10);
+        $porPagina = in_array($porPagina, [10, 15]) ? $porPagina : 10;
 
-        $reservaciones = $user->reservaciones()
+        $reservacionesQuery = $user->reservaciones()
+            ->sinPendientesExpiradas()
             ->with([
                 'habitacion.tipoHabitacion',
                 'habitacion.imagenPrincipal',
                 'pagos' => fn ($query) => $query->where('estado', 'completado'),
             ])
-            ->orderByDesc('fecha_entrada')
-            ->get();
+            ->orderByDesc('fecha_entrada');
 
-        $proximaReservacion = $reservaciones
-            ->filter(fn ($reservacion) => in_array($reservacion->estado, ['pendiente', 'confirmada', 'activa'])
-                && ($reservacion->fecha_salida->isFuture() || $reservacion->fecha_salida->isToday()))
-            ->sortBy('fecha_entrada')
+        $proximaReservacion = (clone $reservacionesQuery)
+            ->whereIn('estado', ['pendiente', 'confirmada', 'activa'])
+            ->whereDate('fecha_salida', '>=', now()->toDateString())
+            ->orderBy('fecha_entrada')
             ->first();
+
+        $reservaciones = $reservacionesQuery
+            ->paginate($porPagina)
+            ->withQueryString()
+            ->fragment('mis-reservas');
 
         return view('public.huesped.dashboard', [
             'habitaciones' => $habitaciones,
