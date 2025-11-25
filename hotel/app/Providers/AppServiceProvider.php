@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Mail\MailManager;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
+use Illuminate\Support\Facades\App;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,13 +20,12 @@ class AppServiceProvider extends ServiceProvider
         // Registrar driver Brevo
         $mailManager->extend('brevo', function ($config) {
             $apiKey = config('services.brevo.api_key');
-
-            // Este return debe estar SOLO
             return new BrevoTransport($apiKey);
         });
 
-        // ESTE CÓDIGO NO VA ADENTRO DEL MAIL, VA AQUÍ
+        // Forzar español para fechas y mensajes del sistema
         Carbon::setLocale('es');
         CarbonInterval::setLocale('es');
+        App::setLocale('es'); // <- Esto hará que todos los mensajes de validación y auth estén en español
     }
 }
