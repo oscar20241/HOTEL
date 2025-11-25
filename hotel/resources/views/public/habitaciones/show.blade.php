@@ -349,243 +349,201 @@
 @endpush
 
 @push('scripts')
-    @once('flatpickr-lib')
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    @endonce
+   @once('flatpickr-lib')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+@endonce
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Carousel
-            document.querySelectorAll('[data-carousel]').forEach((carousel) => {
-                const slides = carousel.querySelectorAll('[data-carousel-slide]');
-                if (!slides.length) {
-                    return;
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Carousel
+    document.querySelectorAll('[data-carousel]').forEach((carousel) => {
+        const slides = carousel.querySelectorAll('[data-carousel-slide]');
+        if (!slides.length) return;
+
+        let current = 0;
+        const updateSlides = () => {
+            slides.forEach((slide, index) => {
+                const isActive = index === current;
+
+                if (isActive) {
+                    slide.classList.remove('hidden', 'opacity-0');
+                    requestAnimationFrame(() => slide.classList.add('opacity-100'));
+                } else {
+                    slide.classList.remove('opacity-100');
+                    slide.classList.add('opacity-0');
+
+                    const handler = (e) => {
+                        if (e.propertyName !== 'opacity') return;
+                        if (!slide.classList.contains('opacity-100')) slide.classList.add('hidden');
+                        slide.removeEventListener('transitionend', handler);
+                    };
+                    slide.addEventListener('transitionend', handler);
                 }
-
-                let current = 0;
-                const updateSlides = () => {
-    slides.forEach((slide, index) => {
-        const isActive = index === current;
-
-        if (isActive) {
-            // Slide ACTIVA
-            slide.classList.remove('hidden', 'opacity-0');
-            requestAnimationFrame(() => {
-                slide.classList.add('opacity-100');
             });
-        } else {
-            // Slide INACTIVA
-            slide.classList.remove('opacity-100');
-            slide.classList.add('opacity-0');
 
-            const handler = (e) => {
-                // Nos aseguramos de que sea la transición de opacity
-                if (e.propertyName !== 'opacity') return;
+            const thumbs = carousel.querySelectorAll('[data-carousel-thumb]');
+            thumbs.forEach((thumb, index) => {
+                thumb.classList.toggle('is-active', index === current);
+                thumb.classList.toggle('border-indigo-500', index === current);
+            });
+        };
 
-                // Solo ocultamos si sigue inactiva
-                if (!slide.classList.contains('opacity-100')) {
-                    slide.classList.add('hidden');
-                }
+        carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
+            current = (current + 1) % slides.length;
+            updateSlides();
+        });
 
-                slide.removeEventListener('transitionend', handler);
-            };
+        carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
+            current = (current - 1 + slides.length) % slides.length;
+            updateSlides();
+        });
 
-            slide.addEventListener('transitionend', handler);
-        }
-    });
-
-    const thumbs = carousel.querySelectorAll('[data-carousel-thumb]');
-    thumbs.forEach((thumb, index) => {
-        if (index === current) {
-            thumb.classList.add('is-active', 'border-indigo-500');
-        } else {
-            thumb.classList.remove('is-active', 'border-indigo-500');
-        }
-    });
-};
-
-
-                carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
-                    current = (current + 1) % slides.length;
-                    updateSlides();
-                });
-
-                carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
-                    current = (current - 1 + slides.length) % slides.length;
-                    updateSlides();
-                });
-
-                carousel.querySelectorAll('[data-carousel-thumb]').forEach((thumb, index) => {
-                    thumb.addEventListener('click', () => {
-                        current = index;
-                        updateSlides();
-                    });
-                });
-
+        carousel.querySelectorAll('[data-carousel-thumb]').forEach((thumb, index) => {
+            thumb.addEventListener('click', () => {
+                current = index;
                 updateSlides();
             });
+        });
 
-            const rango = document.getElementById('rango-fechas');
-            if (!rango || !window.flatpickr) {
-                return;
-            }
+        updateSlides();
+    });
 
-            let capacidadMax = {{ (int) $capacidadMaxima }};
-            const precioNoche = parseFloat('{{ number_format($precioReferencia, 2, '.', '') }}');
-            const inpPersonas = document.getElementById('numero_huespedes');
-            const nochesSpan = document.getElementById('noches');
-            const precioSpan = document.getElementById('precio_estimado');
-            const fechaIn = document.getElementById('fecha_entrada');
-            const fechaOut = document.getElementById('fecha_salida');
+    const rango = document.getElementById('rango-fechas');
+    if (!rango || !window.flatpickr) return;
 
-            if (!nochesSpan || !precioSpan || !fechaIn || !fechaOut) {
-                return;
-            }
+    let capacidadMax = {{ (int) $capacidadMaxima }};
+    const precioNoche = parseFloat('{{ number_format($precioReferencia, 2, '.', '') }}');
+    const inpPersonas = document.getElementById('numero_huespedes');
+    const nochesSpan = document.getElementById('noches');
+    const precioSpan = document.getElementById('precio_estimado');
+    const fechaIn = document.getElementById('fecha_entrada');
+    const fechaOut = document.getElementById('fecha_salida');
 
-            if (inpPersonas) {
-                inpPersonas.setAttribute('max', capacidadMax);
-                inpPersonas.addEventListener('input', () => {
-                    let value = parseInt(inpPersonas.value || '1', 10);
-                    if (Number.isNaN(value) || value < 1) {
-                        value = 1;
-                    }
-                    if (value > capacidadMax) {
-                        value = capacidadMax;
-                    }
-                    inpPersonas.value = value;
-                });
-            }
+    if (!nochesSpan || !precioSpan || !fechaIn || !fechaOut) return;
 
-            const disponibilidadActual = { bloques: [] };
-            let fpInstance = null;
+    if (inpPersonas) {
+        inpPersonas.setAttribute('max', capacidadMax);
+        inpPersonas.addEventListener('input', () => {
+            let value = parseInt(inpPersonas.value || '1', 10);
+            if (Number.isNaN(value) || value < 1) value = 1;
+            if (value > capacidadMax) value = capacidadMax;
+            inpPersonas.value = value;
+        });
+    }
 
-            const actualizarResumen = (startDate, endDate) => {
-                if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
-                    nochesSpan.textContent = '0';
-                    precioSpan.textContent = '0.00';
-                    return;
-                }
+    const disponibilidadActual = { bloques: [] };
+    let fpInstance = null;
 
-                const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
-                nochesSpan.textContent = diff;
-                const total = diff > 0 ? diff * precioNoche : 0;
-                precioSpan.textContent = total.toFixed(2);
-            };
-
-            const decorateDay = (dayElem) => {
-                const date = dayElem.dateObj.toISOString().slice(0, 10);
-                const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
-
-                dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
-                dayElem.style.borderRadius = '6px';
-
-                const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
-                dayElem.dataset.baseLabel = baseLabel;
-
-                if (bloque) {
-                    dayElem.classList.add(`is-${bloque.estado}`);
-                    const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
-                    dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
-                } else {
-                    dayElem.classList.add('is-disponible');
-                    dayElem.setAttribute('aria-label', baseLabel);
-                }
-            };
-
-            const inicializarCalendario = (bloques, defaultRange = null) => {
-    disponibilidadActual.bloques = bloques || [];
-    const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
-
-    const localeEs = {
-        firstDayOfWeek: 1,
-        weekdays: {
-            shorthand: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
-            longhand: [
-                'Domingo',
-                'Lunes',
-                'Martes',
-                'Miércoles',
-                'Jueves',
-                'Viernes',
-                'Sábado'
-            ]
-        },
-        months: {
-            shorthand: [
-                'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-            ],
-            longhand: [
-                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-            ]
-        },
-        rangeSeparator: ' a ',
+    const actualizarResumen = (startDate, endDate) => {
+        if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+            nochesSpan.textContent = '0';
+            precioSpan.textContent = '0.00';
+            return;
+        }
+        const diff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        nochesSpan.textContent = diff;
+        const total = diff > 0 ? diff * precioNoche : 0;
+        precioSpan.textContent = total.toFixed(2);
     };
-                        defaultDate: defaultRange,
-                        onReady: (selectedDates, dateStr, instance) => {
-                            instance.calendarContainer.classList.add('rounded-xl');
-                            if (defaultRange && defaultRange.length === 2) {
-                                actualizarResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
-                            }
-                        },
-                        onChange: (dates) => {
-                            if (dates.length === 2) {
-                                const [start, end] = dates;
-                                fechaIn.value = start.toISOString().slice(0, 10);
-                                fechaOut.value = end.toISOString().slice(0, 10);
-                                actualizarResumen(start, end);
-                            } else {
-                                fechaIn.value = '';
-                                fechaOut.value = '';
-                                actualizarResumen(null, null);
-                            }
-                        },
-                        onDayCreate: (_, __, ___, dayElem) => {
-                            decorateDay(dayElem);
-                        },
-                    });
-                } else {
-                    fpInstance.set('disable', disabled);
-                    fpInstance.redraw();
+
+    const decorateDay = (dayElem) => {
+        const date = dayElem.dateObj.toISOString().slice(0, 10);
+        const bloque = (disponibilidadActual.bloques || []).find((b) => date >= b.from && date <= b.to);
+
+        dayElem.classList.remove('is-ocupada', 'is-mantenimiento', 'is-disponible');
+        dayElem.style.borderRadius = '6px';
+
+        const baseLabel = dayElem.dataset.baseLabel || dayElem.getAttribute('aria-label') || '';
+        dayElem.dataset.baseLabel = baseLabel;
+
+        if (bloque) {
+            dayElem.classList.add(`is-${bloque.estado}`);
+            const estadoTexto = bloque.estado === 'ocupada' ? 'Ocupada' : 'Mantenimiento';
+            dayElem.setAttribute('aria-label', `${baseLabel} – ${estadoTexto}`);
+        } else {
+            dayElem.classList.add('is-disponible');
+            dayElem.setAttribute('aria-label', baseLabel);
+        }
+    };
+
+    const inicializarCalendario = (bloques, defaultRange = null) => {
+        disponibilidadActual.bloques = bloques || [];
+        const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
+
+        const localeEs = {
+            firstDayOfWeek: 1,
+            weekdays: {
+                shorthand: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                longhand: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
+            },
+            months: {
+                shorthand: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+                longhand: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+            },
+            rangeSeparator: ' a ',
+        };
+
+        if (!fpInstance) {
+            fpInstance = flatpickr(rango, {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                disable: disabled,
+                locale: localeEs,
+                defaultDate: defaultRange,
+                onReady: (selectedDates, dateStr, instance) => {
+                    instance.calendarContainer.classList.add('rounded-xl');
                     if (defaultRange && defaultRange.length === 2) {
-                        fpInstance.setDate(defaultRange, true);
                         actualizarResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
                     }
-                }
-
-                if (!defaultRange) {
-                    actualizarResumen(null, null);
-                }
-            };
-
-            const endpoint = @json($tipo
-                ? route('tipos-habitacion.disponibilidad', $tipo)
-                : route('habitaciones.disponibilidad', $habitacion));
-            const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
-
-            fetch(endpoint)
-                .then((response) => (response.ok ? response.json() : Promise.reject()))
-                .then((data) => {
-                    if (typeof data.capacidad === 'number' && data.capacidad > 0) {
-                        capacidadMax = data.capacidad;
-                        if (inpPersonas) {
-                            inpPersonas.setAttribute('max', capacidadMax);
-                            let value = parseInt(inpPersonas.value || '1', 10);
-                            if (Number.isNaN(value) || value < 1) {
-                                value = 1;
-                            }
-                            if (value > capacidadMax) {
-                                value = capacidadMax;
-                            }
-                            inpPersonas.value = value;
-                        }
+                },
+                onChange: (dates) => {
+                    if (dates.length === 2) {
+                        const [start, end] = dates;
+                        fechaIn.value = start.toISOString().slice(0, 10);
+                        fechaOut.value = end.toISOString().slice(0, 10);
+                        actualizarResumen(start, end);
+                    } else {
+                        fechaIn.value = '';
+                        fechaOut.value = '';
+                        actualizarResumen(null, null);
                     }
-                    inicializarCalendario(data.bloques || [], defaultRange);
-                })
-                .catch(() => {
-                    inicializarCalendario([], defaultRange);
-                });
-        });
-    </script>
+                },
+                onDayCreate: (dateObj, dateStr, instance, dayElem) => {
+                    decorateDay(dayElem);
+                },
+            });
+        } else {
+            fpInstance.set('disable', disabled);
+            fpInstance.redraw();
+            if (defaultRange && defaultRange.length === 2) {
+                fpInstance.setDate(defaultRange, true);
+                actualizarResumen(new Date(defaultRange[0]), new Date(defaultRange[1]));
+            }
+        }
+
+        if (!defaultRange) actualizarResumen(null, null);
+    };
+
+    const endpoint = @json($tipo ? route('tipos-habitacion.disponibilidad', $tipo) : route('habitaciones.disponibilidad', $habitacion));
+    const defaultRange = (fechaIn.value && fechaOut.value) ? [fechaIn.value, fechaOut.value] : null;
+
+    fetch(endpoint)
+        .then((response) => response.ok ? response.json() : Promise.reject())
+        .then((data) => {
+            if (typeof data.capacidad === 'number' && data.capacidad > 0) {
+                capacidadMax = data.capacidad;
+                if (inpPersonas) {
+                    inpPersonas.setAttribute('max', capacidadMax);
+                    let value = parseInt(inpPersonas.value || '1', 10);
+                    if (Number.isNaN(value) || value < 1) value = 1;
+                    if (value > capacidadMax) value = capacidadMax;
+                    inpPersonas.value = value;
+                }
+            }
+            inicializarCalendario(data.bloques || [], defaultRange);
+        })
+        .catch(() => inicializarCalendario([], defaultRange));
+});
+</script>
 @endpush
