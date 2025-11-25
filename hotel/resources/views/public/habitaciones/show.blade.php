@@ -493,18 +493,35 @@
             };
 
             const inicializarCalendario = (bloques, defaultRange = null) => {
-                disponibilidadActual.bloques = bloques || [];
-                const disabled = (disponibilidadActual.bloques || []).map((b) => ({ from: b.from, to: b.to }));
+    disponibilidadActual.bloques = bloques || [];
+    const disabled = disponibilidadActual.bloques.map((b) => ({ from: b.from, to: b.to }));
 
-                if (!fpInstance) {
-                    fpInstance = flatpickr(rango, {
-                        mode: 'range',
-                        dateFormat: 'Y-m-d',
-                        minDate: 'today',
-                        disable: disabled,
-                                locale: {
-        rangeSeparator: ' a '
-    },
+    const localeEs = {
+        firstDayOfWeek: 1,
+        weekdays: {
+            shorthand: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+            longhand: [
+                'Domingo',
+                'Lunes',
+                'Martes',
+                'Miércoles',
+                'Jueves',
+                'Viernes',
+                'Sábado'
+            ]
+        },
+        months: {
+            shorthand: [
+                'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+            ],
+            longhand: [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ]
+        },
+        rangeSeparator: ' a ',
+    };
                         defaultDate: defaultRange,
                         onReady: (selectedDates, dateStr, instance) => {
                             instance.calendarContainer.classList.add('rounded-xl');
