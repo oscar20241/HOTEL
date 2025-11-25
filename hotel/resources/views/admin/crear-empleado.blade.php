@@ -83,14 +83,17 @@
                   <div class="valid-feedback" id="password_confirmation-success">✅ Contraseñas coinciden</div>
                 </div>
 
-                <div class="col-md-6">
+             <div class="col-md-6">
                   <label for="telefono" class="form-label">Teléfono <span class="text-danger">*</span></label>
-                  <input type="tel" class="form-control" id="telefono" name="telefono" value="{{ old('telefono') }}"
-                         placeholder="Ej. 555-123-4567" required oninput="validatePhone(this)">
+                  <input type="tel" class="form-control" id="telefono" name="telefono"
+                        value="{{ old('telefono') }}"
+                        placeholder="Ej. 555-123-4567" required
+                        pattern="[0-9]{10}" maxlength="10" inputmode="numeric"
+                        oninput="this.value = this.value.replace(/\D/g, '').slice(0, 10)">
                   <div class="invalid-feedback" id="telefono-error">❌ Por favor ingresa un número válido.</div>
                   <div class="valid-feedback" id="telefono-success">✅ Teléfono válido</div>
-                </div>
-
+              </div>
+                
                 <div class="col-md-6">
                   <label for="direccion" class="form-label">Dirección</label>
                   <input type="text" class="form-control" id="direccion" name="direccion" value="{{ old('direccion') }}"

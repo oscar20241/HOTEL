@@ -40,7 +40,7 @@
     <section id="categorias" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <div>
-                <h2 class="text-3xl font-semibold text-slate-900">Descubre nuestra categorías de habitaciones</h2>
+                <h2 class="text-3xl font-semibold text-slate-900">Descubre nuestras categorías de habitaciones</h2>
                 <p class="mt-3 text-slate-500">Selecciona el tipo que más te guste. Confirmaremos una habitación disponible dentro de esa categoría para tus fechas.</p>
             </div>
             <div class="flex items-center gap-3 text-sm text-slate-500">

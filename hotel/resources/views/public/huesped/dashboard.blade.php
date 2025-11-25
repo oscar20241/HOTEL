@@ -281,8 +281,10 @@
                 <div class="rounded-3xl overflow-hidden shadow-xl">
                     <div class="h-full bg-gradient-to-br from-indigo-900 via-slate-900 to-black">
                         <div class="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.45),transparent_55%)] p-8 flex flex-col justify-end text-white">
-                            <img src="{{ asset('img/logo.png') }}" alt="" class="-mt-64 mb-64">
-                            <h3 class="text-2xl font-semibold">Experiencias en HOEL PASA EL EXTRA INN</h3>
+                            <div class="flex justify-center items-center h-64">
+                              <img src="{{ asset('img/logo.png') }}" alt="Logo" class="my-80 w-80">
+                             </div>
+                            <h3 class="text-2xl font-semibold">Experiencias en HOTEL PASA EL EXTRA INN</h3>
                             <p class="mt-3 text-sm text-white/80 max-w-sm">Disfruta del spa nocturno, cenas de autor y nuestro bar celestial con vista a la ciudad. Personaliza tu estancia en el formulario y lo haremos realidad.</p>
                             <p class="mt-6 text-xs uppercase tracking-[0.3em] text-white/60">Servicio disponible 24/7</p>
                         </div>
