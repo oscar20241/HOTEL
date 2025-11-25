@@ -48,7 +48,7 @@ class StoreReservacionRequest extends FormRequest
             // ✅ Fechas válidas y sin traslapes
             $in  = Carbon::parse($this->fecha_entrada)->startOfDay();
             $out = Carbon::parse($this->fecha_salida)->startOfDay();
-            $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
+            $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 5));
 
             // Reglas de traslape (intervalos [in, out)):
             $solapa = $habitacion->reservaciones()
