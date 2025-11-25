@@ -421,12 +421,13 @@ class RecepcionistaController extends Controller
     $inicio = Carbon::parse($data['inicio'])->startOfDay();
     $fin    = Carbon::parse($data['fin'])->endOfDay();
 
-    // 👇 Solo contamos estados "vivos" para ocupación, NO cancelada
-    $estadosConsiderados = ['pendiente', 'confirmada', 'activa', 'completada'];
+    // Estados que SÍ cuentan para ocupación / reserva
+    $estadosConsiderados = ['pendiente', 'confirmada', 'activa'];
 
     $reservas = Reservacion::with(['user', 'habitacion'])
         ->whereIn('estado', $estadosConsiderados)
         ->where(function ($query) use ($inicio, $fin) {
+            // Cualquier reserva que se cruce con el rango [inicio, fin]
             $query->where('fecha_entrada', '<=', $fin)
                   ->where('fecha_salida', '>=', $inicio);
         })
@@ -434,17 +435,14 @@ class RecepcionistaController extends Controller
         ->get();
 
     $resultados = $reservas->map(function ($reserva) {
-        // 🔹 Cómo quieres mostrarlo en la tabla:
-        if (in_array($reserva->estado, ['activa', 'confirmada'])) {
-    $estadoOcupacion = 'Ocupada';
-}
-elseif ($reserva->estado === 'pendiente') {
-    $estadoOcupacion = 'Reservada';
-}
-else {
-    // completada o cancelada → no ocupa
-    $estadoOcupacion = 'Libre';
-}
+
+        // Traducción de estado interno → etiqueta para recepcionista
+        if ($reserva->estado === 'activa') {
+            $estadoOcupacion = 'Ocupada';      // ya hicieron check-in
+        } else {
+            // pendiente o confirmada dentro del rango
+            $estadoOcupacion = 'Reservada';
+        }
 
         return [
             'habitacion' => optional($reserva->habitacion)->numero ?? 'N/A',
@@ -457,6 +455,7 @@ else {
 
     return response()->json($resultados);
 }
+
 
 
 
