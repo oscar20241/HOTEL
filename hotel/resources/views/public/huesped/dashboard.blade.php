@@ -301,12 +301,24 @@
                     <h2 class="text-3xl font-bold text-slate-900">Mis reservaciones</h2>
                     <p class="text-sm text-slate-500 mt-1">Consulta el historial y estado de tus estancias con nosotros.</p>
                 </div>
-                <a href="#reservar" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200 transition">
-                    Crear nueva
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </a>
+                <div class="flex items-center gap-4">
+                    <form action="{{ route('huesped.dashboard') }}#mis-reservas" method="GET" class="flex items-center gap-2 text-sm text-slate-600">
+                        <label for="por_pagina" class="font-semibold">Ver</label>
+                        <select id="por_pagina" name="por_pagina" class="rounded-full border-slate-200 focus:border-indigo-300 focus:ring-indigo-200 text-sm" onchange="this.form.submit()">
+                            <option value="10" {{ $reservaciones->perPage() === 10 ? 'selected' : '' }}>10 por página</option>
+                            <option value="15" {{ $reservaciones->perPage() === 15 ? 'selected' : '' }}>15 por página</option>
+                        </select>
+                        <noscript>
+                            <button type="submit" class="px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-semibold">Aplicar</button>
+                        </noscript>
+                    </form>
+                    <a href="#reservar" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold hover:bg-indigo-200 transition">
+                        Crear nueva
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </a>
+                </div>
             </div>
 
             <div class="mt-8 bg-white shadow-lg shadow-slate-200/60 rounded-3xl overflow-hidden">
@@ -416,6 +428,16 @@
                         </tbody>
                     </table>
                 </div>
+                @if ($reservaciones->hasPages())
+                    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50">
+                        <div class="flex items-center justify-between flex-wrap gap-3 text-sm text-slate-600">
+                            <p>Mostrando {{ $reservaciones->firstItem() }}-{{ $reservaciones->lastItem() }} de {{ $reservaciones->total() }} reservaciones</p>
+                            <div class="ml-auto">
+                                {{ $reservaciones->onEachSide(1)->links() }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </section>
