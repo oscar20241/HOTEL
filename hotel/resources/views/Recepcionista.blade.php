@@ -168,15 +168,18 @@
     <div class="col-md-4">
     <label class="form-label">Teléfono:</label>
     <input type="tel"
-           name="nuevo_telefono"
-           id="nuevoTelefono"
-           class="form-control"
-           value="{{ old('nuevo_telefono') }}"
-           placeholder="Ej. 322-555-1234"
-           maxlength="10"
-           pattern="[0-9]{10}"
-           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-           disabled>
+       name="nuevo_telefono"
+       id="nuevoTelefono"
+       class="form-control"
+       value="{{ old('nuevo_telefono') }}"
+       placeholder="Ej. 3225551234"
+       minlength="10"
+       maxlength="10"
+       pattern="[0-9]{10}"
+       title="El teléfono debe tener 10 dígitos"
+       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+       disabled>
+
 </div>
 
 
