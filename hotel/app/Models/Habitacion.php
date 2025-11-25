@@ -96,6 +96,8 @@ class Habitacion extends Model
 
     public function estaDisponible($fechaEntrada, $fechaSalida, ?int $reservacionIgnorarId = null)
     {
+        $pendienteReciente = now()->subMinutes(config('reservas.bloqueo_minutos', 30));
+
         // No disponible si está en mantenimiento
         if ($this->estaEnMantenimiento()) {
             return false;
@@ -103,7 +105,13 @@ class Habitacion extends Model
 
         // Verificar si hay reservaciones conflictivas (se permite excluir una reservación existente)
         return !$this->reservaciones()
-            ->whereIn('estado', ['confirmada', 'activa', 'pendiente'])
+            ->where(function ($query) use ($pendienteReciente) {
+                $query->whereIn('estado', ['confirmada', 'activa'])
+                    ->orWhere(function ($q) use ($pendienteReciente) {
+                        $q->where('estado', 'pendiente')
+                            ->where('created_at', '>=', $pendienteReciente);
+                    });
+            })
             ->when($reservacionIgnorarId, function ($query) use ($reservacionIgnorarId) {
                 $query->where('id', '!=', $reservacionIgnorarId);
             })
