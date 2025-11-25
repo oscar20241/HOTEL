@@ -2,6 +2,7 @@
 // app/Models/Reservacion.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -60,6 +61,19 @@ class Reservacion extends Model
     public function pagos()
     {
         return $this->hasMany(Pago::class);
+    }
+
+    public function scopeSinPendientesExpiradas(Builder $query): Builder
+    {
+        $limite = now()->subMinutes(config('reservas.bloqueo_minutos', 5));
+
+        return $query->where(function ($q) use ($limite) {
+            $q->where('estado', '!=', 'pendiente')
+                ->orWhere(function ($qq) use ($limite) {
+                    $qq->where('estado', 'pendiente')
+                        ->where('created_at', '>=', $limite);
+                });
+        });
     }
 
     protected function pagosCompletadosSum(): float

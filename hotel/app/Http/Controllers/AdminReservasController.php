@@ -27,6 +27,7 @@ class AdminReservasController extends Controller
         $hasta          = $request->date('hasta'); // Y-m-d
 
         $res = Reservacion::query()
+            ->sinPendientesExpiradas()
             ->with(['habitacion:id,numero','user:id,name,email'])
             ->when($habitacionId, fn($qq) => $qq->where('habitacion_id',$habitacionId))
             ->when($estado, fn($qq) => $qq->where('estado',$estado))
@@ -63,7 +64,9 @@ class AdminReservasController extends Controller
         $start        = $request->get('start'); // ISO de FullCalendar
         $end          = $request->get('end');
 
-        $query = Reservacion::query()->with(['habitacion:id,numero','user:id,name']);
+        $query = Reservacion::query()
+            ->sinPendientesExpiradas()
+            ->with(['habitacion:id,numero','user:id,name']);
 
         if ($habitacionId) $query->where('habitacion_id',$habitacionId);
         if ($estado)       $query->where('estado',$estado);
