@@ -295,7 +295,7 @@
                     dateFormat: 'Y-m-d',
                     minDate: 'today',
                     disable: disabled,
-                    locale: 'es',
+                     locale: flatpickr.l10ns.es,
 
                     defaultDate: defaultRange,
                     onReady: (selectedDates, dateStr, instance) => {
