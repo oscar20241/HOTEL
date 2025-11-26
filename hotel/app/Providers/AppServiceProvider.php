@@ -7,6 +7,7 @@ use Illuminate\Mail\MailManager;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\App;
+use App\Mail\BrevoTransport;
 
 class AppServiceProvider extends ServiceProvider
 {
